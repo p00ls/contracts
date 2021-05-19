@@ -1,4 +1,27 @@
 {
+  "name": "@p00ls/contracts",
+  "description": "",
+  "author": "Hadrien Croubois (@Amxx)",
+  "version": "0.0.1",
+  "license": "MIT",
+  "files": [
+    "/contracts/**/*.sol",
+    "/build/contracts/*.json"
+  ],
+  "scripts": {
+    "prepublish": "rimraf build contracts/build artifacts cache",
+    "prepare": "npm run compile",
+    "prepack": "scripts/prepack.sh",
+    "compile": "hardhat compile",
+    "test": "hardhat test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/p00ls/contracts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/p00ls/contracts/issues"
+  },
   "dependencies": {
     "@openzeppelin/contracts": "^4.1.0",
     "@openzeppelin/contracts-upgradeable": "^4.1.0"
