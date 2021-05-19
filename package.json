@@ -9,7 +9,7 @@
     "/build/contracts/*.json"
   ],
   "scripts": {
-    "prepublish": "rimraf build contracts/build artifacts cache",
+    "prepublish": "rimraf artifacts build cache generated",
     "prepare": "npm run compile",
     "prepack": "scripts/prepack.sh",
     "compile": "hardhat compile",
