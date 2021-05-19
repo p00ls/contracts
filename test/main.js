@@ -72,7 +72,7 @@ describe('Main', function () {
       ];
 
       // Construct merkletree
-      this.merkletree = new MerkleTree(this.allocations.map(hashAllocation), keccak256, { sortPairs: true });
+      this.merkletree = new MerkleTree(this.allocations.map(hashAllocation), keccak256, { sort: true });
 
       // Mint social token
       const { wait    } = await this.registry.createToken(this.accounts.artist.address, 'Hadrien Croubois', 'Amxx', this.merkletree.getHexRoot());

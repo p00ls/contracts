@@ -5,5 +5,4 @@ artifacts/
 cache/
 generated/
 
-package-lock.json
 .env*
