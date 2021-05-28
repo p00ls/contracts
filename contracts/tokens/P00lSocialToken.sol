@@ -10,7 +10,7 @@ import "./extensions/ERC1363Upgradeable.sol";
 contract P00lSocialToken is ERC20PermitUpgradeable, ERC1363Upgradeable, RegistryOwnable
 {
     bytes32 public merkleRoot;
-    mapping(address => bool) public claimed;
+    mapping(uint256 => uint256) private claimedBitMap;
 
     constructor()
     RegistryOwnable(IERC721(msg.sender))
@@ -25,13 +25,32 @@ contract P00lSocialToken is ERC20PermitUpgradeable, ERC1363Upgradeable, Registry
         merkleRoot = root;
     }
 
-    function claim(address account, uint256 amount, bytes32[] calldata proof)
+    function isClaimed(uint256 index)
+    public view returns (bool)
+    {
+        uint256 claimedWordIndex = index / 256;
+        uint256 claimedBitIndex = index % 256;
+        uint256 claimedWord = claimedBitMap[claimedWordIndex];
+        uint256 mask = (1 << claimedBitIndex);
+        return claimedWord & mask == mask;
+    }
+
+    function _setClaimed(uint256 index)
+    private
+    {
+        uint256 claimedWordIndex = index / 256;
+        uint256 claimedBitIndex = index % 256;
+        claimedBitMap[claimedWordIndex] = claimedBitMap[claimedWordIndex] | (1 << claimedBitIndex);
+    }
+
+    function claim(uint256 index, address account, uint256 amount, bytes32[] calldata merkleProof)
     external
     {
-        require(!claimed[account], "Token have already been claimed");
-        require(MerkleProof.verify(proof, merkleRoot, keccak256(abi.encodePacked(account, amount))), "Invalid merkle proof");
+        require(!isClaimed(index), "P00lSocialToken::claim: drop already claimed");
 
-        claimed[account] = true;
+        require(MerkleProof.verify(merkleProof, merkleRoot, keccak256(abi.encodePacked(index, account, amount))), "P00lSocialToken::claim: invalid merkle proof");
+
+        _setClaimed(index);
         _mint(account, amount);
     }
 }

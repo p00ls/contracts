@@ -13,8 +13,8 @@ async function attach(name, address) {
   return Contract.attach(address);
 }
 
-function hashAllocation({ account, amount }) {
-  return Buffer.from(ethers.utils.solidityKeccak256(['address', 'uint256'], [account, amount]).slice(2), 'hex');
+function hashAllocation({ index, account, amount }) {
+  return Buffer.from(ethers.utils.solidityKeccak256(['uint256', 'address', 'uint256'], [index, account, amount]).slice(2), 'hex');
 }
 
 
@@ -69,7 +69,7 @@ describe('Main', function () {
         //   account: ,
         //   amount: TARGETSUPPLY.mul(50).div(100),
         // },
-      ];
+      ].map((obj, index) => Object.assign(obj, { index }));
 
       // Construct merkletree
       this.merkletree = new MerkleTree(this.allocations.map(hashAllocation), keccak256, { sort: true });
@@ -97,7 +97,7 @@ describe('Main', function () {
     it('Claim social token', async function () {
       for (const allocation of this.allocations) {
         const proof = this.merkletree.getHexProof(hashAllocation(allocation));
-        await expect(this.token.claim(allocation.account, allocation.amount, proof))
+        await expect(this.token.claim(allocation.index, allocation.account, allocation.amount, proof))
           .to.emit(this.token, 'Transfer')
           .withArgs(ethers.constants.AddressZero, allocation.account, allocation.amount);
       }

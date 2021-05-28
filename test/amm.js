@@ -13,13 +13,13 @@ async function attach(name, address) {
   return Contract.attach(address);
 }
 
-function hashAllocation({ account, amount }) {
-  return Buffer.from(ethers.utils.solidityKeccak256(['address', 'uint256'], [account, amount]).slice(2), 'hex');
+function hashAllocation({ index, account, amount }) {
+  return Buffer.from(ethers.utils.solidityKeccak256(['uint256', 'address', 'uint256'], [index, account, amount]).slice(2), 'hex');
 }
 
 
 
-describe('Main', function () {
+describe('AMM', function () {
   beforeEach(async function () {
     this.accounts        = await ethers.getSigners();
     this.accounts.admin  = this.accounts.shift();
@@ -37,13 +37,13 @@ describe('Main', function () {
 
   describe('with social token', function () {
     beforeEach(async function () {
-      this.allocation = { account: this.accounts.user.address, amount: ethers.utils.parseEther('100') };
+      this.allocation = { index: 0, account: this.accounts.user.address, amount: ethers.utils.parseEther('100') };
       const merkletree = new MerkleTree([ hashAllocation(this.allocation) ], keccak256, { sort: true });
       const { wait    } = await this.registry.createToken(this.accounts.artist.address, 'Hadrien Croubois', 'Amxx', merkletree.getHexRoot());
       const { events  } = await wait();
       const { tokenId } = events.find(({ event }) => event === 'Transfer').args;
       this.token = await attach('P00lSocialToken', ethers.utils.hexlify(tokenId));
-      await this.token.claim(this.allocation.account, this.allocation.amount, merkletree.getHexProof(hashAllocation(this.allocation)))
+      await this.token.claim(this.allocation.index, this.allocation.account, this.allocation.amount, merkletree.getHexProof(hashAllocation(this.allocation)))
     });
 
     it('sanity check', async function () {
