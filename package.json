@@ -13,7 +13,9 @@
     "prepare": "npm run compile",
     "prepack": "scripts/prepack.sh",
     "compile": "hardhat compile",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "docker:build": "docker build . -t p00ls-contracts:latest",
+    "docker:run": "docker run -p 8545:8545 p00ls-contracts:latest"
   },
   "repository": {
     "type": "git",
