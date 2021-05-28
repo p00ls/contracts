@@ -4,9 +4,10 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "../utils/RegistryOwnable.sol";
+import "./extensions/ERC1363Upgradeable.sol";
 
 // TODO: use onlyOwner to perform admin operations
-contract P00lSocialToken is ERC20PermitUpgradeable, RegistryOwnable
+contract P00lSocialToken is ERC20PermitUpgradeable, ERC1363Upgradeable, RegistryOwnable
 {
     bytes32 public merkleRoot;
     mapping(address => bool) public claimed;
