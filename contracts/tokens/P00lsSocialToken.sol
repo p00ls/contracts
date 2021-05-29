@@ -7,7 +7,7 @@ import "../utils/RegistryOwnable.sol";
 import "./extensions/ERC1363Upgradeable.sol";
 
 // TODO: use onlyOwner to perform admin operations
-contract P00lSocialToken is ERC20PermitUpgradeable, ERC1363Upgradeable, RegistryOwnable
+contract P00lsSocialToken is ERC20PermitUpgradeable, ERC1363Upgradeable, RegistryOwnable
 {
     bytes32 public merkleRoot;
     mapping(uint256 => uint256) private claimedBitMap;
@@ -46,9 +46,9 @@ contract P00lSocialToken is ERC20PermitUpgradeable, ERC1363Upgradeable, Registry
     function claim(uint256 index, address account, uint256 amount, bytes32[] calldata merkleProof)
     external
     {
-        require(!isClaimed(index), "P00lSocialToken::claim: drop already claimed");
+        require(!isClaimed(index), "P00lsSocialToken::claim: drop already claimed");
 
-        require(MerkleProof.verify(merkleProof, merkleRoot, keccak256(abi.encodePacked(index, account, amount))), "P00lSocialToken::claim: invalid merkle proof");
+        require(MerkleProof.verify(merkleProof, merkleRoot, keccak256(abi.encodePacked(index, account, amount))), "P00lsSocialToken::claim: invalid merkle proof");
 
         _setClaimed(index);
         _mint(account, amount);

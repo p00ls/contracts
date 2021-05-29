@@ -20,7 +20,7 @@ function hashAllocation({ index, account, amount }) {
 
 
 const TARGETSUPPLY = ethers.utils.parseEther('1000000000'); // 1 billion tokens
-const BASEURI      = 'https://artists.p00l.com/';
+const BASEURI      = 'https://artists.p00ls.com/';
 
 
 
@@ -29,7 +29,7 @@ describe('Main', function () {
     this.accounts        = await ethers.getSigners();
     this.accounts.admin  = this.accounts.shift();
     this.accounts.artist = this.accounts.shift();
-    this.registry        = await deploy('P00lSocialRegistry', this.accounts.admin.address, 'P00l Artist Registry', 'P00lAR');
+    this.registry        = await deploy('P00lsSocialRegistry', this.accounts.admin.address, 'P00l Artist Registry', 'P00lAR');
     await this.registry.setBaseURI(BASEURI);
   });
 
@@ -78,7 +78,7 @@ describe('Main', function () {
       const { wait    } = await this.registry.createToken(this.accounts.artist.address, 'Hadrien Croubois', 'Amxx', this.merkletree.getHexRoot());
       const { events  } = await wait();
       const { tokenId } = events.find(({ event }) => event === 'Transfer').args;
-      this.token = await attach('P00lSocialToken', ethers.utils.hexlify(tokenId));
+      this.token = await attach('P00lsSocialToken', ethers.utils.hexlify(tokenId));
     });
 
     it('Check social token', async function () {

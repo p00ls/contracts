@@ -9,7 +9,7 @@ import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "./libraries/Math.sol";
 import "./libraries/UQ112x112.sol";
 
-contract P00lAMMPair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
+contract P00lsAMMPair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
     using UQ112x112 for uint224;
 
     uint256 public constant MINIMUM_LIQUIDITY = 10**3;
@@ -45,8 +45,8 @@ contract P00lAMMPair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
 
     // called once by the factory at time of deployment
     function initialize(address _token0, address _token1) external initializer() {
-        __ERC20_init('P00l LP Token', 'P00l-LP');
-        __ERC20Permit_init('P00l LP Token');
+        __ERC20_init('P00ls LP Token', 'P00ls-LP');
+        __ERC20Permit_init('P00ls LP Token');
         __ReentrancyGuard_init();
         token0 = _token0;
         token1 = _token1;

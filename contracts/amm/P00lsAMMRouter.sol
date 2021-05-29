@@ -8,7 +8,7 @@ import '../env/IWETH.sol';
 
 import './libraries/UniswapV2Library.sol';
 
-contract P00lAMMFactoryRouter {
+contract P00lsAMMFactoryRouter {
     address public immutable factory;
     address public immutable WETH;
 

@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
-import './P00lAMMPair.sol';
+import './P00lsAMMPair.sol';
 
-contract P00lAMMFactory is Ownable {
+contract P00lsAMMFactory is Ownable {
     address public immutable template;
     address public feeTo;
 
@@ -16,7 +16,7 @@ contract P00lAMMFactory is Ownable {
 
     constructor(address _admin) {
         transferOwnership(_admin);
-        template = address(new P00lAMMPair());
+        template = address(new P00lsAMMPair());
     }
 
     function allPairsLength() external view returns (uint) {
@@ -29,7 +29,7 @@ contract P00lAMMFactory is Ownable {
         require(token0 != address(0), 'UniswapV2: ZERO_ADDRESS');
         require(getPair[token0][token1] == address(0), 'UniswapV2: PAIR_EXISTS'); // single check is sufficient
         pair = Clones.cloneDeterministic(template, keccak256(abi.encodePacked(token0, token1)));
-        P00lAMMPair(pair).initialize(token0, token1);
+        P00lsAMMPair(pair).initialize(token0, token1);
         getPair[token0][token1] = pair;
         getPair[token1][token0] = pair; // populate mapping in the reverse direction
         allPairs.push(pair);

@@ -25,10 +25,10 @@ describe('AMM', function () {
     this.accounts.admin  = this.accounts.shift();
     this.accounts.artist = this.accounts.shift();
     this.accounts.user   = this.accounts.shift();
-    this.registry        = await deploy('P00lSocialRegistry', this.accounts.admin.address, 'P00l Artist Registry', 'P00lAR');
+    this.registry        = await deploy('P00lsSocialRegistry', this.accounts.admin.address, 'P00l Artist Registry', 'P00lAR');
     this.weth            = await deploy('WETH');
-    this.factory         = await deploy('P00lAMMFactory', this.accounts.admin.address);
-    this.router          = await deploy('P00lAMMFactoryRouter', this.factory.address, this.weth.address);
+    this.factory         = await deploy('P00lsAMMFactory', this.accounts.admin.address);
+    this.router          = await deploy('P00lsAMMFactoryRouter', this.factory.address, this.weth.address);
   });
 
   it('check', async function () {
@@ -42,7 +42,7 @@ describe('AMM', function () {
       const { wait    } = await this.registry.createToken(this.accounts.artist.address, 'Hadrien Croubois', 'Amxx', merkletree.getHexRoot());
       const { events  } = await wait();
       const { tokenId } = events.find(({ event }) => event === 'Transfer').args;
-      this.token = await attach('P00lSocialToken', ethers.utils.hexlify(tokenId));
+      this.token = await attach('P00lsSocialToken', ethers.utils.hexlify(tokenId));
       await this.token.claim(this.allocation.index, this.allocation.account, this.allocation.amount, merkletree.getHexProof(hashAllocation(this.allocation)))
     });
 
@@ -56,7 +56,7 @@ describe('AMM', function () {
       await expect(this.factory.createPair(this.weth.address, this.token.address))
         .to.emit(this.factory, 'PairCreated');
 
-      this.pair = await attach('P00lAMMPair' , await this.factory.getPair(this.weth.address, this.token.address));
+      this.pair = await attach('P00lsAMMPair' , await this.factory.getPair(this.weth.address, this.token.address));
 
       await expect(this.router.connect(this.accounts.user).addLiquidityETH(
         this.token.address,
