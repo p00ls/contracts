@@ -8,6 +8,7 @@ import './P00lsAMMPair.sol';
 contract P00lsAMMFactory is Ownable {
     address public immutable template;
     address public feeTo;
+    uint256 public delay;
 
     mapping(address => mapping(address => address)) public getPair;
     address[] public allPairs;
@@ -29,7 +30,7 @@ contract P00lsAMMFactory is Ownable {
         require(token0 != address(0), 'UniswapV2: ZERO_ADDRESS');
         require(getPair[token0][token1] == address(0), 'UniswapV2: PAIR_EXISTS'); // single check is sufficient
         pair = Clones.cloneDeterministic(template, keccak256(abi.encodePacked(token0, token1)));
-        P00lsAMMPair(pair).initialize(token0, token1);
+        P00lsAMMPair(pair).initialize(token0, token1, block.timestamp + delay);
         getPair[token0][token1] = pair;
         getPair[token1][token0] = pair; // populate mapping in the reverse direction
         allPairs.push(pair);
@@ -38,5 +39,9 @@ contract P00lsAMMFactory is Ownable {
 
     function setFeeTo(address _feeTo) external onlyOwner() {
         feeTo = _feeTo;
+    }
+
+    function setDelay(uint256 _delay) external onlyOwner() {
+        delay = _delay;
     }
 }

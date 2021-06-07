@@ -18,6 +18,7 @@ contract P00lsAMMPair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
     address public immutable factory;
     address public token0;
     address public token1;
+    uint256 public deadline; // P00ls addition
 
     uint112 private reserve0;           // uses single storage slot, accessible via getReserves
     uint112 private reserve1;           // uses single storage slot, accessible via getReserves
@@ -44,15 +45,16 @@ contract P00lsAMMPair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     // called once by the factory at time of deployment
-    function initialize(address _token0, address _token1) external initializer() {
+    function initialize(address _token0, address _token1, uint256 _deadline) public virtual initializer() {
         __ERC20_init('P00ls LP Token', 'P00ls-LP');
         __ERC20Permit_init('P00ls LP Token');
         __ReentrancyGuard_init();
         token0 = _token0;
         token1 = _token1;
+        deadline = _deadline;
     }
 
-    function getReserves() public view returns (uint112 _reserve0, uint112 _reserve1, uint32 _blockTimestampLast) {
+    function getReserves() public view virtual returns (uint112 _reserve0, uint112 _reserve1, uint32 _blockTimestampLast) {
         _reserve0 = reserve0;
         _reserve1 = reserve1;
         _blockTimestampLast = blockTimestampLast;
@@ -96,7 +98,7 @@ contract P00lsAMMPair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     // this low-level function should be called from a contract which performs important safety checks
-    function mint(address to) external nonReentrant() returns (uint liquidity) {
+    function mint(address to) public virtual nonReentrant() returns (uint liquidity) {
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
         uint balance0 = IERC20(token0).balanceOf(address(this));
         uint balance1 = IERC20(token1).balanceOf(address(this));
@@ -120,7 +122,7 @@ contract P00lsAMMPair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     // this low-level function should be called from a contract which performs important safety checks
-    function burn(address to) external nonReentrant() returns (uint amount0, uint amount1) {
+    function burn(address to) public virtual nonReentrant() returns (uint amount0, uint amount1) {
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
         address _token0 = token0;                                // gas savings
         address _token1 = token1;                                // gas savings
@@ -145,7 +147,9 @@ contract P00lsAMMPair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     // this low-level function should be called from a contract which performs important safety checks
-    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external nonReentrant() {
+    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) public virtual nonReentrant() {
+        require(deadline < block.timestamp, "Initial P00lsAMMPair restriction"); // P00ls addition
+
         require(amount0Out > 0 || amount1Out > 0, 'UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT');
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
         require(amount0Out < _reserve0 && amount1Out < _reserve1, 'UniswapV2: INSUFFICIENT_LIQUIDITY');
@@ -176,7 +180,7 @@ contract P00lsAMMPair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     // force balances to match reserves
-    function skim(address to) external nonReentrant() {
+    function skim(address to) public virtual nonReentrant() {
         address _token0 = token0; // gas savings
         address _token1 = token1; // gas savings
         SafeERC20.safeTransfer(IERC20(_token0), to, IERC20(_token0).balanceOf(address(this)) - reserve0);
@@ -184,7 +188,7 @@ contract P00lsAMMPair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     // force reserves to match balances
-    function sync() external nonReentrant() {
+    function sync() public virtual nonReentrant() {
         _update(IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)), reserve0, reserve1);
     }
 }
