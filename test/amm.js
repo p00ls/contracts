@@ -25,10 +25,10 @@ describe('AMM', function () {
     this.accounts.admin  = this.accounts.shift();
     this.accounts.artist = this.accounts.shift();
     this.accounts.user   = this.accounts.shift();
-    this.registry        = await deploy('P00lsSocialRegistry', this.accounts.admin.address, 'P00l Artist Registry', 'P00lAR');
+    this.registry        = await deploy('P00lsCreatorRegistry', this.accounts.admin.address, 'P00l Artist Registry', 'P00lAR');
     this.weth            = await deploy('WETH');
     this.factory         = await deploy('P00lsAMMFactory', this.accounts.admin.address);
-    this.router          = await deploy('P00lsAMMFactoryRouter', this.factory.address, this.weth.address);
+    this.router          = await deploy('UniswapV2Router02', this.factory.address, this.weth.address);
   });
 
   it('check', async function () {
@@ -42,7 +42,7 @@ describe('AMM', function () {
       const { wait    } = await this.registry.createToken(this.accounts.artist.address, 'Hadrien Croubois', 'Amxx', merkletree.getHexRoot());
       const { events  } = await wait();
       const { tokenId } = events.find(({ event }) => event === 'Transfer').args;
-      this.token = await attach('P00lsSocialToken', ethers.utils.hexlify(tokenId));
+      this.token = await attach('P00lsCreatorToken', ethers.utils.hexlify(tokenId));
       await this.token.claim(this.allocation.index, this.allocation.account, this.allocation.amount, merkletree.getHexProof(hashAllocation(this.allocation)))
     });
 

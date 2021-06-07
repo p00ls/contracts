@@ -9,7 +9,7 @@ import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "./libraries/Math.sol";
 import "./libraries/UQ112x112.sol";
 
-contract P00lsAMMPair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
+contract UniswapV2Pair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
     using UQ112x112 for uint224;
 
     uint256 public constant MINIMUM_LIQUIDITY = 10**3;
@@ -18,7 +18,6 @@ contract P00lsAMMPair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
     address public immutable factory;
     address public token0;
     address public token1;
-    uint256 public deadline; // P00ls addition
 
     uint112 private reserve0;           // uses single storage slot, accessible via getReserves
     uint112 private reserve1;           // uses single storage slot, accessible via getReserves
@@ -45,13 +44,12 @@ contract P00lsAMMPair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     // called once by the factory at time of deployment
-    function initialize(address _token0, address _token1, uint256 _deadline) public virtual initializer() {
+    function initialize(address _token0, address _token1) public virtual initializer() {
         __ERC20_init('P00ls LP Token', 'P00ls-LP');
         __ERC20Permit_init('P00ls LP Token');
         __ReentrancyGuard_init();
         token0 = _token0;
         token1 = _token1;
-        deadline = _deadline;
     }
 
     function getReserves() public view virtual returns (uint112 _reserve0, uint112 _reserve1, uint32 _blockTimestampLast) {
@@ -148,8 +146,6 @@ contract P00lsAMMPair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
 
     // this low-level function should be called from a contract which performs important safety checks
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) public virtual nonReentrant() {
-        require(deadline < block.timestamp, "Initial P00lsAMMPair restriction"); // P00ls addition
-
         require(amount0Out > 0 || amount1Out > 0, 'UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT');
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
         require(amount0Out < _reserve0 && amount1Out < _reserve1, 'UniswapV2: INSUFFICIENT_LIQUIDITY');

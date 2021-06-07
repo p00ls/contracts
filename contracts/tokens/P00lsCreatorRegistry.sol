@@ -5,11 +5,11 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "../utils/RegistryOwnable.sol";
-import "./P00lsSocialToken.sol";
+import "./P00lsCreatorToken.sol";
 
-contract P00lsSocialRegistry is ERC721URIStorage, RegistryOwnable
+contract P00lsCreatorRegistry is ERC721URIStorage, RegistryOwnable
 {
-    P00lsSocialToken immutable public template;
+    P00lsCreatorToken immutable public template;
 
     string internal __baseURI;
 
@@ -17,7 +17,7 @@ contract P00lsSocialRegistry is ERC721URIStorage, RegistryOwnable
     ERC721(_name, _symbol)
     RegistryOwnable(this)
     {
-        template = new P00lsSocialToken();
+        template = new P00lsCreatorToken();
         _mint(_admin, uint256(uint160(address(this))));
     }
 
@@ -25,7 +25,7 @@ contract P00lsSocialRegistry is ERC721URIStorage, RegistryOwnable
     external virtual onlyOwner() returns (address)
     {
         address instance = Clones.clone(address(template));
-        P00lsSocialToken(instance).initialize(name, symbol, root);
+        P00lsCreatorToken(instance).initialize(name, symbol, root);
         _mint(owner, uint256(uint160(instance)));
         return instance;
     }
