@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "../utils/RegistryOwnable.sol";
+import "../utils/BitMap.sol";
 import "../utils/ENSReverseRegistration.sol";
 import "./extensions/ERC1046Upgradeable.sol";
 import "./extensions/ERC1363Upgradeable.sol";
@@ -15,8 +16,10 @@ contract P00lsCreatorToken is
     ERC1363Upgradeable,
     RegistryOwnable
 {
+    using BitMap for BitMap.BitMap;
+
     bytes32 public merkleRoot;
-    mapping(uint256 => uint256) private claimedBitMap;
+    BitMap.BitMap private claimedBitMap;
 
     constructor()
     RegistryOwnable(IERC721(msg.sender))
@@ -32,31 +35,19 @@ contract P00lsCreatorToken is
     }
 
     function isClaimed(uint256 index)
-    public view returns (bool)
+    external view returns (bool)
     {
-        uint256 claimedWordIndex = index / 256;
-        uint256 claimedBitIndex = index % 256;
-        uint256 claimedWord = claimedBitMap[claimedWordIndex];
-        uint256 mask = (1 << claimedBitIndex);
-        return claimedWord & mask == mask;
-    }
-
-    function _setClaimed(uint256 index)
-    private
-    {
-        uint256 claimedWordIndex = index / 256;
-        uint256 claimedBitIndex = index % 256;
-        claimedBitMap[claimedWordIndex] = claimedBitMap[claimedWordIndex] | (1 << claimedBitIndex);
+        return claimedBitMap.isSet(index);
     }
 
     function claim(uint256 index, address account, uint256 amount, bytes32[] calldata merkleProof)
     external
     {
-        require(!isClaimed(index), "P00lsCreatorToken::claim: drop already claimed");
+        require(!claimedBitMap.isSet(index), "P00lsCreatorToken::claim: drop already claimed");
 
         require(MerkleProof.verify(merkleProof, merkleRoot, keccak256(abi.encodePacked(index, account, amount))), "P00lsCreatorToken::claim: invalid merkle proof");
 
-        _setClaimed(index);
+        claimedBitMap.set(index);
         _mint(account, amount);
     }
 
