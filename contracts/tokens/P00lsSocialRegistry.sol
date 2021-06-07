@@ -61,4 +61,8 @@ contract P00lsSocialRegistry is ERC721URIStorage, RegistryOwnable
     {
         return __baseURI;
     }
+
+    function setName(address ensregistry, string calldata ensname) external onlyOwner() {
+        ENSReverseRegistration.setName(ensregistry, ensname);
+    }
 }

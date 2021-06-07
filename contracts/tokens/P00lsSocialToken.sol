@@ -4,11 +4,13 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "../utils/RegistryOwnable.sol";
+import "../utils/ENSReverseRegistration.sol";
 import "./extensions/ERC1363Upgradeable.sol";
 
 // TODO: use onlyOwner to perform admin operations
 contract P00lsSocialToken is ERC20PermitUpgradeable, ERC1363Upgradeable, RegistryOwnable
 {
+    string public tokenURI;
     bytes32 public merkleRoot;
     mapping(uint256 => uint256) private claimedBitMap;
 
@@ -52,5 +54,17 @@ contract P00lsSocialToken is ERC20PermitUpgradeable, ERC1363Upgradeable, Registr
 
         _setClaimed(index);
         _mint(account, amount);
+    }
+
+    function setTokenURI(string calldata _tokenURI)
+    external onlyOwner()
+    {
+        tokenURI = _tokenURI;
+    }
+
+    function setName(address ensregistry, string calldata ensname)
+    external onlyOwner()
+    {
+        ENSReverseRegistration.setName(ensregistry, ensname);
     }
 }
