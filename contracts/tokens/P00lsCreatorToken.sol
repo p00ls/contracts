@@ -5,12 +5,16 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20Pe
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "../utils/RegistryOwnable.sol";
 import "../utils/ENSReverseRegistration.sol";
+import "./extensions/ERC1046Upgradeable.sol";
 import "./extensions/ERC1363Upgradeable.sol";
 
 // TODO: use onlyOwner to perform admin operations
-contract P00lsCreatorToken is ERC20PermitUpgradeable, ERC1363Upgradeable, RegistryOwnable
+contract P00lsCreatorToken is
+    ERC20PermitUpgradeable,
+    ERC1046Upgradeable,
+    ERC1363Upgradeable,
+    RegistryOwnable
 {
-    string public tokenURI;
     bytes32 public merkleRoot;
     mapping(uint256 => uint256) private claimedBitMap;
 
@@ -59,7 +63,7 @@ contract P00lsCreatorToken is ERC20PermitUpgradeable, ERC1363Upgradeable, Regist
     function setTokenURI(string calldata _tokenURI)
     external onlyOwner()
     {
-        tokenURI = _tokenURI;
+        _setTokenURI(_tokenURI);
     }
 
     function setName(address ensregistry, string calldata ensname)
