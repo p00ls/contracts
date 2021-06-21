@@ -10,17 +10,8 @@ contract P00lsCreatorRegistry is
     ERC721URIStorageUpgradeable,
     RegistryOwnableUpgradeable
 {
-    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
-    P00lsCreatorToken immutable public template;
-
+    address internal _template;
     string internal __baseURI;
-
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor()
-    initializer
-    {
-        template = new P00lsCreatorToken();
-    }
 
     function initialize(address _admin, string memory  _name, string memory  _symbol)
     external initializer
@@ -28,12 +19,14 @@ contract P00lsCreatorRegistry is
         __ERC721_init(_name, _symbol);
         __RegistryOwnable_init(address(this));
         _mint(_admin, uint256(uint160(address(this))));
+
+        _template = address(new P00lsCreatorToken());
     }
 
     function createToken(address owner, string calldata name, string calldata symbol, bytes32 root)
     external virtual onlyOwner() returns (address)
     {
-        address instance = Clones.clone(address(template));
+        address instance = Clones.clone(_template);
         P00lsCreatorToken(instance).initialize(name, symbol, root);
         _mint(owner, uint256(uint160(instance)));
         return instance;
