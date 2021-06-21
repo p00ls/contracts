@@ -1,36 +1,16 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
-const { MerkleTree } = require('merkletreejs');
-const keccak256 = require('keccak256');
 
-async function deploy(name, ...params) {
-  const Contract = await ethers.getContractFactory(name);
-  return await Contract.deploy(...params).then(f => f.deployed());
-}
-
-async function attach(name, address) {
-  const Contract = await ethers.getContractFactory(name);
-  return Contract.attach(address);
-}
-
-function hashAllocation({ index, account, amount }) {
-  return Buffer.from(ethers.utils.solidityKeccak256(['uint256', 'address', 'uint256'], [index, account, amount]).slice(2), 'hex');
-}
-
-
+const migrate = require('./utils/migrate.js')
+const merkle  = require('./utils/merkle.js')
 
 const TARGETSUPPLY = ethers.utils.parseEther('1000000000'); // 1 billion tokens
-const BASEURI      = 'https://artists.p00ls.com/';
-
-
 
 describe('Main', function () {
-  beforeEach(async function () {
-    this.accounts        = await ethers.getSigners();
-    this.accounts.admin  = this.accounts.shift();
+  migrate();
+
+  before(async function () {
     this.accounts.artist = this.accounts.shift();
-    this.registry        = await deploy('P00lsCreatorRegistry', this.accounts.admin.address, 'P00l Artist Registry', 'P00lAR');
-    await this.registry.setBaseURI(BASEURI);
   });
 
   it('check', async function () {
@@ -72,13 +52,13 @@ describe('Main', function () {
       ].map((obj, index) => Object.assign(obj, { index }));
 
       // Construct merkletree
-      this.merkletree = new MerkleTree(this.allocations.map(hashAllocation), keccak256, { sort: true });
+      this.merkletree = merkle.createMerkleTree(this.allocations.map(merkle.hashAllocation));
 
       // Mint social token
       const { wait    } = await this.registry.createToken(this.accounts.artist.address, 'Hadrien Croubois', 'Amxx', this.merkletree.getHexRoot());
       const { events  } = await wait();
       const { tokenId } = events.find(({ event }) => event === 'Transfer').args;
-      this.token = await attach('P00lsCreatorToken', ethers.utils.hexlify(tokenId));
+      this.token = await migrate.attach('P00lsCreatorToken', ethers.utils.hexlify(tokenId));
     });
 
     it('Check social token', async function () {
@@ -91,12 +71,12 @@ describe('Main', function () {
       expect(await this.registry.ownerOf(this.token.address))
         .to.be.equal(this.accounts.artist.address);
       expect(await this.registry.tokenURI(this.token.address))
-        .to.be.equal(`${BASEURI}${ethers.BigNumber.from(this.token.address).toString()}`);
+        .to.be.equal(`${migrate.CONFIG.registry.baseuri}${ethers.BigNumber.from(this.token.address).toString()}`);
     });
 
     it('Claim social token', async function () {
       for (const allocation of this.allocations) {
-        const proof = this.merkletree.getHexProof(hashAllocation(allocation));
+        const proof = this.merkletree.getHexProof(merkle.hashAllocation(allocation));
         await expect(this.token.claim(allocation.index, allocation.account, allocation.amount, proof))
           .to.emit(this.token, 'Transfer')
           .withArgs(ethers.constants.AddressZero, allocation.account, allocation.amount);

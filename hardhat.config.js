@@ -1,5 +1,6 @@
 require('@nomiclabs/hardhat-ethers');
 require('@nomiclabs/hardhat-waffle');
+require('@openzeppelin/hardhat-upgrades');
 require('hardhat-gas-reporter');
 require('dotenv').config();
 

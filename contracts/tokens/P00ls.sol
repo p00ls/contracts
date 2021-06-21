@@ -9,8 +9,13 @@ import "./extensions/ERC1363Upgradeable.sol";
 
 /* TODO: distribution & features */
 /* TODO: ERC20VotesUpgradeable or ERC20VotesCompUpgradeable → witing OZ 4.2 */
-contract P00ls is ERC20PermitUpgradeable, ERC1046Upgradeable, ERC1363Upgradeable, OwnableUpgradeable
+contract P00ls is
+    ERC20PermitUpgradeable,
+    ERC1046Upgradeable,
+    ERC1363Upgradeable,
+    OwnableUpgradeable
 {
+    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
     function initialize(string calldata name, string calldata symbol)
@@ -18,6 +23,7 @@ contract P00ls is ERC20PermitUpgradeable, ERC1046Upgradeable, ERC1363Upgradeable
     {
         __ERC20_init(name, symbol);
         __ERC20Permit_init(name);
+        __Ownable_init();
     }
 
     function setTokenURI(string calldata _tokenURI)

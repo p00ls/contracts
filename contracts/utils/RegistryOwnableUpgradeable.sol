@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-abstract contract RegistryOwnable {
-    IERC721 public immutable ownershipRegistry;
+abstract contract RegistryOwnableUpgradeable is Initializable {
+    IERC721 public ownershipRegistry;
 
     modifier onlyOwner() {
         require(owner() == msg.sender, "RegistryOwnable: caller is not the owner");
         _;
     }
 
-    constructor(address ownershipRegistry_) {
+    function __RegistryOwnable_init(address ownershipRegistry_) public initializer {
         ownershipRegistry = IERC721(ownershipRegistry_);
     }
 

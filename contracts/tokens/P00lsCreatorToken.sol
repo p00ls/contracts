@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import "../utils/RegistryOwnable.sol";
+import "../utils/RegistryOwnableUpgradeable.sol";
 import "../utils/BitMap.sol";
 import "../utils/ENSReverseRegistration.sol";
 import "./extensions/ERC1046Upgradeable.sol";
@@ -14,15 +14,15 @@ contract P00lsCreatorToken is
     ERC20PermitUpgradeable,
     ERC1046Upgradeable,
     ERC1363Upgradeable,
-    RegistryOwnable
+    RegistryOwnableUpgradeable
 {
     using BitMap for BitMap.BitMap;
 
     bytes32 public merkleRoot;
     BitMap.BitMap private claimedBitMap;
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor()
-    RegistryOwnable(IERC721(msg.sender))
     initializer
     {}
 
@@ -31,6 +31,7 @@ contract P00lsCreatorToken is
     {
         __ERC20_init(name, symbol);
         __ERC20Permit_init(name);
+        __RegistryOwnable_init(msg.sender);
         merkleRoot = root;
     }
 

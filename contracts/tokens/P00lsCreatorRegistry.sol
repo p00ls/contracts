@@ -1,23 +1,32 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "../utils/RegistryOwnable.sol";
+import "../utils/RegistryOwnableUpgradeable.sol";
 import "./P00lsCreatorToken.sol";
 
-contract P00lsCreatorRegistry is ERC721URIStorage, RegistryOwnable
+contract P00lsCreatorRegistry is
+    ERC721URIStorageUpgradeable,
+    RegistryOwnableUpgradeable
 {
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     P00lsCreatorToken immutable public template;
 
     string internal __baseURI;
 
-    constructor(address _admin, string memory  _name, string memory  _symbol)
-    ERC721(_name, _symbol)
-    RegistryOwnable(this)
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor()
+    initializer
     {
         template = new P00lsCreatorToken();
+    }
+
+    function initialize(address _admin, string memory  _name, string memory  _symbol)
+    external initializer
+    {
+        __ERC721_init(_name, _symbol);
+        __RegistryOwnable_init(address(this));
         _mint(_admin, uint256(uint160(address(this))));
     }
 
