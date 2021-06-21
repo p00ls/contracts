@@ -1,16 +1,5 @@
 const { ethers, upgrades } = require('hardhat');
-
-const CONFIG = {
-  token: {
-    name: 'P00ls token',
-    symbol: 'P00ls',
-  },
-  registry: {
-    name:   'P00l Artist Registry',
-    symbol: 'P00lAR',
-    baseuri: 'https://artists.p00ls.com/',
-  },
-};
+const CONFIG = require('../../scripts/config.json');
 
 async function attach(name, ...params) {
   const Contract = await ethers.getContractFactory(name);

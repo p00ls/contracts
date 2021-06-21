@@ -1,8 +1,8 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
-const migrate = require('./utils/migrate.js')
-const merkle  = require('./utils/merkle.js')
+const migrate = require('./utils/migrate.js');
+const merkle  = require('./utils/merkle.js');
 
 const TARGETSUPPLY = ethers.utils.parseEther('1000000000'); // 1 billion tokens
 
