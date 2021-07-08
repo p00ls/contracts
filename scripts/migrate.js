@@ -42,6 +42,12 @@ async function main() {
   ]);
   console.log(`Registry: ${registry.address}`);
 
+  // Creator token template
+  const template = await deploy('P00lsCreatorToken', [
+    registry.address,
+  ]);
+  console.log(`Template: ${registry.address}`);
+
   // Weth
   const weth     = await deploy('WETH');
   console.log(`WETH:     ${weth.address}`);
@@ -55,6 +61,7 @@ async function main() {
   console.log(`Router:   ${router.address}`);
 
   // CONFIG
+  await registry.upgradeTo(this.template.address);
   await registry.setBaseURI(CONFIG.registry.baseuri);
 }
 

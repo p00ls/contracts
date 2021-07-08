@@ -22,8 +22,8 @@ contract P00lsCreatorToken is
     BitMap.BitMap private claimedBitMap;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor()
-    RegistryOwnable(msg.sender)
+    constructor(address registry)
+    RegistryOwnable(registry)
     initializer
     {}
 

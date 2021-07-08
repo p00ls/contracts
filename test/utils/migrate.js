@@ -39,6 +39,12 @@ function migrate() {
       CONFIG.registry.name,
       CONFIG.registry.symbol,
     ]);
+    // Template
+    this.template = await deploy('P00lsCreatorToken', [
+      this.registry.address,
+    ]);
+    // Configure
+    await this.registry.connect(this.accounts.admin).upgradeTo(this.template.address);
     await this.registry.connect(this.accounts.admin).setBaseURI(CONFIG.registry.baseuri);
     // AMM
     this.amm         = {};
