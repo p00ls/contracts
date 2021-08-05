@@ -23,49 +23,41 @@ function performUpgrade(proxy, name, opts = {}) {
   return getFactory(name, opts).then(factory => upgrades.upgradeProxy(proxy.address, factory, {}));
 }
 
-async function main() {
+async function main(...stages) {
   const [ deployer ] = await ethers.getSigners();
   console.log(`Admin:    ${deployer.address}`);
 
-  // Token
-  const token = await deployUpgradeable('P00ls', 'transparent', [
-    CONFIG.token.name,
-    CONFIG.token.symbol,
-  ]);
-  console.log(`Token:    ${token.address}`);
+  for (const id of stages) {
+    console.log(`=== Deploying stage ${id}`);
 
-  // Creator token registry/factory
-  const registry = await deployUpgradeable('P00lsCreatorRegistry', 'transparent', [
-    deployer.address,
-    CONFIG.registry.name,
-    CONFIG.registry.symbol,
-  ]);
-  console.log(`Registry: ${registry.address}`);
+    switch (id) {
+      case 0:
+        // Creator token registry/factory
+        const registry = await deployUpgradeable('P00lsCreatorRegistry', 'transparent', [
+          deployer.address,
+          CONFIG.registry.name,
+          CONFIG.registry.symbol,
+        ]);
+        console.log(`Registry: ${registry.address}`);
 
-  // Creator token template
-  const template = await deploy('P00lsCreatorToken', [
-    registry.address,
-  ]);
-  console.log(`Template: ${template.address}`);
+        // Creator token template
+        const template = await deploy('P00lsCreatorToken', [
+          registry.address,
+        ]);
+        console.log(`Template: ${template.address}`);
 
-  // Weth
-  const weth     = await deploy('WETH');
-  console.log(`WETH:     ${weth.address}`);
+        // CONFIG
+        await registry.upgradeTo(template.address);
+        await registry.setBaseURI(CONFIG.registry.baseuri);
+        break;
 
-  // AMM Factory
-  const factory  = await deploy('P00lsAMMFactory', [ deployer.address ]);
-  console.log(`Factory:  ${factory.address}`);
-
-  // AMM Router
-  const router   = await deploy('UniswapV2Router02', [ factory.address, weth.address ]);
-  console.log(`Router:   ${router.address}`);
-
-  // CONFIG
-  await registry.upgradeTo(template.address);
-  await registry.setBaseURI(CONFIG.registry.baseuri);
+      default:
+        throw new Error(`Stage ${id} not implemented`);
+    }
+  }
 }
 
-main()
+main(0)
   .then(() => process.exit(0))
   .catch(error => {
     console.error(error);

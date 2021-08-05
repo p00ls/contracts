@@ -7,3 +7,4 @@ generated/
 
 .*
 !.github
+!.openzeppelin/goerli.json

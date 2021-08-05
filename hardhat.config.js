@@ -1,5 +1,6 @@
-require('@nomiclabs/hardhat-ethers');
 require('@nomiclabs/hardhat-waffle');
+require('@nomiclabs/hardhat-ethers');
+require('@nomiclabs/hardhat-etherscan');
 require('@openzeppelin/hardhat-upgrades');
 require('hardhat-gas-reporter');
 
@@ -27,7 +28,10 @@ module.exports = {
     ],
   },
   networks: {},
-  gasReporter: {
+  etherscan: {
+    apiKey: process.env.ETHERSCAN,
+  },
+	gasReporter: {
     currency: 'USD',
     coinmarketcap: process.env.COINMARKETCAP,
     gasPrice: 20,

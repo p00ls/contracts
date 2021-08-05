@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../utils/ENSReverseRegistration.sol";
 import "./extensions/ERC1046Upgradeable.sol";
 import "./extensions/ERC1363Upgradeable.sol";
 
 /* TODO: distribution & features */
-/* TODO: ERC20VotesUpgradeable or ERC20VotesCompUpgradeable → witing OZ 4.2 */
 contract P00ls is
-    ERC20PermitUpgradeable,
+    ERC20VotesUpgradeable,
     ERC1046Upgradeable,
     ERC1363Upgradeable,
     OwnableUpgradeable
@@ -36,5 +35,23 @@ contract P00ls is
     external onlyOwner()
     {
         ENSReverseRegistration.setName(ensregistry, ensname);
+    }
+
+    function _mint(address account, uint256 amount)
+    internal virtual override(ERC20Upgradeable, ERC20VotesUpgradeable)
+    {
+        super._mint(account, amount);
+    }
+
+    function _burn(address account, uint256 amount)
+    internal virtual override(ERC20Upgradeable, ERC20VotesUpgradeable)
+    {
+        super._burn(account, amount);
+    }
+
+    function _afterTokenTransfer(address from, address to, uint256 amount)
+    internal virtual override(ERC20Upgradeable, ERC20VotesUpgradeable)
+    {
+        super._afterTokenTransfer(from, to, amount);
     }
 }
