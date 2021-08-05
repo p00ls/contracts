@@ -11,8 +11,8 @@ contract P00lsCreatorRegistry is
     RegistryOwnableUpgradeable,
     IBeacon
 {
-    address internal _implementation;
-    string internal __baseURI;
+    address private __implementation;
+    string private __baseURI;
 
     event Upgraded(address indexed implementation);
 
@@ -81,13 +81,13 @@ contract P00lsCreatorRegistry is
     function implementation()
     external view override returns (address)
     {
-        return _implementation;
+        return __implementation;
     }
 
     function upgradeTo(address newImplementation)
     external onlyOwner()
     {
-        _implementation = newImplementation;
+        __implementation = newImplementation;
         emit Upgraded(newImplementation);
     }
 
