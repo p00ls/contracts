@@ -1,5 +1,6 @@
 const { ethers, upgrades } = require('hardhat');
 const CONFIG = require('./config.json');
+const DEBUG  = require('debug')('migration');
 
 async function getFactory(name, opts = {}) {
   return ethers.getContractFactory(name).then(contract => contract.connect(opts.signer || contract.signer));
@@ -26,7 +27,7 @@ function performUpgrade(proxy, name, opts = {}) {
 async function migrate() {
   const accounts = await ethers.getSigners();
   accounts.admin = accounts.shift();
-  console.log(`Admin:    ${accounts.admin.address}`);
+  DEBUG(`Admin:    ${accounts.admin.address}`);
 
   /*******************************************************************************************************************
    *                                              P00ls creator & token                                              *
@@ -37,13 +38,13 @@ async function migrate() {
     CONFIG.registry.name,
     CONFIG.registry.symbol,
   ]);
-  console.log(`Registry: ${registry.address}`);
+  DEBUG(`Registry: ${registry.address}`);
 
   // Creator token template
   const template = await deploy('P00lsCreatorToken', [
     registry.address,
   ]);
-  console.log(`Template: ${template.address}`);
+  DEBUG(`Template: ${template.address}`);
 
   // setup
   await Promise.all([
@@ -56,24 +57,25 @@ async function migrate() {
     .then(tx => tx.wait())
     .then(({ events }) => events.find(({ event }) => event === 'Transfer').args.tokenId);
   const token = await attach('P00lsCreatorToken', ethers.utils.hexlify(tokenId));
+  DEBUG(`Token:    ${token.address}`);
 
   /*******************************************************************************************************************
    *                                                   Environment                                                   *
    *******************************************************************************************************************/
   // Weth
   const weth     = await deploy('WETH');
-  console.log(`WETH:     ${weth.address}`);
+  DEBUG(`WETH:     ${weth.address}`);
 
   /*******************************************************************************************************************
    *                                                       AMM                                                       *
    *******************************************************************************************************************/
   // AMM Factory
   const factory  = await deploy('P00lsAMMFactory', [ accounts.admin.address ]);
-  console.log(`Factory:  ${factory.address}`);
+  DEBUG(`Factory:  ${factory.address}`);
 
   // AMM Router
   const router   = await deploy('UniswapV2Router02', [ factory.address, weth.address ]);
-  console.log(`Router:   ${router.address}`);
+  DEBUG(`Router:   ${router.address}`);
 
   return {
     accounts,

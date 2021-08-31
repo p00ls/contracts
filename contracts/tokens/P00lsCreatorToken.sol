@@ -9,7 +9,7 @@ import "../utils/ENSReverseRegistration.sol";
 import "./extensions/ERC1046Upgradeable.sol";
 import "./extensions/ERC1363Upgradeable.sol";
 
-// TODO: use onlyOwner to perform admin operations
+// TODO: use onlyOwner & onlyAdmin to perform admin operations
 contract P00lsCreatorToken is
     ERC20VotesUpgradeable,
     ERC1046Upgradeable,

@@ -12,12 +12,21 @@ abstract contract RegistryOwnableUpgradeable is Initializable {
         _;
     }
 
+    modifier onlyAdmin() {
+        require(admin() == msg.sender, "RegistryOwnable: caller is not the admin");
+        _;
+    }
+
     function __RegistryOwnable_init(address ownershipRegistry_) public initializer {
         ownershipRegistry = IERC721(ownershipRegistry_);
     }
 
     function owner() public view virtual returns (address) {
         return ownershipRegistry.ownerOf(uint256(uint160(address(this))));
+    }
+
+    function admin() public view virtual returns (address) {
+        return ownershipRegistry.ownerOf(uint256(uint160(address(ownershipRegistry))));
     }
 
     function transferOwnership(address newOwner) public virtual onlyOwner {
