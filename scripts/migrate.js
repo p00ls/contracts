@@ -23,20 +23,17 @@ function performUpgrade(proxy, name, opts = {}) {
   return getFactory(name, opts).then(factory => upgrades.upgradeProxy(proxy.address, factory, {}));
 }
 
-async function main() {
-  const [ deployer ] = await ethers.getSigners();
-  console.log(`Admin:    ${deployer.address}`);
+async function migrate() {
+  const accounts = await ethers.getSigners();
+  accounts.admin = accounts.shift();
+  console.log(`Admin:    ${accounts.admin.address}`);
 
-  // Token
-  const token = await deployUpgradeable('P00ls', 'transparent', [
-    CONFIG.token.name,
-    CONFIG.token.symbol,
-  ]);
-  console.log(`Token:    ${token.address}`);
-
+  /*******************************************************************************************************************
+   *                                              P00ls creator & token                                              *
+   *******************************************************************************************************************/
   // Creator token registry/factory
   const registry = await deployUpgradeable('P00lsCreatorRegistry', 'transparent', [
-    deployer.address,
+    accounts.admin.address,
     CONFIG.registry.name,
     CONFIG.registry.symbol,
   ]);
@@ -48,26 +45,63 @@ async function main() {
   ]);
   console.log(`Template: ${template.address}`);
 
+  // setup
+  await Promise.all([
+    registry.upgradeTo(template.address),
+    registry.setBaseURI(CONFIG.registry.baseuri),
+  ]);
+
+  // $00 as creator token
+  const tokenId = await registry.createToken(accounts.admin.address, CONFIG.token.name, CONFIG.token.symbol, ethers.constants.HashZero) // todo: merkle
+    .then(tx => tx.wait())
+    .then(({ events }) => events.find(({ event }) => event === 'Transfer').args.tokenId);
+  const token = await attach('P00lsCreatorToken', ethers.utils.hexlify(tokenId));
+
+  /*******************************************************************************************************************
+   *                                                   Environment                                                   *
+   *******************************************************************************************************************/
   // Weth
   const weth     = await deploy('WETH');
   console.log(`WETH:     ${weth.address}`);
 
+  /*******************************************************************************************************************
+   *                                                       AMM                                                       *
+   *******************************************************************************************************************/
   // AMM Factory
-  const factory  = await deploy('P00lsAMMFactory', [ deployer.address ]);
+  const factory  = await deploy('P00lsAMMFactory', [ accounts.admin.address ]);
   console.log(`Factory:  ${factory.address}`);
 
   // AMM Router
   const router   = await deploy('UniswapV2Router02', [ factory.address, weth.address ]);
   console.log(`Router:   ${router.address}`);
 
-  // CONFIG
-  await registry.upgradeTo(template.address);
-  await registry.setBaseURI(CONFIG.registry.baseuri);
+  return {
+    accounts,
+    registry,
+    template,
+    token,
+    weth,
+    amm: {
+      factory,
+      router,
+    }
+  };
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch(error => {
-    console.error(error);
-    process.exit(1);
-  });
+if (require.main === module) {
+  migrate()
+    .then(() => process.exit(0))
+    .catch(error => {
+      console.error(error);
+      process.exit(1);
+    });
+}
+
+module.exports = {
+  CONFIG,
+  migrate,
+  attach,
+  deploy,
+  deployUpgradeable,
+  performUpgrade,
+};

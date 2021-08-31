@@ -7,7 +7,7 @@ require('hardhat-gas-reporter');
 const argv = require('yargs/yargs')()
   .env('')
   .string('mnemonic')
-  .boolean('fork')
+  .string('fork')
   .boolean('slow')
   .argv;
 
@@ -29,12 +29,11 @@ module.exports = {
   },
   networks: {},
   etherscan: {
-    apiKey: process.env.ETHERSCAN,
+    apiKey: argv.etherscan,
   },
 	gasReporter: {
     currency: 'USD',
-    coinmarketcap: process.env.COINMARKETCAP,
-    gasPrice: 20,
+    coinmarketcap: argv.coinmarketcap,
   },
 };
 
@@ -48,5 +47,5 @@ Object.assign(
     'kovan',
   ].map(name => [ name, { url: argv[`${name}Node`], accounts: [ argv.mnemonic ]} ]).filter(([, { url} ]) => url)),
   argv.slow && { hardhat: { mining: { auto: false, interval: [3000, 6000] }}}, // Simulate a slow chain locally
-  argv.fork && { hardhat: { forking: { url: argv.mainnetNode }}}, // Simulate a mainnet fork
+  argv.fork && { hardhat: { forking: { url: argv.fork }}}, // Simulate a mainnet fork
 );

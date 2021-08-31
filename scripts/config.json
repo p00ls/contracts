@@ -1,11 +1,11 @@
 {
   "token": {
     "name": "P00ls token",
-    "symbol": "P00ls"
+    "symbol": "$00"
   },
   "registry": {
-    "name":   "P00ls Artist Registry",
-    "symbol": "P00lsAR",
+    "name":   "P00ls Creator Token Registry",
+    "symbol": "P00ls",
     "baseuri": "https://artists.p00ls.com/"
   }
 }
