@@ -16,6 +16,10 @@ contract P00lsCreatorRegistry is
 
     event Upgraded(address indexed implementation);
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() initializer
+    {}
+
     function initialize(address _admin, string memory  _name, string memory  _symbol)
     external initializer
     {

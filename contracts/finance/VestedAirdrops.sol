@@ -13,6 +13,7 @@ contract VestedAirdrops is
   Multicall
 {
   struct Schedule {
+    uint256 id; // salt
     address recipient;
     uint256 amount;
     uint256 start;
@@ -23,16 +24,16 @@ contract VestedAirdrops is
   mapping(bytes32 => bool)    private _airdrops;
   mapping(bytes32 => uint256) private _released;
 
-  event NewAirdrop(bytes32 root);
-  event TokensReleased(IERC20 indexed token, address indexed recipient, uint256 amount);
+  event Airdrop(bytes32 indexed airdrop, bool enabled);
+  event TokensReleased(bytes32 indexed airdrop, IERC20 indexed token, address indexed recipient, uint256 amount);
 
   constructor(address admin) {
     _setupRole(DEFAULT_ADMIN_ROLE, admin);
   }
 
-  function enableAirdrop(bytes32 root) external onlyRole(DEFAULT_ADMIN_ROLE) {
-    _airdrops[root] = true;
-    emit NewAirdrop(root);
+  function enableAirdrop(bytes32 root, bool enable) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    _airdrops[root] = enable;
+    emit Airdrop(root, enable);
   }
 
   function release(
@@ -51,7 +52,7 @@ contract VestedAirdrops is
     uint256 released   = _released[leaf];
     uint256 releasable = vested - released;
     _released[leaf] += releasable;
-    emit TokensReleased(token, schedule.recipient, schedule.amount);
+    emit TokensReleased(airdrop, token, schedule.recipient, schedule.amount);
 
     // do release (might have reentrancy)
     SafeERC20.safeTransfer(token, schedule.recipient, releasable);
