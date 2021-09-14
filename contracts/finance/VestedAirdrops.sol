@@ -14,6 +14,7 @@ contract VestedAirdrops is
 {
   struct Schedule {
     uint256 id; // salt
+    IERC20  token;
     address recipient;
     uint256 amount;
     uint256 start;
@@ -37,13 +38,12 @@ contract VestedAirdrops is
   }
 
   function release(
-    IERC20           token,
     Schedule  memory schedule,
     bytes32          airdrop, // TODO: remove when MerkleProof.getRoot becomes available
     bytes32[] memory proof
   ) external {
     // check input validity
-    bytes32 leaf = keccak256(abi.encode(token, schedule));
+    bytes32 leaf = keccak256(abi.encode(schedule));
     require(MerkleProof.verify(proof, airdrop, leaf));
     require(_airdrops[airdrop]);
 
@@ -52,10 +52,10 @@ contract VestedAirdrops is
     uint256 released   = _released[leaf];
     uint256 releasable = vested - released;
     _released[leaf] += releasable;
-    emit TokensReleased(airdrop, token, schedule.recipient, schedule.amount);
+    emit TokensReleased(airdrop, schedule.token, schedule.recipient, schedule.amount);
 
     // do release (might have reentrancy)
-    SafeERC20.safeTransfer(token, schedule.recipient, releasable);
+    SafeERC20.safeTransfer(schedule.token, schedule.recipient, releasable);
   }
 
   function vestedAmount(Schedule memory schedule, uint256 timestamp) public pure returns (uint256) {
