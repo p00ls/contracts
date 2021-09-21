@@ -24,9 +24,9 @@ describe('AMM', function () {
       beforeEach(async function () {
         this.auction = await this.amm.auction.start(this.token.address)
         .then(tx => tx.wait())
-        .then(receipt => receipt.events.find(({ event }) => event === 'DutchAuctionCreated'))
+        .then(receipt => receipt.events.find(({ event }) => event === 'AuctionCreated'))
         .then(event => event.args.auction)
-        .then(address => attach('DutchAuction', address));
+        .then(address => attach('Auction', address));
 
         expect(await this.amm.auction.getAuctionInstance(this.token.address)).to.be.equal(this.auction.address);
         expect(await this.token.balanceOf(this.amm.auction.address)).to.be.equal(this.allocation.amount.div(2));
@@ -35,7 +35,7 @@ describe('AMM', function () {
 
       it('finalize too early', async function () {
         await expect(this.amm.auction.finalize(this.token.address))
-        .to.be.revertedWith('DutchAuction: auction has not finished yet');
+        .to.be.revertedWith('Auction: auction has not finished yet');
       });
 
       it('finalize with funds', async function () {

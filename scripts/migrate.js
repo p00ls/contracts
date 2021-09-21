@@ -95,7 +95,7 @@ async function migrate() {
   DEBUG(`Router:   ${router.address}`);
 
   // DutchAuctionManager
-  const auction = await deploy('DutchAuctionManager', [ accounts.admin.address, router.address ]);
+  const auction = await deploy('AuctionManager', [ accounts.admin.address, router.address ]);
   DEBUG(`Auction:  ${auction.address}`);
 
   /*******************************************************************************************************************
