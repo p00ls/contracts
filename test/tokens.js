@@ -1,16 +1,13 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
-const { migrate, CONFIG, attach } = require('../scripts/migrate.js');
+const { migrate, CONFIG, attach, utils } = require('../scripts/migrate.js');
 
-const merkle  = require('./utils/merkle.js');
-
-const TARGETSUPPLY = ethers.utils.parseEther('1000000000'); // 1 billion tokens
-
-describe('Main', function () {
+describe('$Crea Token', function () {
   before(async function () {
     await migrate().then(env => Object.assign(this, env));
-    this.accounts.artist = this.accounts.shift();
+    this.accounts.reserve = this.accounts.shift();
+    this.accounts.artist  = this.accounts.shift();
   });
 
   it('check', async function () {
@@ -20,46 +17,28 @@ describe('Main', function () {
 
   describe('with collection', function () {
     beforeEach(async function () {
-      // Random weight to initial fans
-      const weights = Array(32).fill().map(() => ({
-        account: ethers.utils.getAddress(ethers.utils.hexlify(ethers.utils.randomBytes(20))),
-        weight:  ethers.utils.randomBytes(1)[0],
-      }));
-      weights.sum = weights.map(({ weight }) => weight).reduce((a, b) => a + b, 0);
-
       // Precompute allocations
       this.allocations = [
-        // 30% divided among initial followers
-        ...weights.map(({ account, weight }) => ({
-          account,
-          amount: TARGETSUPPLY.mul(30).div(100).mul(weight).div(weights.sum),
-        })),
-        // 10% for the artist
+        // 40% vesting (creator + user)
         {
-          account: this.accounts.artist.address,
-          amount: TARGETSUPPLY.mul(10).div(100),
+          account: this.vesting.address,
+          amount: CONFIG.TARGETSUPPLY.mul(40).div(100),
         },
-        // TODO: 10% for liquidity
-        // {
-        //   account: this.accounts.admin.address,
-        //   amount: TARGETSUPPLY.mul(10).div(100),
-        // },
-        // TOTO: 50% as a reserve
-        // {
-        //   account: ,
-        //   amount: TARGETSUPPLY.mul(50).div(100),
-        // },
+        // 10% AMM (+ dutch auction)
+        {
+          account: this.amm.auction.address,
+          amount: CONFIG.TARGETSUPPLY.mul(10).div(100),
+        },
+        // 50% staking & liquidity mining - TODO
+        {
+          account: this.accounts.reserve.address,
+          amount: CONFIG.TARGETSUPPLY.mul(50).div(100),
+        },
       ].map((obj, index) => Object.assign(obj, { index }));
 
       // Construct merkletree
-      this.merkletree = merkle.createMerkleTree(this.allocations.map(merkle.hashAllocation));
-
-      // Mint social token
-      const tokenId = await this.registry.createToken(this.accounts.artist.address, 'Hadrien Croubois', 'Amxx', this.merkletree.getHexRoot())
-        .then(tx => tx.wait())
-        .then(({ events }) => events.find(({ event }) => event === 'Transfer').args.tokenId);
-
-      this.creatortoken = await attach('P00lsCreatorToken', ethers.utils.hexlify(tokenId));
+      this.merkletree = utils.merkle.createMerkleTree(this.allocations.map(utils.merkle.hashAllocation));
+      this.creatortoken = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', 'Amxx', this.merkletree.getRoot());
     });
 
     it('Check social token', async function () {
@@ -77,11 +56,32 @@ describe('Main', function () {
 
     it('Claim social token', async function () {
       for (const allocation of this.allocations) {
-        const proof = this.merkletree.getHexProof(merkle.hashAllocation(allocation));
+        const proof = this.merkletree.getHexProof(utils.merkle.hashAllocation(allocation));
         await expect(this.creatortoken.claim(allocation.index, allocation.account, allocation.amount, proof))
           .to.emit(this.creatortoken, 'Transfer')
           .withArgs(ethers.constants.AddressZero, allocation.account, allocation.amount);
       }
     });
+
+    it.skip('User vesting', async function () {
+
+      // Random weight to initial fans
+      // const weights = Array(32).fill().map(() => ({
+      //   account: ethers.utils.getAddress(ethers.utils.hexlify(ethers.utils.randomBytes(20))),
+      //   weight:  ethers.utils.randomBytes(1)[0],
+      // }));
+      // weights.sum = weights.map(({ weight }) => weight).reduce((a, b) => a + b, 0);
+
+
+
+
+
+
+
+
+
+    });
+
+
   });
 });

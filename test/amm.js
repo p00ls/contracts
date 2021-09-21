@@ -1,9 +1,7 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
-const { migrate, attach } = require('../scripts/migrate.js');
-
-const merkle  = require('./utils/merkle.js');
+const { migrate, attach, utils } = require('../scripts/migrate.js');
 
 describe('AMM', function () {
   before(async function () {
@@ -14,48 +12,54 @@ describe('AMM', function () {
 
   describe('with social token', function () {
     beforeEach(async function () {
-      this.allocation = { index: 0, account: this.accounts.user.address, amount: ethers.utils.parseEther('100') };
-      const merkletree = merkle.createMerkleTree([ merkle.hashAllocation(this.allocation) ]);
-      const { wait    } = await this.registry.createToken(this.accounts.artist.address, 'Hadrien Croubois', 'Amxx', merkletree.getHexRoot());
-      const { events  } = await wait();
-      const { tokenId } = events.find(({ event }) => event === 'Transfer').args;
-      this.token = await attach('P00lsCreatorToken', ethers.utils.hexlify(tokenId));
-      await this.token.claim(this.allocation.index, this.allocation.account, this.allocation.amount, merkletree.getHexProof(merkle.hashAllocation(this.allocation)))
+      this.allocation = { index: 0, account: this.amm.auction.address, amount: ethers.utils.parseEther('100') };
+      this.merkletree = utils.merkle.createMerkleTree([ utils.merkle.hashAllocation(this.allocation) ]);
+      this.token      = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', 'Amxx', this.merkletree.getRoot());
+      await this.token.claim(this.allocation.index, this.allocation.account, this.allocation.amount, this.merkletree.getHexProof(utils.merkle.hashAllocation(this.allocation)))
+
+      expect(await this.token.balanceOf(this.amm.auction.address)).to.be.equal(this.allocation.amount);
     });
 
-    it('sanity check', async function () {
-      expect(await this.token.balanceOf(this.accounts.user.address)).to.be.equal(this.allocation.amount);
+    describe('with dutch auction', function () {
+      beforeEach(async function () {
+        this.auction = await this.amm.auction.start(this.token.address)
+        .then(tx => tx.wait())
+        .then(receipt => receipt.events.find(({ event }) => event === 'DutchAuctionCreated'))
+        .then(event => event.args.auction)
+        .then(address => attach('DutchAuction', address));
+
+        expect(await this.amm.auction.getAuctionInstance(this.token.address)).to.be.equal(this.auction.address);
+        expect(await this.token.balanceOf(this.amm.auction.address)).to.be.equal(this.allocation.amount.div(2));
+        expect(await this.token.balanceOf(this.auction.address)).to.be.equal(this.allocation.amount.div(2));
+      });
+
+      it('finalize too early', async function () {
+        await expect(this.amm.auction.finalize(this.token.address))
+        .to.be.revertedWith('DutchAuction: auction has not finished yet');
+      });
+
+      it('finalize with funds', async function () {
+        const value = ethers.utils.parseEther('1');
+
+        await this.accounts.user.sendTransaction({ to: this.auction.address, value });
+        await network.provider.send('evm_increaseTime', [ 24 * 86400 ]);
+
+        const tx                = await this.amm.auction.finalize(this.token.address);
+        const unipair           = await this.amm.factory.getPair(this.weth.address, this.token.address).then(address => attach('UniswapV2Pair', address));
+        const MINIMUM_LIQUIDITY = await unipair.MINIMUM_LIQUIDITY();
+
+        await expect(tx)
+        .to.emit(this.weth, 'Transfer').withArgs(ethers.constants.AddressZero, this.amm.router.address, value)
+        .to.emit(this.weth, 'Transfer').withArgs(this.amm.router.address, unipair.address, value)
+        .to.emit(this.token, 'Transfer').withArgs(this.amm.auction.address, unipair.address, this.allocation.amount.div(2))
+        .to.emit(unipair, 'Transfer')//.withArgs(ethers.constants.AddressZero, '0xdead', MINIMUM_LIQUIDITY)
+        .to.emit(unipair, 'Transfer')//.withArgs(ethers.constants.AddressZero, this.accounts.user.address, null);
+
+        expect(await this.token.balanceOf(this.amm.auction.address)).to.be.equal('0');
+        expect(await this.token.balanceOf(this.auction.address)).to.be.equal(this.allocation.amount.div(2));
+        expect(await this.token.balanceOf(unipair.address)).to.be.equal(this.allocation.amount.div(2));
+        expect(await this.weth.balanceOf(unipair.address)).to.be.equal(value);
+      });
     });
-
-    it('add liquidity', async function () {
-      await this.token.connect(this.accounts.user).approve(this.amm.router.address, ethers.utils.parseEther('1'));
-
-      await expect(this.amm.factory.createPair(this.weth.address, this.token.address))
-        .to.emit(this.amm.factory, 'PairCreated');
-
-      this.pair = await attach('P00lsAMMPair' , await this.amm.factory.getPair(this.weth.address, this.token.address));
-
-      await expect(this.amm.router.connect(this.accounts.user).addLiquidityETH(
-        this.token.address,
-        ethers.utils.parseEther('1'),
-        0,
-        0,
-        this.accounts.user.address,
-        ethers.constants.MaxUint256,
-        { value: ethers.utils.parseEther('1') },
-      ))
-      .to.not.be.reverted
-      // .to.emit(this.weth, 'Transfer').withArgs(ethers.constants.AddressZero, this.pair.address, ethers.utils.parseEther('1'))
-      // .to.emit(this.token, 'Transfer').withArgs(this.accounts.user.address, this.pair.address, ethers.utils.parseEther('1'))
-      // .to.emit(this.pair, 'Transfer').withArgs(ethers.constants.AddressZero, "0xdead", null)
-      // .to.emit(this.pair, 'Transfer').withArgs(ethers.constants.AddressZero, this.accounts.user.address, null)
-
-      const MINIMUM_LIQUIDITY = await this.pair.MINIMUM_LIQUIDITY();
-      expect(await this.token.balanceOf(this.pair.address)).to.be.equal(ethers.utils.parseEther('1'));
-      expect(await this.weth.balanceOf(this.pair.address)).to.be.equal(ethers.utils.parseEther('1'));
-      expect(await this.pair.balanceOf('0x000000000000000000000000000000000000dEaD')).to.be.equal(MINIMUM_LIQUIDITY);
-      expect(await this.pair.balanceOf(this.accounts.user.address)).to.be.equal(ethers.utils.parseEther('1').sub(MINIMUM_LIQUIDITY));
-    });
-
   });
 });

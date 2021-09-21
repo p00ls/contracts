@@ -3,7 +3,7 @@ const { expect } = require('chai');
 
 const { migrate, CONFIG } = require('../scripts/migrate.js');
 
-describe('Main', function () {
+describe('$00 Token', function () {
   before(async function () {
     await migrate().then(env => Object.assign(this, env));
   });

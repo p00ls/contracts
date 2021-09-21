@@ -1,5 +1,6 @@
 const { ethers, upgrades } = require('hardhat');
-const CONFIG = require('./config.json');
+const merkle = require('./utils/merkle');
+const CONFIG = require('./config');
 const DEBUG  = require('debug')('migration');
 
 async function getFactory(name, opts = {}) {
@@ -30,6 +31,14 @@ async function migrate() {
   DEBUG(`Admin:    ${accounts.admin.address}`);
 
   /*******************************************************************************************************************
+   *                                                     Vesting                                                     *
+   *******************************************************************************************************************/
+  const vesting = await deploy('VestedAirdrops', [
+    accounts.admin.address,
+  ]);
+  DEBUG(`Vesting:  ${vesting.address}`);
+
+  /*******************************************************************************************************************
    *                                              P00ls creator & token                                              *
    *******************************************************************************************************************/
   // Creator token registry/factory
@@ -52,33 +61,61 @@ async function migrate() {
     registry.setBaseURI(CONFIG.registry.baseuri),
   ]);
 
+  // token generation
+  const newCreatorToken = (admin, name, symbol, root) => registry.createToken(admin, name, symbol, root)
+  .then(tx => tx.wait())
+  .then(receipt => receipt.events.find(({ event }) => event === 'Transfer'))
+  .then(event => event.args.tokenId)
+  .then(tokenId => ethers.utils.getAddress(ethers.utils.hexlify(tokenId)))
+  .then(address => attach('P00lsCreatorToken', address));
+
   // $00 as creator token
-  const tokenId = await registry.createToken(accounts.admin.address, CONFIG.token.name, CONFIG.token.symbol, ethers.constants.HashZero) // todo: merkle
-    .then(tx => tx.wait())
-    .then(({ events }) => events.find(({ event }) => event === 'Transfer').args.tokenId);
-  const token = await attach('P00lsCreatorToken', ethers.utils.hexlify(tokenId));
+  const allocation = { index: 0, account: vesting.address, amount: CONFIG.TARGETSUPPLY };
+  const merkletree = merkle.createMerkleTree([ merkle.hashAllocation(allocation) ]);
+  const token = await newCreatorToken(accounts.admin.address, CONFIG.token.name, CONFIG.token.symbol, merkletree.getRoot());
   DEBUG(`Token:    ${token.address}`);
+  await token.claim(allocation.index, allocation.account, allocation.amount, merkletree.getHexProof(merkle.hashAllocation(allocation)))
 
   /*******************************************************************************************************************
    *                                                   Environment                                                   *
    *******************************************************************************************************************/
   // Weth
-  const weth     = await deploy('WETH');
+  const weth = await deploy('WETH');
   DEBUG(`WETH:     ${weth.address}`);
 
   /*******************************************************************************************************************
    *                                                       AMM                                                       *
    *******************************************************************************************************************/
-  // AMM Factory
-  const factory  = await deploy('P00lsAMMFactory', [ accounts.admin.address ]);
+  // Factory
+  const factory = await deploy('UniswapV2Factory', [ accounts.admin.address ]);
   DEBUG(`Factory:  ${factory.address}`);
 
-  // AMM Router
-  const router   = await deploy('UniswapV2Router02', [ factory.address, weth.address ]);
+  // Router
+  const router = await deploy('UniswapV2Router02', [ factory.address, weth.address ]);
   DEBUG(`Router:   ${router.address}`);
+
+  // DutchAuctionManager
+  const auction = await deploy('DutchAuctionManager', [ accounts.admin.address, router.address ]);
+  DEBUG(`Auction:  ${auction.address}`);
+
+  /*******************************************************************************************************************
+   *                                                      Roles                                                      *
+   *******************************************************************************************************************/
+   const roles = await Promise.all(Object.entries({
+    DEFAULT_ADMIN:   ethers.constants.HashZero,
+    PAIR_CREATOR:    factory.PAIR_CREATOR_ROLE(),
+    AUCTION_MANAGER: auction.AUCTION_MANAGER_ROLE(),
+  }).map(entry => Promise.all(entry))).then(Object.fromEntries);
+
+  await Promise.all([
+    factory.connect(accounts.admin).grantRole(roles.PAIR_CREATOR,    auction.address),
+    auction.connect(accounts.admin).grantRole(roles.AUCTION_MANAGER, accounts.admin.address),
+  ]);
 
   return {
     accounts,
+    roles,
+    vesting,
     registry,
     template,
     token,
@@ -86,6 +123,10 @@ async function migrate() {
     amm: {
       factory,
       router,
+      auction,
+    },
+    workflows: {
+      newCreatorToken,
     }
   };
 }
@@ -106,4 +147,7 @@ module.exports = {
   deploy,
   deployUpgradeable,
   performUpgrade,
+  utils: {
+    merkle,
+  },
 };

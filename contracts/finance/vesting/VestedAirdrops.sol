@@ -37,21 +37,25 @@ contract VestedAirdrops is
     emit Airdrop(root, enable);
   }
 
+  function released(Schedule  memory schedule) public view returns (uint256) {
+    return _released[keccak256(abi.encode(schedule))];
+  }
+
   function release(
     Schedule  memory schedule,
     bytes32          airdrop, // TODO: remove when MerkleProof.getRoot becomes available
     bytes32[] memory proof
-  ) external {
+  ) public {
     // check input validity
     bytes32 leaf = keccak256(abi.encode(schedule));
     require(MerkleProof.verify(proof, airdrop, leaf));
     require(_airdrops[airdrop]);
 
     // compute vesting remains
-    uint256 vested     = vestedAmount(schedule, block.timestamp);
-    uint256 released   = _released[leaf];
-    uint256 releasable = vested - released;
+    uint256 releasable = vestedAmount(schedule, block.timestamp) - _released[leaf];
     _released[leaf] += releasable;
+
+    // emit notification
     emit TokensReleased(airdrop, schedule.token, schedule.recipient, schedule.amount);
 
     // do release (might have reentrancy)
