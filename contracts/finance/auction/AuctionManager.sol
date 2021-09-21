@@ -3,15 +3,16 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
+import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
+import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
-import "../amm/UniswapV2Router02.sol";
 import "./Auction.sol";
 
 contract AuctionManager is AccessControl {
     address public immutable template = address(new Auction());
     bytes32 public constant  AUCTION_MANAGER_ROLE = keccak256("AUCTION_MANAGER_ROLE");
 
-    UniswapV2Router02 public immutable router;
+    IUniswapV2Router02 public immutable router;
 
     uint8 private _openPayments;
 
@@ -26,7 +27,7 @@ contract AuctionManager is AccessControl {
     constructor(address admin, address routerAddress) {
         _setupRole(DEFAULT_ADMIN_ROLE, admin);
 
-        router = UniswapV2Router02(payable(routerAddress));
+        router = IUniswapV2Router02(payable(routerAddress));
     }
 
     receive() external payable {
@@ -60,8 +61,8 @@ contract AuctionManager is AccessControl {
         address factory = router.factory();
 
         // create AMM pair if needed
-        if (UniswapV2Factory(factory).getPair(weth, address(token)) == address(0)) {
-            UniswapV2Factory(factory).createPair(weth, address(token));
+        if (IUniswapV2Factory(factory).getPair(weth, address(token)) == address(0)) {
+            IUniswapV2Factory(factory).createPair(weth, address(token));
         }
 
         // provide liquidity
