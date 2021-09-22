@@ -35,25 +35,27 @@ contract Auction is ERC20PermitUpgradeable, OwnableUpgradeable, Multicall {
     }
 
     function commit(address to) public payable {
-        require(_deadline.isPending());
+        require(_deadline.isPending(), "Auction: auction not active");
         _mint(to, msg.value);
     }
 
-    function withdraw(address payable to) public {
+    function leave(address payable to) public {
+        require(_deadline.isPending(), "Auction: auction not active");
         uint256 value = balanceOf(to);
+        _burn(to, value);
+        Address.sendValue(to, value);
+    }
 
-        if (_deadline.isExpired()) {
-            uint256 balance = ethToAuctionned(value);
-            _burn(to, value);
-            SafeERC20.safeTransfer(auctionToken, to, balance);
-        } else {
-            _burn(to, value);
-            Address.sendValue(to, value);
-        }
+    function withdraw(address to) public {
+        require(_deadline.isExpired(), "Auction: auction not finished");
+        uint256 value   = balanceOf(to);
+        uint256 balance = ethToAuctionned(value);
+        _burn(to, value);
+        SafeERC20.safeTransfer(auctionToken, to, balance);
     }
 
     function finalize(address payable to) public onlyOwner() {
-        require(_deadline.isExpired(), "Auction: auction has not finished yet");
+        require(_deadline.isExpired(), "Auction: auction not finished");
         Address.sendValue(to, address(this).balance);
     }
 

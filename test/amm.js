@@ -35,7 +35,7 @@ describe('AMM', function () {
 
       it('finalize too early', async function () {
         await expect(this.amm.auction.finalize(this.token.address))
-        .to.be.revertedWith('Auction: auction has not finished yet');
+        .to.be.revertedWith('Auction: auction not finished');
       });
 
       it('finalize with funds', async function () {
