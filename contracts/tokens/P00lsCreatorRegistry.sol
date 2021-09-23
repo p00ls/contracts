@@ -17,7 +17,8 @@ contract P00lsCreatorRegistry is
     event Upgraded(address indexed implementation);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() initializer
+    constructor()
+    initializer
     {}
 
     function initialize(address _admin, string memory  _name, string memory  _symbol)
@@ -98,7 +99,9 @@ contract P00lsCreatorRegistry is
     /**
      * ENS
      */
-    function setName(address ensregistry, string calldata ensname) external onlyOwner() {
+    function setName(address ensregistry, string calldata ensname)
+    external onlyOwner()
+    {
         ENSReverseRegistration.setName(ensregistry, ensname);
     }
 }

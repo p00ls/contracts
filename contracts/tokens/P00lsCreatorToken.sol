@@ -64,12 +64,18 @@ contract P00lsCreatorToken is
         _setTokenURI(_tokenURI);
     }
 
+    /**
+     * ENS
+     */
     function setName(address ensregistry, string calldata ensname)
     external onlyOwner()
     {
         ENSReverseRegistration.setName(ensregistry, ensname);
     }
 
+    /**
+     * Internal override resolution
+     */
     function _mint(address account, uint256 amount)
     internal virtual override(ERC20Upgradeable, ERC20VotesUpgradeable)
     {
