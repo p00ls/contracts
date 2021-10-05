@@ -8,6 +8,12 @@ describe('$Crea Token', function () {
     await migrate().then(env => Object.assign(this, env));
     this.accounts.reserve = this.accounts.shift();
     this.accounts.artist  = this.accounts.shift();
+    __SNAPSHOT_ID__ = await ethers.provider.send('evm_snapshot');
+  });
+
+  beforeEach(async function() {
+    await ethers.provider.send('evm_revert', [ __SNAPSHOT_ID__ ])
+    __SNAPSHOT_ID__ = await ethers.provider.send('evm_snapshot');
   });
 
   it('check', async function () {

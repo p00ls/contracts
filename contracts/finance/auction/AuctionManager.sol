@@ -9,9 +9,9 @@ import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "./Auction.sol";
 
 contract AuctionManager is AccessControl {
-    address public immutable template = address(new Auction());
-    bytes32 public constant  AUCTION_MANAGER_ROLE = keccak256("AUCTION_MANAGER_ROLE");
-
+    bytes32            public constant  AUCTION_MANAGER_ROLE = keccak256("AUCTION_MANAGER_ROLE");
+    address            public immutable template = address(new Auction());
+    address            public immutable dao;
     IUniswapV2Router02 public immutable router;
 
     uint8 private _openPayments;
@@ -24,10 +24,11 @@ contract AuctionManager is AccessControl {
         _openPayments = 1;
     }
 
-    constructor(address admin, address routerAddress) {
+    constructor(address admin, address routerAddress, address daoAddress) {
         _setupRole(DEFAULT_ADMIN_ROLE, admin);
 
         router = IUniswapV2Router02(payable(routerAddress));
+        dao    = daoAddress;
     }
 
     receive() external payable {
@@ -67,7 +68,7 @@ contract AuctionManager is AccessControl {
 
         // provide liquidity
         SafeERC20.safeApprove(token, address(router), balance);
-        router.addLiquidityETH{value: value}(address(token), balance, 0, 0, address(this), block.timestamp);
+        router.addLiquidityETH{value: value}(address(token), balance, 0, 0, dao, block.timestamp);
     }
 
     function getAuctionInstance(IERC20 token) public view returns (address) {

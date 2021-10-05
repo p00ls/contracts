@@ -8,6 +8,12 @@ describe('AMM', function () {
     await migrate().then(env => Object.assign(this, env));
     this.accounts.artist = this.accounts.shift();
     this.accounts.user   = this.accounts.shift();
+    __SNAPSHOT_ID__ = await ethers.provider.send('evm_snapshot');
+  });
+
+  beforeEach(async function() {
+    await ethers.provider.send('evm_revert', [ __SNAPSHOT_ID__ ])
+    __SNAPSHOT_ID__ = await ethers.provider.send('evm_snapshot');
   });
 
   describe('with social token', function () {
@@ -53,12 +59,16 @@ describe('AMM', function () {
         .to.emit(this.weth, 'Transfer').withArgs(this.amm.router.address, unipair.address, value)
         .to.emit(this.token, 'Transfer').withArgs(this.amm.auction.address, unipair.address, this.allocation.amount.div(2))
         .to.emit(unipair, 'Transfer')//.withArgs(ethers.constants.AddressZero, '0xdead', MINIMUM_LIQUIDITY)
-        .to.emit(unipair, 'Transfer')//.withArgs(ethers.constants.AddressZero, this.accounts.user.address, null);
+        .to.emit(unipair, 'Transfer')//.withArgs(ethers.constants.AddressZero, this.governance.timelock.address, null);
 
         expect(await this.token.balanceOf(this.amm.auction.address)).to.be.equal('0');
         expect(await this.token.balanceOf(this.auction.address)).to.be.equal(this.allocation.amount.div(2));
         expect(await this.token.balanceOf(unipair.address)).to.be.equal(this.allocation.amount.div(2));
         expect(await this.weth.balanceOf(unipair.address)).to.be.equal(value);
+
+        expect(await unipair.balanceOf("0x000000000000000000000000000000000000dEaD")).to.be.gt(0);
+        expect(await unipair.balanceOf(this.governance.timelock.address)).to.be.gt(0);
+        expect(await unipair.balanceOf(this.accounts.user.address)).to.be.equal(0);
       });
     });
   });

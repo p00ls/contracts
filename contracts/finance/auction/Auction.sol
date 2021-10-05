@@ -43,7 +43,7 @@ contract Auction is ERC20PermitUpgradeable, OwnableUpgradeable, Multicall {
         require(_deadline.isPending(), "Auction: auction not active");
         uint256 value = balanceOf(to);
         _burn(to, value);
-        Address.sendValue(to, value);
+        Address.sendValue(to, value * 80 / 100); // 20% penalty
     }
 
     function withdraw(address to) public {

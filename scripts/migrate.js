@@ -31,6 +31,13 @@ async function migrate() {
   DEBUG(`Admin:    ${accounts.admin.address}`);
 
   /*******************************************************************************************************************
+   *                                                   Environment                                                   *
+   *******************************************************************************************************************/
+  // Weth
+  const weth = await deploy('WETH');
+  DEBUG(`WETH:     ${weth.address}`);
+
+  /*******************************************************************************************************************
    *                                                     Vesting                                                     *
    *******************************************************************************************************************/
   const vesting = await deploy('VestedAirdrops', [
@@ -77,11 +84,20 @@ async function migrate() {
   await token.claim(allocation.index, allocation.account, allocation.amount, merkletree.getHexProof(merkle.hashAllocation(allocation)))
 
   /*******************************************************************************************************************
-   *                                                   Environment                                                   *
+   *                                                       DAO                                                       *
    *******************************************************************************************************************/
-  // Weth
-  const weth = await deploy('WETH');
-  DEBUG(`WETH:     ${weth.address}`);
+  const timelock = await deployUpgradeable('P00lsTimelock', 'transparent', [
+    86400 * 7, // 7 days
+    [],
+    [],
+  ]);
+  DEBUG(`P00lsTimelock: ${timelock.address}`);
+
+  const dao = await deployUpgradeable('P00lsDAO', 'transparent', [
+    token.address,
+    timelock.address,
+  ]);
+  DEBUG(`P00lsDAO: ${dao.address}`);
 
   /*******************************************************************************************************************
    *                                                       AMM                                                       *
@@ -95,7 +111,7 @@ async function migrate() {
   DEBUG(`Router:   ${router.address}`);
 
   // DutchAuctionManager
-  const auction = await deploy('AuctionManager', [ accounts.admin.address, router.address ]);
+  const auction = await deploy('AuctionManager', [ accounts.admin.address, router.address, timelock.address ]);
   DEBUG(`Auction:  ${auction.address}`);
 
   /*******************************************************************************************************************
@@ -120,6 +136,10 @@ async function migrate() {
     template,
     token,
     weth,
+    governance: {
+      dao,
+      timelock,
+    },
     amm: {
       factory,
       router,
