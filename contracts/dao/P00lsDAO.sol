@@ -14,9 +14,9 @@ contract P00lsDAO is
     GovernorVotesUpgradeable,
     GovernorTimelockControlUpgradeable
 {
-    uint256 _votingDelay;
-    uint256 _votingPeriod;
-    uint256 _quorum;
+    uint256 private _votingDelay;
+    uint256 private _votingPeriod;
+    uint256 private _quorum;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}

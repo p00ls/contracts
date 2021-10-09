@@ -31,7 +31,7 @@
     "@uniswap/v2-periphery": "*"
   },
   "devDependencies": {
-    "@amxx/hre": "^0.0.2",
+    "@amxx/hre": "^0.0.3",
     "copyfiles": "^2.4.1",
     "debug": "^2.6.9",
     "keccak256": "^1.0.2",

@@ -24,11 +24,10 @@ contract AuctionManager is AccessControl {
         _openPayments = 1;
     }
 
-    constructor(address admin, address routerAddress, address daoAddress) {
-        _setupRole(DEFAULT_ADMIN_ROLE, admin);
-
-        router = IUniswapV2Router02(payable(routerAddress));
-        dao    = daoAddress;
+    constructor(address _admin, IUniswapV2Router02 _router, address _dao) {
+        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
+        router = _router;
+        dao    = _dao;
     }
 
     receive() external payable {

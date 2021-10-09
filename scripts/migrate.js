@@ -77,7 +77,7 @@ async function migrate() {
   .then(address => attach('P00lsCreatorToken', address));
 
   // $00 as creator token
-  const allocation = { index: 0, account: vesting.address, amount: CONFIG.TARGETSUPPLY };
+  const allocation = { index: 0, account: accounts.admin.address, amount: CONFIG.TARGETSUPPLY };
   const merkletree = merkle.createMerkleTree([ merkle.hashAllocation(allocation) ]);
   const token = await newCreatorToken(accounts.admin.address, CONFIG.token.name, CONFIG.token.symbol, merkletree.getRoot());
   DEBUG(`Token:    ${token.address}`);
@@ -114,6 +114,14 @@ async function migrate() {
   const auction = await deploy('AuctionManager', [ accounts.admin.address, router.address, timelock.address ]);
   DEBUG(`Auction:  ${auction.address}`);
 
+
+  /*******************************************************************************************************************
+   *                                                    Stacking                                                     *
+   *******************************************************************************************************************/
+  // DutchAuctionManager
+  const staking = await deploy('P00lsStaking', [ accounts.admin.address, router.address, token.address ]);
+  DEBUG(`Staking: ${staking.address}`);
+
   /*******************************************************************************************************************
    *                                                      Roles                                                      *
    *******************************************************************************************************************/
@@ -121,11 +129,13 @@ async function migrate() {
     DEFAULT_ADMIN:   ethers.constants.HashZero,
     PAIR_CREATOR:    factory.PAIR_CREATOR_ROLE(),
     AUCTION_MANAGER: auction.AUCTION_MANAGER_ROLE(),
+    LOCK_MANAGER:    staking.LOCK_MANAGER_ROLE(),
   }).map(entry => Promise.all(entry))).then(Object.fromEntries);
 
   await Promise.all([
     factory.connect(accounts.admin).grantRole(roles.PAIR_CREATOR,    auction.address),
     auction.connect(accounts.admin).grantRole(roles.AUCTION_MANAGER, accounts.admin.address),
+    staking.connect(accounts.admin).grantRole(roles.LOCK_MANAGER,    accounts.admin.address),
   ]);
 
   return {
@@ -136,6 +146,7 @@ async function migrate() {
     template,
     token,
     weth,
+    staking,
     governance: {
       dao,
       timelock,
