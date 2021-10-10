@@ -12,8 +12,6 @@ import "@amxx/hre/contracts/FullMath.sol";
 import "../amm/UniswapV2Router02.sol";
 import "../amm/libraries/Math.sol";
 
-import "hardhat/console.sol";
-
 contract P00lsStaking is AccessControl, Multicall {
     using Distributions for Distributions.Uint256;
     using Splitters     for Splitters.Splitter;
@@ -21,9 +19,9 @@ contract P00lsStaking is AccessControl, Multicall {
 
     bytes32 public  constant LOCK_MANAGER_ROLE = keccak256("LOCK_MANAGER_ROLE");
     uint64  public  constant DELAY             =      30 days;
-    uint64  public  constant MIN_DURATION      = 3  * 30 days;
+    uint64  public  constant MIN_DURATION      =  3 * 30 days;
     uint64  public  constant MAX_DURATION      = 36 * 30 days;
-    uint256 private constant EXTRA_FACTOR_BASE = 1e18; // sqrt(1e36) → double for 1 extra
+    uint256 private constant EXTRA_FACTOR_BASE = 1e18; // sqrt(1e36) = 1e18 → double for 1 extra
 
     UniswapV2Router02 public immutable router;
     IERC20            public immutable pools;
@@ -159,26 +157,16 @@ contract P00lsStaking is AccessControl, Multicall {
         Vault storage vault = lock.vaults[to];
 
         if (amount > 0) {
-            // deposit tokens
             SafeERC20.safeTransferFrom(token, msg.sender, address(this), amount);
             vault.value += amount;
         }
 
         if (extra > 0) {
-            // deposit tokens
             SafeERC20.safeTransferFrom(pools, msg.sender, address(this), extra);
             vault.extra += extra;
         }
 
-        uint256 weight = _computeWeight(
-            vault.value,
-            FullMath.mulDiv(
-                EXTRA_FACTOR_BASE + _extraFactor(token, vault.value, vault.extra),
-                EXTRA_FACTOR_BASE,
-                _vaultFactor(token, to)
-            )
-        );
-        lock.splitter._shares._balances.set(to, weight);
+        uint256 weight = refreshWeight(token, to);
 
         emit Deposit(token, to, amount, extra, weight);
     }
@@ -199,36 +187,33 @@ contract P00lsStaking is AccessControl, Multicall {
         emit Withdraw(token, msg.sender, to, reward);
     }
 
+    function refreshWeight(IERC20 token, address account) public returns (uint256) {
+        Lock  storage lock  = _locks[token];
+        Vault storage vault = lock.vaults[account];
+
+        uint256 value       = vault.value;
+        uint256 extra       = vault.extra;
+        uint256 duration    = vault.delay.getDeadline() - lock.delay.getDeadline();
+        uint256 factor      = duration * Math.sqrt(duration);
+        uint256 extrafactor = extra == 0 ? 0 : Math.sqrt(FullMath.mulDiv(
+            router.getAmountsOut(extra, _poolsToToken(token))[2],
+            value,
+            1e36
+        )); // = 1e18 * sqrt(extravalue / value)
+        uint256 weight      = FullMath.mulDiv(
+            value * factor,                   // base weight
+            EXTRA_FACTOR_BASE,                // renormalization
+            EXTRA_FACTOR_BASE + extrafactor   // extra factor
+        );
+
+        lock.splitter._shares._balances.set(account, weight);
+
+        return weight;
+    }
+
     /*****************************************************************************************************************
      *                                                Internal tools                                                 *
      *****************************************************************************************************************/
-    function _computeWeight(uint256 value, uint256 factor) public pure returns (uint256) {
-        return FullMath.mulDiv(
-            value,
-            1e18,
-            factor
-        );
-    }
-
-    function _vaultFactor(IERC20 token, address account) internal view returns (uint256) {
-        uint256 duration = _locks[token].vaults[account].delay.getDeadline() - _locks[token].delay.getDeadline();
-        return FullMath.mulDiv(
-            Math.sqrt(duration),
-            MIN_DURATION,
-            duration
-        );
-    }
-
-    function _extraFactor(IERC20 token, uint256 value, uint256 extra) internal view returns (uint256) {
-        return extra == 0 ? 0 : Math.sqrt(
-            FullMath.mulDiv(
-                router.getAmountsOut(extra, _poolsToToken(token))[2],
-                value,
-                1e36
-            )
-        );
-    }
-
     function _tokenToPools(IERC20 token) internal view returns (address[] memory path) {
         path = new address[](3);
         path[0] = address(token);
