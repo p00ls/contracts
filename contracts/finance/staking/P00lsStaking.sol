@@ -212,7 +212,11 @@ contract P00lsStaking is AccessControl, Multicall {
 
     function _vaultFactor(IERC20 token, address account) internal view returns (uint256) {
         uint256 duration = _locks[token].vaults[account].delay.getDeadline() - _locks[token].delay.getDeadline();
-        return duration * Math.sqrt(duration);
+        return FullMath.mulDiv(
+            Math.sqrt(duration),
+            MIN_DURATION,
+            duration
+        );
     }
 
     function _extraFactor(IERC20 token, uint256 value, uint256 extra) internal view returns (uint256) {
