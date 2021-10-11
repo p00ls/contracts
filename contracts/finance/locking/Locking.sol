@@ -12,7 +12,7 @@ import "@amxx/hre/contracts/FullMath.sol";
 import "../amm/UniswapV2Router02.sol";
 import "../amm/libraries/Math.sol";
 
-contract P00lsStaking is AccessControl, Multicall {
+contract Locking is AccessControl, Multicall {
     using Distributions for Distributions.Uint256;
     using Splitters     for Splitters.Splitter;
     using Timers        for Timers.Timestamp;
@@ -55,17 +55,17 @@ contract P00lsStaking is AccessControl, Multicall {
      *                                                   Modifiers                                                   *
      *****************************************************************************************************************/
     modifier onlyUnsetLock(IERC20 token) {
-        require(_locks[token].delay.isUnset(), "Staking already configured");
+        require(_locks[token].delay.isUnset(), "Locking already configured");
         _;
     }
 
     modifier onlyActiveLock(IERC20 token) {
-        require(_locks[token].delay.isPending(), "Staking not currently authorized for this token");
+        require(_locks[token].delay.isPending(), "Locking not currently authorized for this token");
         _;
     }
 
     modifier onlyExpiredLock(IERC20 token) {
-        require(_locks[token].delay.isExpired(), "Staking is not closed for this token");
+        require(_locks[token].delay.isExpired(), "Locking is not closed for this token");
         _;
     }
 
@@ -75,7 +75,7 @@ contract P00lsStaking is AccessControl, Multicall {
     }
 
     modifier onlyActiveVault(IERC20 token, address account) {
-        require(_locks[token].vaults[account].delay.isPending(), "Vault doesn't accept stake");
+        require(_locks[token].vaults[account].delay.isPending(), "Vault doesn't accept deposit");
         _;
     }
 

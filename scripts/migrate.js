@@ -119,8 +119,8 @@ async function migrate() {
    *                                                    Stacking                                                     *
    *******************************************************************************************************************/
   // DutchAuctionManager
-  const staking = await deploy('P00lsStaking', [ accounts.admin.address, router.address, token.address ]);
-  DEBUG(`Staking: ${staking.address}`);
+  const locking = await deploy('Locking', [ accounts.admin.address, router.address, token.address ]);
+  DEBUG(`Locking: ${locking.address}`);
 
   /*******************************************************************************************************************
    *                                                      Roles                                                      *
@@ -129,13 +129,13 @@ async function migrate() {
     DEFAULT_ADMIN:   ethers.constants.HashZero,
     PAIR_CREATOR:    factory.PAIR_CREATOR_ROLE(),
     AUCTION_MANAGER: auction.AUCTION_MANAGER_ROLE(),
-    LOCK_MANAGER:    staking.LOCK_MANAGER_ROLE(),
+    LOCK_MANAGER:    locking.LOCK_MANAGER_ROLE(),
   }).map(entry => Promise.all(entry))).then(Object.fromEntries);
 
   await Promise.all([
     factory.connect(accounts.admin).grantRole(roles.PAIR_CREATOR,    auction.address),
     auction.connect(accounts.admin).grantRole(roles.AUCTION_MANAGER, accounts.admin.address),
-    staking.connect(accounts.admin).grantRole(roles.LOCK_MANAGER,    accounts.admin.address),
+    locking.connect(accounts.admin).grantRole(roles.LOCK_MANAGER,    accounts.admin.address),
   ]);
 
   return {
@@ -146,7 +146,7 @@ async function migrate() {
     template,
     token,
     weth,
-    staking,
+    locking,
     governance: {
       dao,
       timelock,
