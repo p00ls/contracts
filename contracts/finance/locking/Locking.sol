@@ -38,6 +38,7 @@ contract Locking is AccessControl, Multicall {
     struct Lock {
         Timers.Timestamp          delay;
         Splitters.Splitter        splitter;
+        uint256                   rate;
         mapping(address => Vault) vaults;
     }
 
@@ -95,11 +96,12 @@ contract Locking is AccessControl, Multicall {
     }
 
     function lockDetails(IERC20 token)
-    public view returns (uint64 start, uint256 reward, uint256 totalWeight)
+    public view returns (uint64 start, uint256 rate, uint256 reward, uint256 totalWeight)
     {
         Lock storage lock = _locks[token];
         return (
             lock.delay.getDeadline(),
+            lock.rate,
             SafeCast.toUint256(SafeCast.toInt256(lock.splitter._bounty) + lock.splitter._released._total),
             lock.splitter.totalSupply()
         );
@@ -127,6 +129,7 @@ contract Locking is AccessControl, Multicall {
 
         lock.delay.setDeadline(uint64(block.timestamp) + DELAY);
         lock.splitter.reward(token.balanceOf(address(this)));
+        lock.rate = router.getAmountsOut(1e18, _poolsToToken(token))[2]; // this is subject to pricefeed manipulation if executed in refreshWeight
 
         emit LockSetup(token);
     }
@@ -166,7 +169,13 @@ contract Locking is AccessControl, Multicall {
             vault.extra += extra;
         }
 
-        uint256 weight = refreshWeight(token, to);
+        uint256 weight = estimateWeight(
+            token,
+            vault.delay.getDeadline() - lock.delay.getDeadline(),
+            vault.value,
+            vault.extra
+        );
+        lock.splitter._shares._balances.set(to, weight);
 
         emit Deposit(token, to, amount, extra, weight);
     }
@@ -187,28 +196,22 @@ contract Locking is AccessControl, Multicall {
         emit Withdraw(token, msg.sender, to, reward);
     }
 
-    function refreshWeight(IERC20 token, address account) public returns (uint256) {
-        Lock  storage lock  = _locks[token];
-        Vault storage vault = lock.vaults[account];
-
-        uint256 value       = vault.value;
-        uint256 extra       = vault.extra;
-        uint256 duration    = vault.delay.getDeadline() - lock.delay.getDeadline();
+    function estimateWeight(IERC20 token, uint256 duration, uint256 value, uint256 extra)
+    public view returns (uint256)
+    {
+        uint256 rate        = _locks[token].rate;
         uint256 factor      = duration * Math.sqrt(duration);
         uint256 extrafactor = extra == 0 ? 0 : Math.sqrt(FullMath.mulDiv(
-            router.getAmountsOut(extra, _poolsToToken(token))[2],
+            rate * extra, // rate is * 1e18
             value,
-            1e36
+            1e54
         )); // = 1e18 * sqrt(extravalue / value)
-        uint256 weight      = FullMath.mulDiv(
+
+        return FullMath.mulDiv(
             value * factor,                   // base weight
             EXTRA_FACTOR_BASE,                // renormalization
             EXTRA_FACTOR_BASE + extrafactor   // extra factor
         );
-
-        lock.splitter._shares._balances.set(account, weight);
-
-        return weight;
     }
 
     /*****************************************************************************************************************
