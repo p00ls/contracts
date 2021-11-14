@@ -6,13 +6,15 @@ import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorCounti
 import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorVotesUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorTimelockControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 contract P00lsDAO is
     Initializable,
     GovernorUpgradeable,
     GovernorCountingSimpleUpgradeable,
     GovernorVotesUpgradeable,
-    GovernorTimelockControlUpgradeable
+    GovernorTimelockControlUpgradeable,
+    UUPSUpgradeable
 {
     uint256 private _votingDelay;
     uint256 private _votingPeriod;
@@ -40,6 +42,8 @@ contract P00lsDAO is
     function votingDelay    (                       ) public view override returns (uint256) { return _votingDelay;  }
     function votingPeriod   (                       ) public view override returns (uint256) { return _votingPeriod; }
     function quorum         (uint256                ) public view override returns (uint256) { return _quorum;       }
+
+    function _authorizeUpgrade(address newImplementation) internal virtual override onlyGovernance() {}
 
     // The following functions are overrides required by Solidity.
 

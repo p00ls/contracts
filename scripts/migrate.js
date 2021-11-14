@@ -86,14 +86,14 @@ async function migrate() {
   /*******************************************************************************************************************
    *                                                       DAO                                                       *
    *******************************************************************************************************************/
-  const timelock = await deployUpgradeable('P00lsTimelock', 'transparent', [
+  const timelock = await deploy('TimelockController', [
     86400 * 7, // 7 days
     [],
     [],
   ]);
   DEBUG(`P00lsTimelock: ${timelock.address}`);
 
-  const dao = await deployUpgradeable('P00lsDAO', 'transparent', [
+  const dao = await deployUpgradeable('P00lsDAO', 'uups', [
     token.address,
     timelock.address,
   ]);
@@ -126,16 +126,18 @@ async function migrate() {
    *                                                      Roles                                                      *
    *******************************************************************************************************************/
    const roles = await Promise.all(Object.entries({
-    DEFAULT_ADMIN:   ethers.constants.HashZero,
-    PAIR_CREATOR:    factory.PAIR_CREATOR_ROLE(),
-    AUCTION_MANAGER: auction.AUCTION_MANAGER_ROLE(),
-    LOCK_MANAGER:    locking.LOCK_MANAGER_ROLE(),
+    DEFAULT_ADMIN:          ethers.constants.HashZero,
+    AUCTION_MANAGER:        auction.AUCTION_MANAGER_ROLE(),
+    LOCK_MANAGER:           locking.LOCK_MANAGER_ROLE(),
+    PAIR_CREATOR:           factory.PAIR_CREATOR_ROLE(),
+    VESTED_ARIDROP_MANAGER: vesting.VESTED_ARIDROP_MANAGER_ROLE(),
   }).map(entry => Promise.all(entry))).then(Object.fromEntries);
 
   await Promise.all([
-    factory.connect(accounts.admin).grantRole(roles.PAIR_CREATOR,    auction.address),
-    auction.connect(accounts.admin).grantRole(roles.AUCTION_MANAGER, accounts.admin.address),
-    locking.connect(accounts.admin).grantRole(roles.LOCK_MANAGER,    accounts.admin.address),
+    auction.connect(accounts.admin).grantRole(roles.AUCTION_MANAGER,        accounts.admin.address),
+    locking.connect(accounts.admin).grantRole(roles.LOCK_MANAGER,           accounts.admin.address),
+    factory.connect(accounts.admin).grantRole(roles.PAIR_CREATOR,           auction.address       ),
+    vesting.connect(accounts.admin).grantRole(roles.VESTED_ARIDROP_MANAGER, accounts.admin.address),
   ]);
 
   return {

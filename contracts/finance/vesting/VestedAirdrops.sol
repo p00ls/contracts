@@ -12,6 +12,8 @@ contract VestedAirdrops is
   AccessControl,
   Multicall
 {
+  bytes32 public constant VESTED_ARIDROP_MANAGER_ROLE = keccak256("VESTED_ARIDROP_MANAGER_ROLE");
+
   struct Schedule {
     uint64  id; // salt
     uint64  start;
@@ -32,7 +34,7 @@ contract VestedAirdrops is
     _setupRole(DEFAULT_ADMIN_ROLE, admin);
   }
 
-  function enableAirdrop(bytes32 root, bool enable) external onlyRole(DEFAULT_ADMIN_ROLE) {
+  function enableAirdrop(bytes32 root, bool enable) external onlyRole(VESTED_ARIDROP_MANAGER_ROLE) {
     _airdrops[root] = enable;
     emit Airdrop(root, enable);
   }
