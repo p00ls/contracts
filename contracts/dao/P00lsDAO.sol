@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.2;
 
-import "@openzeppelin/contracts-upgradeable/governance/GovernorUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorSettingsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorCountingSimpleUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorVotesUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorTimelockControlUpgradeable.sol";
@@ -10,14 +10,12 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 contract P00lsDAO is
     Initializable,
-    GovernorUpgradeable,
+    GovernorSettingsUpgradeable,
     GovernorCountingSimpleUpgradeable,
     GovernorVotesUpgradeable,
     GovernorTimelockControlUpgradeable,
     UUPSUpgradeable
 {
-    uint256 private _votingDelay;
-    uint256 private _votingPeriod;
     uint256 private _quorum;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -27,23 +25,36 @@ contract P00lsDAO is
         public initializer()
     {
         __Governor_init("p00lsDAO");
+        __GovernorSettings_init(1, 40320, 0); // initialVotingDelay = 1 block, initialVotingPeriod = ~1 week, initialProposalThreshold = 0
         __GovernorCountingSimple_init();
         __GovernorVotes_init(_token);
         __GovernorTimelockControl_init(_timelock);
 
-        _votingDelay  = 1;
-        _votingPeriod = 45818;
-        _quorum       = 1;
+        _quorum = 1;
     }
 
-    function setVotingDelay (uint256 newVotingDelay ) public onlyGovernance() { _votingDelay  = newVotingDelay;  }
-    function setVotingPeriod(uint256 newVotingPeriod) public onlyGovernance() { _votingPeriod = newVotingPeriod; }
-    function setQuorum      (uint256 newQuorum      ) public onlyGovernance() { _quorum       = newQuorum;       }
-    function votingDelay    (                       ) public view override returns (uint256) { return _votingDelay;  }
-    function votingPeriod   (                       ) public view override returns (uint256) { return _votingPeriod; }
-    function quorum         (uint256                ) public view override returns (uint256) { return _quorum;       }
+    function setQuorum(uint256 newQuorum)
+        public
+        onlyGovernance()
+    {
+        _quorum = newQuorum;
+    }
 
-    function _authorizeUpgrade(address newImplementation) internal virtual override onlyGovernance() {}
+    function quorum(uint256)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return _quorum;
+    }
+
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        virtual
+        override
+        onlyGovernance()
+    {}
 
     // The following functions are overrides required by Solidity.
 
@@ -63,6 +74,16 @@ contract P00lsDAO is
         returns (ProposalState)
     {
         return super.state(proposalId);
+    }
+
+    function proposalThreshold()
+        public
+        view
+        virtual
+        override(GovernorUpgradeable, GovernorSettingsUpgradeable)
+        returns (uint256)
+    {
+        return super.proposalThreshold();
     }
 
     function propose(address[] memory targets, uint256[] memory values, bytes[] memory calldatas, string memory description)
