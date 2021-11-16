@@ -138,7 +138,7 @@ async function migrate() {
     locking.connect(accounts.admin).grantRole(roles.LOCK_MANAGER,           accounts.admin.address),
     factory.connect(accounts.admin).grantRole(roles.PAIR_CREATOR,           auction.address       ),
     vesting.connect(accounts.admin).grantRole(roles.VESTED_ARIDROP_MANAGER, accounts.admin.address),
-    factory.connect(accounts.admin).setFeeTo(dao.address), // do that until p00l launch and the staking program starts
+    factory.connect(accounts.admin).setFeeTo(timelock.address), // do that until p00l launch and the staking program starts
   ].map(tx => tx.wait()));
 
   return {
