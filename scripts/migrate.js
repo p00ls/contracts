@@ -110,15 +110,19 @@ async function migrate() {
   const router = await deploy('UniswapV2Router02', [ factory.address, weth.address ]);
   DEBUG(`Router:   ${router.address}`);
 
-  // DutchAuctionManager
   const auction = await deploy('AuctionManager', [ accounts.admin.address, router.address, timelock.address ]);
   DEBUG(`Auction:  ${auction.address}`);
 
 
   /*******************************************************************************************************************
-   *                                                    Stacking                                                     *
+   *                                               Locking & Stacking                                                *
    *******************************************************************************************************************/
-  // DutchAuctionManager
+  const staking = await deploy('Staking', [ accounts.admin.address ]);
+  DEBUG(`Staking: ${staking.address}`);
+
+  const stakingescrow = await staking.escrow().then(address => attach('StakingEscrow', address));
+  DEBUG(`StakingEscrow: ${stakingescrow.address}`);
+
   const locking = await deploy('Locking', [ accounts.admin.address, router.address, token.address ]);
   DEBUG(`Locking: ${locking.address}`);
 
@@ -126,20 +130,17 @@ async function migrate() {
    *                                                      Roles                                                      *
    *******************************************************************************************************************/
    const roles = await Promise.all(Object.entries({
-    DEFAULT_ADMIN:          ethers.constants.HashZero,
-    AUCTION_MANAGER:        auction.AUCTION_MANAGER_ROLE(),
-    LOCK_MANAGER:           locking.LOCK_MANAGER_ROLE(),
-    PAIR_CREATOR:           factory.PAIR_CREATOR_ROLE(),
-    VESTED_ARIDROP_MANAGER: vesting.VESTED_ARIDROP_MANAGER_ROLE(),
+    DEFAULT_ADMIN: ethers.constants.HashZero,
+    PAIR_CREATOR:  factory.PAIR_CREATOR_ROLE(),
   }).map(entry => Promise.all(entry))).then(Object.fromEntries);
 
   await Promise.all([
-    auction.connect(accounts.admin).grantRole(roles.AUCTION_MANAGER,        accounts.admin.address),
-    locking.connect(accounts.admin).grantRole(roles.LOCK_MANAGER,           accounts.admin.address),
-    factory.connect(accounts.admin).grantRole(roles.PAIR_CREATOR,           auction.address       ),
-    vesting.connect(accounts.admin).grantRole(roles.VESTED_ARIDROP_MANAGER, accounts.admin.address),
+    auction.connect(accounts.admin).grantRole(roles.DEFAULT_ADMIN, accounts.admin.address),
+    locking.connect(accounts.admin).grantRole(roles.DEFAULT_ADMIN, accounts.admin.address),
+    vesting.connect(accounts.admin).grantRole(roles.DEFAULT_ADMIN, accounts.admin.address),
+    factory.connect(accounts.admin).grantRole(roles.PAIR_CREATOR,  auction.address       ),
     factory.connect(accounts.admin).setFeeTo(timelock.address), // do that until p00l launch and the staking program starts
-  ].map(tx => tx.wait()));
+  ].map(promise => promise.then(tx => tx.wait())));
 
   return {
     accounts,
@@ -149,6 +150,8 @@ async function migrate() {
     template,
     token,
     weth,
+    staking,
+    stakingescrow,
     locking,
     governance: {
       dao,

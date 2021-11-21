@@ -17,7 +17,6 @@ contract Locking is AccessControl, Multicall {
     using Splitters     for Splitters.Splitter;
     using Timers        for Timers.Timestamp;
 
-    bytes32 public  constant LOCK_MANAGER_ROLE = keccak256("LOCK_MANAGER_ROLE");
     uint64  public  constant DELAY             =      30 days;
     uint64  public  constant MIN_DURATION      =  3 * 30 days;
     uint64  public  constant MAX_DURATION      = 36 * 30 days;
@@ -123,7 +122,7 @@ contract Locking is AccessControl, Multicall {
     function lockSetup(IERC20 token)
     public
         onlyUnsetLock(token)
-        onlyRole(LOCK_MANAGER_ROLE)
+        onlyRole(DEFAULT_ADMIN_ROLE)
     {
         Lock storage lock = _locks[token];
 

@@ -9,7 +9,6 @@ import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "./Auction.sol";
 
 contract AuctionManager is AccessControl {
-    bytes32            public constant  AUCTION_MANAGER_ROLE = keccak256("AUCTION_MANAGER_ROLE");
     address            public immutable template = address(new Auction());
     address            public immutable dao;
     IUniswapV2Router02 public immutable router;
@@ -34,7 +33,7 @@ contract AuctionManager is AccessControl {
         require(_openPayments == 2);
     }
 
-    function start(IERC20 token) external onlyRole(AUCTION_MANAGER_ROLE) returns (address) {
+    function start(IERC20 token) external onlyRole(DEFAULT_ADMIN_ROLE) returns (address) {
         uint256 balance = token.balanceOf(address(this));
         require(balance > 0);
 
@@ -51,7 +50,7 @@ contract AuctionManager is AccessControl {
         return instance;
     }
 
-    function finalize(IERC20 token) external onlyRole(AUCTION_MANAGER_ROLE) withPayments() {
+    function finalize(IERC20 token) external onlyRole(DEFAULT_ADMIN_ROLE) withPayments() {
         address instance = getAuctionInstance(token);
         Auction(payable(instance)).finalize(payable(this));
 
