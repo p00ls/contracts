@@ -139,9 +139,6 @@ async function migrate() {
   }).map(entry => Promise.all(entry))).then(Object.fromEntries);
 
   await Promise.all([
-    auction.connect(accounts.admin).grantRole(roles.DEFAULT_ADMIN, accounts.admin.address),
-    locking.connect(accounts.admin).grantRole(roles.DEFAULT_ADMIN, accounts.admin.address),
-    vesting.connect(accounts.admin).grantRole(roles.DEFAULT_ADMIN, accounts.admin.address),
     factory.connect(accounts.admin).grantRole(roles.PAIR_CREATOR,  auction.address       ),
     factory.connect(accounts.admin).setFeeTo(timelock.address), // do that until p00l launch and the staking program starts
   ].map(promise => promise.then(tx => tx.wait())));

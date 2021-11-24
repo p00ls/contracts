@@ -115,7 +115,7 @@ contract UniswapV2Pair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
         _mint(to, liquidity);
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        if (feeOn) kLast = reserve0 * reserve1; // reserve0 and reserve1 are up-to-date
+        if (feeOn) kLast = uint(reserve0) * uint(reserve1); // reserve0 and reserve1 are up-to-date
         emit Mint(msg.sender, amount0, amount1);
     }
 
@@ -140,7 +140,7 @@ contract UniswapV2Pair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
         balance1 = IERC20(_token1).balanceOf(address(this));
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        if (feeOn) kLast = reserve0 * reserve1; // reserve0 and reserve1 are up-to-date
+        if (feeOn) kLast = uint(reserve0) * uint(reserve1); // reserve0 and reserve1 are up-to-date
         emit Burn(msg.sender, amount0, amount1, to);
     }
 
