@@ -7,12 +7,12 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 abstract contract RegistryOwnableUpgradeable is Initializable {
     IERC721 public ownershipRegistry;
 
-    modifier onlyOwner() {
+    modifier onlyOwner() virtual {
         require(owner() == msg.sender, "RegistryOwnable: caller is not the owner");
         _;
     }
 
-    modifier onlyAdmin() {
+    modifier onlyAdmin() virtual {
         require(admin() == msg.sender, "RegistryOwnable: caller is not the admin");
         _;
     }

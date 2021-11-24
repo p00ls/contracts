@@ -28,14 +28,14 @@ function performUpgrade(proxy, name, opts = {}) {
 async function migrate() {
   const accounts = await ethers.getSigners();
   accounts.admin = accounts.shift();
-  DEBUG(`Admin:    ${accounts.admin.address}`);
+  DEBUG(`Admin:         ${accounts.admin.address}`);
 
   /*******************************************************************************************************************
    *                                                   Environment                                                   *
    *******************************************************************************************************************/
   // Weth
   const weth = await deploy('WETH');
-  DEBUG(`WETH:     ${weth.address}`);
+  DEBUG(`WETH:          ${weth.address}`);
 
   /*******************************************************************************************************************
    *                                                     Vesting                                                     *
@@ -43,30 +43,35 @@ async function migrate() {
   const vesting = await deploy('VestedAirdrops', [
     accounts.admin.address,
   ]);
-  DEBUG(`Vesting:  ${vesting.address}`);
+  DEBUG(`Vesting:       ${vesting.address}`);
 
   /*******************************************************************************************************************
    *                                              P00ls creator & token                                              *
    *******************************************************************************************************************/
+
+  const escrow = await deploy('Escrow', [ accounts.admin.address ]);
+  DEBUG(`Escrow:        ${escrow.address}`);
+
   // Creator token registry/factory
   const registry = await deployUpgradeable('P00lsCreatorRegistry', 'transparent', [
     accounts.admin.address,
     CONFIG.registry.name,
     CONFIG.registry.symbol,
   ]);
-  DEBUG(`Registry: ${registry.address}`);
+  DEBUG(`Registry:      ${registry.address}`);
 
   // Creator token template
-  const template = await deploy('P00lsCreatorToken', [
-    registry.address,
+  const implementations = await Promise.all([
+    deploy('P00lsCreatorToken',  [ registry.address ]),
+    deploy('P00lsCreatorXToken', [ escrow.address   ]),
   ]);
-  DEBUG(`Template: ${template.address}`);
 
   // setup
-  await Promise.all([
-    registry.upgradeTo(template.address),
+  await Promise.all([].concat(
+    registry.upgradeCreatorToken(implementations[0].address),
+    registry.upgradeXCreatorToken(implementations[1].address),
     registry.setBaseURI(CONFIG.registry.baseuri),
-  ]);
+  ));
 
   // token generation
   const newCreatorToken = (admin, name, symbol, root) => registry.createToken(admin, name, symbol, root)
@@ -76,11 +81,16 @@ async function migrate() {
   .then(tokenId => ethers.utils.getAddress(ethers.utils.hexlify(tokenId)))
   .then(address => attach('P00lsCreatorToken', address));
 
+  const getXCreatorToken = (creatorToken) => creatorToken.xCreatorToken()
+  .then(address => attach('P00lsCreatorXToken', address));
+
   // $00 as creator token
   const allocation = { index: 0, account: accounts.admin.address, amount: CONFIG.TARGETSUPPLY };
   const merkletree = merkle.createMerkleTree([ merkle.hashAllocation(allocation) ]);
-  const token = await newCreatorToken(accounts.admin.address, CONFIG.token.name, CONFIG.token.symbol, merkletree.getRoot());
-  DEBUG(`Token:    ${token.address}`);
+  const token  = await newCreatorToken(accounts.admin.address, CONFIG.token.name, CONFIG.token.symbol, merkletree.getRoot());
+  const xToken = await getXCreatorToken(token);
+  DEBUG(`Token:         ${token.address}`);
+  DEBUG(`xToken:        ${xToken.address}`);
   await token.claim(allocation.index, allocation.account, allocation.amount, merkletree.getHexProof(merkle.hashAllocation(allocation)))
 
   /*******************************************************************************************************************
@@ -97,34 +107,28 @@ async function migrate() {
     token.address,
     timelock.address,
   ]);
-  DEBUG(`P00lsDAO: ${dao.address}`);
+  DEBUG(`P00lsDAO:      ${dao.address}`);
 
   /*******************************************************************************************************************
    *                                                       AMM                                                       *
    *******************************************************************************************************************/
   // Factory
   const factory = await deploy('UniswapV2Factory', [ accounts.admin.address ]);
-  DEBUG(`Factory:  ${factory.address}`);
+  DEBUG(`Factory:       ${factory.address}`);
 
   // Router
   const router = await deploy('UniswapV2Router02', [ factory.address, weth.address ]);
-  DEBUG(`Router:   ${router.address}`);
+  DEBUG(`Router:        ${router.address}`);
 
   const auction = await deploy('AuctionManager', [ accounts.admin.address, router.address, timelock.address ]);
-  DEBUG(`Auction:  ${auction.address}`);
+  DEBUG(`Auction:       ${auction.address}`);
 
 
   /*******************************************************************************************************************
-   *                                               Locking & Stacking                                                *
+   *                                                     Locking                                                     *
    *******************************************************************************************************************/
-  const staking = await deploy('Staking', [ accounts.admin.address ]);
-  DEBUG(`Staking: ${staking.address}`);
-
-  const stakingescrow = await staking.escrow().then(address => attach('StakingEscrow', address));
-  DEBUG(`StakingEscrow: ${stakingescrow.address}`);
-
   const locking = await deploy('Locking', [ accounts.admin.address, router.address, token.address ]);
-  DEBUG(`Locking: ${locking.address}`);
+  DEBUG(`Locking:       ${locking.address}`);
 
   /*******************************************************************************************************************
    *                                                      Roles                                                      *
@@ -147,11 +151,10 @@ async function migrate() {
     roles,
     vesting,
     registry,
-    template,
     token,
+    xToken,
+    escrow,
     weth,
-    staking,
-    stakingescrow,
     locking,
     governance: {
       dao,
@@ -164,6 +167,7 @@ async function migrate() {
     },
     workflows: {
       newCreatorToken,
+      getXCreatorToken,
     }
   };
 }
