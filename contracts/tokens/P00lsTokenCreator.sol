@@ -8,11 +8,11 @@ import "./P00lsTokenBase.sol";
 import "./interfaces.sol";
 
 // TODO: use onlyOwner & onlyAdmin to perform admin operations
-contract P00lsCreatorToken is P00lsTokenBase, RegistryOwnable
+contract P00lsTokenCreator is P00lsTokenBase, RegistryOwnable
 {
     using BitMaps for BitMaps.BitMap;
 
-    IP00lsCreatorXToken public xCreatorToken;
+    IP00lsTokenXCreator public xCreatorToken;
     bytes32             public merkleRoot;
     BitMaps.BitMap      private __claimedBitMap;
 
@@ -28,7 +28,7 @@ contract P00lsCreatorToken is P00lsTokenBase, RegistryOwnable
         __ERC20_init(name, symbol);
         __ERC20Permit_init(name);
         merkleRoot = root;
-        xCreatorToken = IP00lsCreatorXToken(child);
+        xCreatorToken = IP00lsTokenXCreator(child);
     }
 
     function isClaimed(uint256 index)
@@ -40,9 +40,9 @@ contract P00lsCreatorToken is P00lsTokenBase, RegistryOwnable
     function claim(uint256 index, address account, uint256 amount, bytes32[] calldata merkleProof)
     external
     {
-        require(!__claimedBitMap.get(index), "P00lsCreatorToken::claim: drop already claimed");
+        require(!__claimedBitMap.get(index), "P00lsTokenCreator::claim: drop already claimed");
 
-        require(MerkleProof.verify(merkleProof, merkleRoot, keccak256(abi.encodePacked(index, account, amount))), "P00lsCreatorToken::claim: invalid merkle proof");
+        require(MerkleProof.verify(merkleProof, merkleRoot, keccak256(abi.encodePacked(index, account, amount))), "P00lsTokenCreator::claim: invalid merkle proof");
 
         __claimedBitMap.set(index);
         _mint(account, amount);

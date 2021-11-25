@@ -7,20 +7,19 @@ import "../finance/staking/Escrow.sol";
 import "./P00lsTokenBase.sol";
 import "./interfaces.sol";
 
-
 // TODO: use onlyOwner to perform admin operations
-contract P00lsCreatorXToken is P00lsTokenBase
+contract P00lsTokenXCreator is P00lsTokenBase
 {
     Escrow             public immutable stakingEscrow;
-    IP00lsCreatorToken public           creatorToken;
+    IP00lsTokenCreator public           creatorToken;
 
     modifier onlyOwner() {
-        require(owner() == msg.sender, "P00lsCreatorXToken: owner restricted");
+        require(owner() == msg.sender, "P00lsTokenXCreator: owner restricted");
         _;
     }
 
     modifier onlyParent() {
-        require(address(creatorToken) == msg.sender, "P00lsCreatorXToken: creator token restricted");
+        require(address(creatorToken) == msg.sender, "P00lsTokenXCreator: creator token restricted");
         _;
     }
 
@@ -41,7 +40,7 @@ contract P00lsCreatorXToken is P00lsTokenBase
     {
         __ERC20_init(name, symbol);
         __ERC20Permit_init(name);
-        creatorToken = IP00lsCreatorToken(parent);
+        creatorToken = IP00lsTokenCreator(parent);
     }
 
     function owner() public view virtual override returns (address)

@@ -62,8 +62,8 @@ async function migrate() {
 
   // Creator token template
   const implementations = await Promise.all([
-    deploy('P00lsCreatorToken',  [ registry.address ]),
-    deploy('P00lsCreatorXToken', [ escrow.address   ]),
+    deploy('P00lsTokenCreator',  [ registry.address ]),
+    deploy('P00lsTokenXCreator', [ escrow.address   ]),
   ]);
 
   // setup
@@ -79,10 +79,10 @@ async function migrate() {
   .then(receipt => receipt.events.find(({ event }) => event === 'Transfer'))
   .then(event => event.args.tokenId)
   .then(tokenId => ethers.utils.getAddress(ethers.utils.hexlify(tokenId)))
-  .then(address => attach('P00lsCreatorToken', address));
+  .then(address => attach('P00lsTokenCreator', address));
 
   const getXCreatorToken = (creatorToken) => creatorToken.xCreatorToken()
-  .then(address => attach('P00lsCreatorXToken', address));
+  .then(address => attach('P00lsTokenXCreator', address));
 
   // $00 as creator token
   const allocation = { index: 0, account: accounts.admin.address, amount: CONFIG.TARGETSUPPLY };

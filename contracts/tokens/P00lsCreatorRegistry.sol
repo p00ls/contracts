@@ -2,11 +2,11 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
-import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import "../utils/Beacon.sol";
+import "../utils/BeaconProxy.sol";
 import "../utils/RegistryOwnableUpgradeable.sol";
-import "./P00lsCreatorToken.sol";
-import "./P00lsCreatorXToken.sol";
+import "./P00lsTokenCreator.sol";
+import "./P00lsTokenXCreator.sol";
 
 contract P00lsCreatorRegistry is
     ERC721URIStorageUpgradeable,
@@ -44,16 +44,16 @@ contract P00lsCreatorRegistry is
     function createToken(address owner, string calldata name, string calldata symbol, bytes32 root)
     external virtual onlyOwner() returns (address)
     {
-        address creator  = address(new BeaconProxy(address(__beaconCreator),  new bytes(0)));
-        address xCreator = address(new BeaconProxy(address(__beaconXCreator), new bytes(0)));
+        address creator  = address(new BeaconProxy(__beaconCreator));
+        address xCreator = address(new BeaconProxy(__beaconXCreator));
 
-        P00lsCreatorToken(creator).initialize(
+        P00lsTokenCreator(creator).initialize(
             name,
             symbol,
             root,
             xCreator
         );
-        P00lsCreatorXToken(xCreator).initialize(
+        P00lsTokenXCreator(xCreator).initialize(
             string(abi.encodePacked('x', name  )),
             string(abi.encodePacked('x', symbol)),
             creator
@@ -69,8 +69,7 @@ contract P00lsCreatorRegistry is
     function _isApprovedOrOwner(address spender, uint256 tokenId)
     internal view virtual override returns (bool)
     {
-        return super._isApprovedOrOwner(spender, tokenId)
-            || uint256(uint160(spender)) == tokenId;
+        return uint256(uint160(spender)) == tokenId || super._isApprovedOrOwner(spender, tokenId);
     }
 
     /**

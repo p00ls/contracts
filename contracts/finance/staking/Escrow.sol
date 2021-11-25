@@ -35,7 +35,7 @@ contract Escrow is AccessControl {
         _setupRole(DEFAULT_ADMIN_ROLE, _admin);
     }
 
-    function configure(IP00lsCreatorToken token, uint64 start, uint64 stop)
+    function configure(IP00lsTokenCreator token, uint64 start, uint64 stop)
     external onlyRole(DEFAULT_ADMIN_ROLE)
     {
         require(stop > start, "Invalid input: start must be before stop");

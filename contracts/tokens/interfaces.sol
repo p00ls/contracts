@@ -12,14 +12,14 @@ interface IP00lsTokenBase is IERC20, IERC1046, IERC1363
     function setName(address, string calldata) external;
 }
 
-interface IP00lsCreatorToken is IP00lsTokenBase {
+interface IP00lsTokenCreator is IP00lsTokenBase {
     function xCreatorToken() external view returns (address);
     function merkleRoot() external view returns (bytes32);
     function isClaimed(uint256) external view returns (bool);
     function claim(uint256, address, uint256, bytes32[] calldata) external;
 }
 
-interface IP00lsCreatorXToken is IP00lsTokenBase {
+interface IP00lsTokenXCreator is IP00lsTokenBase {
     function creatorToken() external view returns (address);
     function escrow() external view returns (address);
     function deposit(uint256) external;
