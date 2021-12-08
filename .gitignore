@@ -3,7 +3,10 @@ node_modules/
 artifacts/
 build/
 cache/
+coverage/
 generated/
+
+coverage.json
 
 .*
 !.github

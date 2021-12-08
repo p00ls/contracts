@@ -8,6 +8,10 @@ import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "@amxx/hre/contracts/FullMath.sol";
 import "../../tokens/interfaces.sol";
 
+interface IEscrowReceiver {
+    function onEscrowRelease(uint256) external;
+}
+
 contract Escrow is AccessControl {
     using SafeCast for uint256;
 
@@ -38,6 +42,7 @@ contract Escrow is AccessControl {
     function configure(IP00lsTokenCreator token, uint64 start, uint64 stop)
     external onlyRole(DEFAULT_ADMIN_ROLE)
     {
+        require(start > 0, "Invalid input: start should be non 0");
         require(stop > start, "Invalid input: start must be before stop");
 
         Details storage manifest = manifests[token];
@@ -53,13 +58,13 @@ contract Escrow is AccessControl {
     }
 
     function release(IERC20 token)
-    external
+    external returns (uint256)
     {
-        Details storage manifest = manifests[token];
+        Details memory manifest = manifests[token];
 
         if (manifest.lastUpdate == 0 || block.timestamp <= manifest.lastUpdate)
         {
-            return;
+            return 0;
         }
 
         uint256 balance = token.balanceOf(address(this));
@@ -71,9 +76,20 @@ contract Escrow is AccessControl {
             balance              = FullMath.mulDiv(step, total, balance);
             manifest.lastUpdate  = block.timestamp.toUint64();
         }
-
-        if (balance > 0) {
-            SafeERC20.safeTransfer(token, manifest.beneficiary, balance);
+        else
+        {
+            manifest.lastUpdate = 0;
         }
+
+        if (balance > 0)
+        {
+            SafeERC20.safeTransfer(token, manifest.beneficiary, balance);
+            if (Address.isContract(manifest.beneficiary)) {
+                try IEscrowReceiver(manifest.beneficiary).onEscrowRelease(balance) {}
+                catch {}
+            }
+        }
+
+        return balance;
     }
 }

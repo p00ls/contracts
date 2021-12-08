@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@amxx/hre/contracts/Checkpoints.sol";
 import "@amxx/hre/contracts/FullMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../finance/staking/Escrow.sol";
@@ -8,10 +9,13 @@ import "./P00lsTokenBase.sol";
 import "./interfaces.sol";
 
 // TODO: use onlyOwner to perform admin operations
-contract P00lsTokenXCreator is P00lsTokenBase
+contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
 {
-    Escrow             public immutable stakingEscrow;
-    IP00lsTokenCreator public           creatorToken;
+    using Checkpoints for Checkpoints.History;
+
+    Escrow              public immutable stakingEscrow;
+    IP00lsTokenCreator  public           creatorToken;
+    Checkpoints.History internal         conversion;
 
     modifier onlyOwner() {
         require(owner() == msg.sender, "P00lsTokenXCreator: owner restricted");
@@ -41,6 +45,9 @@ contract P00lsTokenXCreator is P00lsTokenBase
         __ERC20_init(name, symbol);
         __ERC20Permit_init(name);
         creatorToken = IP00lsTokenCreator(parent);
+
+        // before escrow release, ratio is 1:1
+        conversion.push(1 ether);
     }
 
     function owner() public view virtual override returns (address)
@@ -51,6 +58,13 @@ contract P00lsTokenXCreator is P00lsTokenBase
     /**
      * Deposit / withdraw
      */
+    function onEscrowRelease(uint256) public virtual
+    {
+        require(msg.sender == address(stakingEscrow), "invalid notifier");
+
+        conversion.push(sharesToValue(1 ether));
+    }
+
     function deposit(uint256 value)
     public virtual
     {
@@ -95,6 +109,12 @@ contract P00lsTokenXCreator is P00lsTokenBase
         uint256 supply  = totalSupply();
         uint256 balance = IERC20(creatorToken).balanceOf(address(this));
         return balance > 0 && supply > 0 ? FullMath.mulDiv(shares, supply, balance) : supply;
+    }
+
+    function pastSharesToValue(uint256 shares, uint256 blockNumber)
+    public view virtual returns (uint256)
+    {
+        return FullMath.mulDiv(conversion.past(blockNumber), 1 ether, shares);
     }
 
     /**
