@@ -13,6 +13,7 @@
     "prepare": "copyfiles -f node_modules/@amxx/hre/hardhat.config.js .",
     "prepack": "scripts/prepack.sh",
     "compile": "hardhat compile",
+    "coverage": "hardhat coverage",
     "test": "hardhat test",
     "devnet:node": "hardhat node",
     "devnet:migrate": "hardhat run scripts/migrate.js --network localhost"
