@@ -9,5 +9,6 @@ generated/
 coverage.json
 
 .*
+!.env.example
 !.github
 !.openzeppelin/goerli.json
