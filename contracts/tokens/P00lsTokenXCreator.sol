@@ -60,9 +60,11 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
      */
     function onEscrowRelease(uint256) public virtual
     {
-        require(msg.sender == address(stakingEscrow), "invalid notifier");
-
-        conversion.push(sharesToValue(1 ether));
+        uint256 value = sharesToValue(1 ether);
+        if (value != conversion.latest())
+        {
+            conversion.push(value);
+        }
     }
 
     function deposit(uint256 value)

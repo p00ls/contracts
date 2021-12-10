@@ -8,6 +8,7 @@ describe('$Crea Token', function () {
     await migrate().then(env => Object.assign(this, env));
     this.accounts.reserve = this.accounts.shift();
     this.accounts.artist  = this.accounts.shift();
+    this.accounts.other   = this.accounts.shift();
     __SNAPSHOT_ID__ = await ethers.provider.send('evm_snapshot');
   });
 
@@ -43,21 +44,76 @@ describe('$Crea Token', function () {
       ].map((obj, index) => Object.assign(obj, { index }));
 
       // Construct merkletree
-      this.merkletree = utils.merkle.createMerkleTree(this.allocations.map(utils.merkle.hashAllocation));
-      this.creatortoken = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', 'Amxx', this.merkletree.getRoot());
+      this.merkletree    = utils.merkle.createMerkleTree(this.allocations.map(utils.merkle.hashAllocation));
+      this.creatortoken  = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', '$Amxx', this.merkletree.getRoot());
+      this.creatorxtoken = await this.workflows.getXCreatorToken(this.creatortoken);
     });
 
-    it('Check social token', async function () {
-      expect(await this.creatortoken.name())
-        .to.be.equal('Hadrien Croubois');
-      expect(await this.creatortoken.symbol())
-        .to.be.equal('Amxx');
-      expect(await this.creatortoken.owner())
-        .to.be.equal(this.accounts.artist.address);
-      expect(await this.registry.ownerOf(this.creatortoken.address))
-        .to.be.equal(this.accounts.artist.address);
-      expect(await this.registry.tokenURI(this.creatortoken.address))
-        .to.be.equal(`${CONFIG.registry.baseuri}${ethers.BigNumber.from(this.creatortoken.address).toString()}`);
+    describe('Check state', function () {
+      it('Creator registry', async function () {
+        expect(await this.registry.name())
+          .to.be.equal('P00ls Creator Token Registry');
+        expect(await this.registry.symbol())
+          .to.be.equal('P00ls');
+        expect(await this.registry.owner())
+          .to.be.equal(this.accounts.admin.address);
+        expect(await this.registry.ownerOf(this.registry.address))
+          .to.be.equal(this.accounts.admin.address);
+        expect(await this.registry.tokenURI(this.registry.address))
+          .to.be.equal(`${CONFIG.registry.baseuri}${ethers.BigNumber.from(this.registry.address).toString()}`);
+        expect(await this.registry.admin())
+          .to.be.equal(this.accounts.admin.address);
+      });
+
+      it('Creator token', async function () {
+        expect(await this.creatortoken.name())
+          .to.be.equal('Hadrien Croubois');
+        expect(await this.creatortoken.symbol())
+          .to.be.equal('$Amxx');
+        expect(await this.creatortoken.owner())
+          .to.be.equal(this.accounts.artist.address);
+        expect(await this.registry.ownerOf(this.creatortoken.address))
+          .to.be.equal(this.accounts.artist.address);
+        expect(await this.registry.tokenURI(this.creatortoken.address))
+          .to.be.equal(`${CONFIG.registry.baseuri}${ethers.BigNumber.from(this.creatortoken.address).toString()}`);
+        expect(await this.creatortoken.admin())
+          .to.be.equal(this.accounts.admin.address);
+      });
+
+      it('Creator xToken', async function () {
+        expect(await this.creatorxtoken.name())
+          .to.be.equal('xHadrien Croubois');
+        expect(await this.creatorxtoken.symbol())
+          .to.be.equal('x$Amxx');
+        expect(await this.creatorxtoken.owner())
+          .to.be.equal(this.accounts.artist.address);
+      });
+    });
+
+    describe('Transfer ownership', function () {
+      describe('Creator registry', function () {
+        it('Protected', async function () {
+          await expect(this.registry.connect(this.accounts.other).transferOwnership(this.accounts.other.address))
+          .to.be.revertedWith('RegistryOwnable: caller is not the owner');
+        });
+
+        it('Authorized', async function () {
+          await expect(this.registry.connect(this.accounts.admin).transferOwnership(this.accounts.other.address))
+          .to.emit(this.registry, 'Transfer').withArgs(this.accounts.admin.address, this.accounts.other.address, this.registry.address);
+        });
+      });
+
+      describe('Creator token', function () {
+        it('Protected', async function () {
+          await expect(this.creatortoken.connect(this.accounts.other).transferOwnership(this.accounts.other.address))
+          .to.be.revertedWith('RegistryOwnable: caller is not the owner');
+        });
+
+        it('Authorized', async function () {
+          await expect(this.creatortoken.connect(this.accounts.artist).transferOwnership(this.accounts.other.address))
+          .to.emit(this.registry, 'Transfer').withArgs(this.accounts.artist.address, this.accounts.other.address, this.creatortoken.address);
+        });
+      });
     });
 
     it('Claim social token', async function () {
@@ -68,6 +124,10 @@ describe('$Crea Token', function () {
           .withArgs(ethers.constants.AddressZero, allocation.account, allocation.amount);
       }
     });
+
+    it.skip('Delegation', async function () {
+    });
+
 
     it.skip('User vesting', async function () {
 
