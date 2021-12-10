@@ -131,12 +131,12 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
     function delegate(address)
     public virtual override
     {
-        revert("delegation is registered on the creatorToken");
+        revert("P00lsTokenXCreator: delegation is registered on the creatorToken");
     }
 
     function delegateBySig(address, uint256, uint256, uint8, bytes32, bytes32)
     public virtual override
     {
-        revert("delegation is registered on the creatorToken");
+        revert("P00lsTokenXCreator: delegation is registered on the creatorToken");
     }
 }

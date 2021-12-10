@@ -1,19 +1,14 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
-const { migrate, attach, utils } = require('../scripts/migrate.js');
+const { CONFIG, prepare, attach, utils } = require('../fixture.js');
 
 describe('AMM', function () {
+  prepare();
+
   before(async function () {
-    await migrate().then(env => Object.assign(this, env));
     this.accounts.artist = this.accounts.shift();
     this.accounts.user   = this.accounts.shift();
-    __SNAPSHOT_ID__ = await ethers.provider.send('evm_snapshot');
-  });
-
-  beforeEach(async function() {
-    await ethers.provider.send('evm_revert', [ __SNAPSHOT_ID__ ])
-    __SNAPSHOT_ID__ = await ethers.provider.send('evm_snapshot');
   });
 
   describe('with social token', function () {

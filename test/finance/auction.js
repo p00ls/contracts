@@ -1,22 +1,16 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
-const { migrate, attach, utils } = require('../scripts/migrate.js');
-
+const { CONFIG, prepare, attach, utils } = require('../fixture.js');
 
 const VALUE = ethers.utils.parseEther('100');
 
 describe('Locking', function () {
+  prepare();
+
   before(async function () {
-    await migrate().then(env => Object.assign(this, env));
     this.accounts.artist = this.accounts.shift();
     this.accounts.user   = this.accounts.shift();
-    __SNAPSHOT_ID__ = await ethers.provider.send('evm_snapshot');
-  });
-
-  beforeEach(async function() {
-    await ethers.provider.send('evm_revert', [ __SNAPSHOT_ID__ ])
-    __SNAPSHOT_ID__ = await ethers.provider.send('evm_snapshot');
   });
 
   describe('with social token', function () {
@@ -27,8 +21,9 @@ describe('Locking', function () {
         { index: 0, account: this.amm.auction.address, amount: VALUE },
         { index: 1, account: this.locking.address,     amount: VALUE },
       ],
-      this.merkletree   = utils.merkle.createMerkleTree(this.allocations.map(utils.merkle.hashAllocation));
-      this.creatorToken = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', 'Amxx', this.merkletree.getRoot());
+      this.merkletree    = utils.merkle.createMerkleTree(this.allocations.map(utils.merkle.hashAllocation));
+      this.creatorToken  = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', 'Amxx', this.merkletree.getRoot());
+      this.creatorxtoken = await this.workflows.getXCreatorToken(this.creatortoken);
       await Promise.all(this.allocations.map(allocation => this.creatorToken.claim(allocation.index, allocation.account, allocation.amount, this.merkletree.getHexProof(utils.merkle.hashAllocation(allocation)))));
 
       // allocate pool to the auction manager
@@ -55,8 +50,8 @@ describe('Locking', function () {
       await this.amm.auction.finalize(this.creatorToken.address);
 
       // withdraw funds
-      await this.auctions[0].withdraw(this.accounts.user.address);
-      await this.auctions[1].withdraw(this.accounts.user.address);
+      await expect(this.auctions[0].withdraw(this.accounts.user.address));
+      await expect(this.auctions[1].withdraw(this.accounts.user.address));
 
       // check balances
       expect(await this.token.balanceOf(this.amm.auction.address)).to.be.equal('0');

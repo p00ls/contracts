@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@amxx/hre/contracts/FullMath.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -41,17 +42,16 @@ contract Auction is ERC20PermitUpgradeable, OwnableUpgradeable, Multicall {
 
     function leave(address payable to) public {
         require(_deadline.isPending(), "Auction: auction not active");
-        uint256 value = balanceOf(to);
-        _burn(to, value);
-        Address.sendValue(to, value * 80 / 100); // 20% penalty
+        uint256 value = balanceOf(msg.sender);
+        _burn(msg.sender, value);
+        Address.sendValue(to, FullMath.mulDiv(80, 100, value)); // 20% penalty
     }
 
     function withdraw(address to) public {
         require(_deadline.isExpired(), "Auction: auction not finished");
-        uint256 value   = balanceOf(to);
-        uint256 balance = ethToAuctionned(value);
-        _burn(to, value);
-        SafeERC20.safeTransfer(auctionToken, to, balance);
+        uint256 value = balanceOf(msg.sender);
+        _burn(msg.sender, value);
+        SafeERC20.safeTransfer(auctionToken, to, ethToAuctionned(value));
     }
 
     function finalize(address payable to) public onlyOwner() {
@@ -60,10 +60,10 @@ contract Auction is ERC20PermitUpgradeable, OwnableUpgradeable, Multicall {
     }
 
     function ethToAuctionned(uint256 amount) public view returns (uint256) {
-        return amount * auctionToken.balanceOf(address(this)) / totalSupply();
+        return FullMath.mulDiv(amount, totalSupply(), auctionToken.balanceOf(address(this)));
     }
 
     function auctionnedToEth(uint256 amount) public view returns (uint256) {
-        return amount * totalSupply() / auctionToken.balanceOf(address(this));
+        return FullMath.mulDiv(amount, auctionToken.balanceOf(address(this)), totalSupply());
     }
 }
