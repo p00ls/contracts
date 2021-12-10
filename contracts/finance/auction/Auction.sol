@@ -50,8 +50,9 @@ contract Auction is ERC20PermitUpgradeable, OwnableUpgradeable, Multicall {
     function withdraw(address to) public {
         require(_deadline.isExpired(), "Auction: auction not finished");
         uint256 value = balanceOf(msg.sender);
+        uint256 amount = ethToAuctionned(value); // must be computed BEFORE the _burn operation
         _burn(msg.sender, value);
-        SafeERC20.safeTransfer(auctionToken, to, ethToAuctionned(value));
+        SafeERC20.safeTransfer(auctionToken, to, amount);
     }
 
     function finalize(address payable to) public onlyOwner() {

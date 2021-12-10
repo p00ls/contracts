@@ -41,8 +41,8 @@ describe('$Crea Token', function () {
 
       // Construct merkletree
       this.merkletree    = utils.merkle.createMerkleTree(this.allocations.map(utils.merkle.hashAllocation));
-      this.creatortoken  = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', '$Amxx', this.merkletree.getRoot());
-      this.creatorxtoken = await this.workflows.getXCreatorToken(this.creatortoken);
+      this.creatorToken  = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', '$Amxx', this.merkletree.getRoot());
+      this.xCreatorToken = await this.workflows.getXCreatorToken(this.creatorToken);
     });
 
     describe('Check state', function () {
@@ -61,29 +61,29 @@ describe('$Crea Token', function () {
         expect(await this.registry.admin())
           .to.be.equal(this.accounts.admin.address);
 
-        expect(await this.registry.ownerOf(this.creatortoken.address))
+        expect(await this.registry.ownerOf(this.creatorToken.address))
           .to.be.equal(this.accounts.artist.address);
-        expect(await this.registry.tokenURI(this.creatortoken.address))
-          .to.be.equal(`${CONFIG.registry.baseuri}${ethers.BigNumber.from(this.creatortoken.address).toString()}`);
-        expect(await this.creatortoken.admin())
+        expect(await this.registry.tokenURI(this.creatorToken.address))
+          .to.be.equal(`${CONFIG.registry.baseuri}${ethers.BigNumber.from(this.creatorToken.address).toString()}`);
+        expect(await this.creatorToken.admin())
           .to.be.equal(this.accounts.admin.address);
       });
 
       it('Creator token', async function () {
-        expect(await this.creatortoken.name())
+        expect(await this.creatorToken.name())
           .to.be.equal('Hadrien Croubois');
-        expect(await this.creatortoken.symbol())
+        expect(await this.creatorToken.symbol())
           .to.be.equal('$Amxx');
-        expect(await this.creatortoken.owner())
+        expect(await this.creatorToken.owner())
           .to.be.equal(this.accounts.artist.address);
       });
 
       it('Creator xToken', async function () {
-        expect(await this.creatorxtoken.name())
+        expect(await this.xCreatorToken.name())
           .to.be.equal('xHadrien Croubois');
-        expect(await this.creatorxtoken.symbol())
+        expect(await this.xCreatorToken.symbol())
           .to.be.equal('x$Amxx');
-        expect(await this.creatorxtoken.owner())
+        expect(await this.xCreatorToken.owner())
           .to.be.equal(this.accounts.artist.address);
       });
     });
@@ -103,13 +103,13 @@ describe('$Crea Token', function () {
 
       describe('Creator token', function () {
         it('Protected', async function () {
-          await expect(this.creatortoken.connect(this.accounts.other).transferOwnership(this.accounts.other.address))
+          await expect(this.creatorToken.connect(this.accounts.other).transferOwnership(this.accounts.other.address))
           .to.be.revertedWith('RegistryOwnable: caller is not the owner');
         });
 
         it('Authorized', async function () {
-          await expect(this.creatortoken.connect(this.accounts.artist).transferOwnership(this.accounts.other.address))
-          .to.emit(this.registry, 'Transfer').withArgs(this.accounts.artist.address, this.accounts.other.address, this.creatortoken.address);
+          await expect(this.creatorToken.connect(this.accounts.artist).transferOwnership(this.accounts.other.address))
+          .to.emit(this.registry, 'Transfer').withArgs(this.accounts.artist.address, this.accounts.other.address, this.creatorToken.address);
         });
       });
     });
@@ -119,40 +119,40 @@ describe('$Crea Token', function () {
         for (const allocation of this.allocations) {
           const proof = this.merkletree.getHexProof(utils.merkle.hashAllocation(allocation));
 
-          expect(await this.creatortoken.isClaimed(allocation.index)).to.be.false;
+          expect(await this.creatorToken.isClaimed(allocation.index)).to.be.false;
 
-          await expect(this.creatortoken.claim(allocation.index, allocation.account, allocation.amount, []))
+          await expect(this.creatorToken.claim(allocation.index, allocation.account, allocation.amount, []))
           .to.be.revertedWith('P00lsTokenCreator::claim: invalid merkle proof');
 
-          await expect(this.creatortoken.claim(allocation.index, allocation.account, allocation.amount, proof))
-          .to.emit(this.creatortoken, 'Transfer')
+          await expect(this.creatorToken.claim(allocation.index, allocation.account, allocation.amount, proof))
+          .to.emit(this.creatorToken, 'Transfer')
           .withArgs(ethers.constants.AddressZero, allocation.account, allocation.amount);
 
-          await expect(this.creatortoken.claim(allocation.index, allocation.account, allocation.amount, proof))
+          await expect(this.creatorToken.claim(allocation.index, allocation.account, allocation.amount, proof))
           .to.be.revertedWith('P00lsTokenCreator::claim: drop already claimed');
 
-          expect(await this.creatortoken.isClaimed(allocation.index)).to.be.true;
+          expect(await this.creatorToken.isClaimed(allocation.index)).to.be.true;
         }
       });
     });
 
     describe('Delegation', function () {
       it('delegate on creator affect xcreator', async function () {
-        await expect(this.creatortoken.connect(this.accounts.user).delegate(this.accounts.other.address))
-        .to.emit(this.creatortoken,  'DelegateChanged').withArgs(this.accounts.user.address, ethers.constants.AddressZero, this.accounts.other.address)
-        .to.emit(this.creatorxtoken, 'DelegateChanged').withArgs(this.accounts.user.address, ethers.constants.AddressZero, this.accounts.other.address);
+        await expect(this.creatorToken.connect(this.accounts.user).delegate(this.accounts.other.address))
+        .to.emit(this.creatorToken,  'DelegateChanged').withArgs(this.accounts.user.address, ethers.constants.AddressZero, this.accounts.other.address)
+        .to.emit(this.xCreatorToken, 'DelegateChanged').withArgs(this.accounts.user.address, ethers.constants.AddressZero, this.accounts.other.address);
       });
 
       it('delegation hook is protected', async function () {
-        await expect(this.creatorxtoken.connect(this.accounts.user).__delegate(this.accounts.user.address, this.accounts.other.address))
+        await expect(this.xCreatorToken.connect(this.accounts.user).__delegate(this.accounts.user.address, this.accounts.other.address))
         .to.be.revertedWith('P00lsTokenXCreator: creator token restricted');
       });
 
       it('delegation on xcreator is disabled', async function () {
-        await expect(this.creatorxtoken.connect(this.accounts.user).delegate(this.accounts.other.address))
+        await expect(this.xCreatorToken.connect(this.accounts.user).delegate(this.accounts.other.address))
         .to.be.revertedWith('P00lsTokenXCreator: delegation is registered on the creatorToken')
 
-        await expect(this.creatorxtoken.connect(this.accounts.user).delegateBySig(this.accounts.other.address, 0, 0, 0, ethers.constants.HashZero, ethers.constants.HashZero))
+        await expect(this.xCreatorToken.connect(this.accounts.user).delegateBySig(this.accounts.other.address, 0, 0, 0, ethers.constants.HashZero, ethers.constants.HashZero))
         .to.be.revertedWith('P00lsTokenXCreator: delegation is registered on the creatorToken')
       });
     });

@@ -22,8 +22,8 @@ describe('Locking', function () {
         { index: 1, account: this.locking.address,     amount: VALUE },
       ],
       this.merkletree    = utils.merkle.createMerkleTree(this.allocations.map(utils.merkle.hashAllocation));
-      this.creatorToken  = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', 'Amxx', this.merkletree.getRoot());
-      this.creatorxtoken = await this.workflows.getXCreatorToken(this.creatortoken);
+      this.creatorToken  = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', '$Amxx', this.merkletree.getRoot());
+      this.xCreatorToken = await this.workflows.getXCreatorToken(this.creatorToken);
       await Promise.all(this.allocations.map(allocation => this.creatorToken.claim(allocation.index, allocation.account, allocation.amount, this.merkletree.getHexProof(utils.merkle.hashAllocation(allocation)))));
 
       // allocate pool to the auction manager
