@@ -1,51 +1,18 @@
-# Github CI/CD for p00ls smart contracts
-
 name: Github-Actions
-
-on:
-  # Triggers the workflow on push or pull request events
-  # but only for the master branch
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-
-  # Allows to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
+on: push
 jobs:
-
-
   build:
     runs-on: ubuntu-latest
-
+    env:
+      MODE: production
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: 14.x
-      - uses: actions/cache@v2
-        id: cache-npm
-        with:
-          path: '**/node_modules'
-          key: node-pkgs-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: node-pkgs-${{ runner.os }}-
-      - name: 'Deny Hardhat telemetry consent'
-        run: |
-          mkdir -p ~/.config/hardhat-nodejs
-          echo '{"consent": false}' > ~/.config/hardhat-nodejs/telemetry-consent.json
-      - name: Install
+          node-version: 16.x
+      - name: Install dependencies
         run: npm install
-        # Also prepare and compile
-        if: steps.cache-npm.outputs.cache-hit != 'true'
-      - name: Testing
-        run: npm run test
-      - name: Building JSON ABI
-        run: |
-          npm run prepack
-      - name: 'Upload contracts ABIs'
-        uses: actions/upload-artifact@v2
-        with:
-          name: abi-dir
-          path: |
-              build/contracts
+      - name: Run tests
+        run: npm test
+
+        
