@@ -3,34 +3,43 @@ pragma solidity ^0.8.2;
 
 import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorSettingsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorCountingSimpleUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorVotesUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorTimelockControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "../tokens/P00lsTokenCreator.sol";
+import "../tokens/P00lsTokenXCreator.sol";
 
 contract P00lsDAO is
     Initializable,
     GovernorSettingsUpgradeable,
     GovernorCountingSimpleUpgradeable,
-    GovernorVotesUpgradeable,
     GovernorTimelockControlUpgradeable,
     UUPSUpgradeable
 {
-    uint256 private _quorum;
+    IP00lsTokenCreator public  token;
+    uint256            private _quorum;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
-    function initialize(ERC20VotesUpgradeable _token, TimelockControllerUpgradeable _timelock)
+    function initialize(IP00lsTokenCreator __token, TimelockControllerUpgradeable __timelock)
         public initializer()
     {
         __Governor_init("p00lsDAO");
         __GovernorSettings_init(1, 40320, 0); // initialVotingDelay = 1 block, initialVotingPeriod = ~1 week, initialProposalThreshold = 0
         __GovernorCountingSimple_init();
-        __GovernorVotes_init(_token);
-        __GovernorTimelockControl_init(_timelock);
+        __GovernorTimelockControl_init(__timelock);
 
+        token = __token;
         _quorum = 1;
+    }
+
+    function getVotes(address account, uint256 blockNumber) public view virtual override returns (uint256) {
+        IP00lsTokenCreator  _token  = token;
+        IP00lsTokenXCreator _xtoken = _token.xCreatorToken();
+        uint256             votes   = _token.getPastVotes(account, blockNumber);
+        uint256             xvotes  = _xtoken.pastSharesToValue(_xtoken.getPastVotes(account, blockNumber), blockNumber);
+        return votes + xvotes;
     }
 
     function setQuorum(uint256 newQuorum)
@@ -57,15 +66,6 @@ contract P00lsDAO is
     {}
 
     // The following functions are overrides required by Solidity.
-
-    function getVotes(address account, uint256 blockNumber)
-        public
-        view
-        override(IGovernorUpgradeable, GovernorVotesUpgradeable)
-        returns (uint256)
-    {
-        return super.getVotes(account, blockNumber);
-    }
 
     function state(uint256 proposalId)
         public

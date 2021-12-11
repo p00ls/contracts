@@ -156,27 +156,5 @@ describe('$Crea Token', function () {
         .to.be.revertedWith('P00lsTokenXCreator: delegation is registered on the creatorToken')
       });
     });
-
-
-    it.skip('User vesting', async function () {
-
-      // Random weight to initial fans
-      // const weights = Array(32).fill().map(() => ({
-      //   account: ethers.utils.getAddress(ethers.utils.hexlify(ethers.utils.randomBytes(20))),
-      //   weight:  ethers.utils.randomBytes(1)[0],
-      // }));
-      // weights.sum = weights.map(({ weight }) => weight).reduce((a, b) => a + b, 0);
-
-
-
-
-
-
-
-
-
-    });
-
-
   });
 });

@@ -86,6 +86,8 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
 
         SafeERC20.safeTransferFrom(IERC20(creatorToken), msg.sender, address(this), value);
         _mint(receiver, shares);
+
+        onEscrowRelease(0);
     }
 
     function withdrawTo(uint256 shares, address receiver)
@@ -95,6 +97,8 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
 
         _burn(msg.sender, shares);
         SafeERC20.safeTransfer(IERC20(creatorToken), receiver, value);
+
+        onEscrowRelease(0);
     }
 
     function valueToShares(uint256 value)

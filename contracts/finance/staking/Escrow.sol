@@ -52,7 +52,7 @@ contract Escrow is AccessControl {
         );
         manifest.lastUpdate  = start;
         manifest.deadline    = stop;
-        manifest.beneficiary = token.xCreatorToken();
+        manifest.beneficiary = address(token.xCreatorToken());
 
         emit NewStaking(token, start, stop);
     }
