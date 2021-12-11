@@ -105,72 +105,14 @@ describe('Locking', function () {
       await expect(this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address, this.accounts.user.address))
       .to.be.revertedWith('Vault is locked');
     });
-  });
 
-  describe('after lock setup', function () {
-    beforeEach(async function () {
-      const tx         = await this.locking.connect(this.accounts.admin).lockSetup(this.creatorToken.address);
-      this.start       = await ethers.provider.getBlock(tx.blockNumber).then(({timestamp }) => timestamp);
-      this.DELAY       = await this.locking.DELAY();
-      this.MIN_DURATION = await this.locking.MIN_DURATION();
-      this.MAX_DURATION = await this.locking.MAX_DURATION();
-    })
-
-    it('lock details', async function () {
-      const details = await this.locking.lockDetails(this.creatorToken.address);
-      expect(details.start).to.be.equal(this.DELAY.add(this.start));
-      // expect(details.rate).to.be.equal(0);
-      expect(details.reward).to.be.equal(VALUE);
-      expect(details.totalWeight).to.be.equal(0);
-    });
-
-    it('empty vault details', async function () {
-      const details = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address);
-      expect(details.maturity).to.be.equal(0);
-      expect(details.value).to.be.equal(0);
-      expect(details.extra).to.be.equal(0);
-      expect(details.weight).to.be.equal(0);
-    });
-
-    it('cannot re setup lock', async function () {
-      await expect(this.locking.connect(this.accounts.admin).lockSetup(this.creatorToken.address))
-      .to.be.revertedWith('Locking already configured');
-    });
-
-    it('cannot setup vault with invalid duration', async function () {
-      await expect(this.locking.connect(this.accounts.user).vaultSetup(this.creatorToken.address, this.MIN_DURATION.sub(1)))
-      .to.be.reverted;
-
-      await expect(this.locking.connect(this.accounts.user).vaultSetup(this.creatorToken.address, this.MAX_DURATION.add(1)))
-      .to.be.reverted;
-    });
-
-    it('can setup vault', async function () {
-      const duration = 12 * 30 * 86400;
-
-      await expect(this.locking.connect(this.accounts.user).vaultSetup(this.creatorToken.address, duration))
-      .to.emit(this.locking, 'VaultSetup').withArgs(
-        this.creatorToken.address,
-        this.accounts.user.address,
-        this.DELAY.add(this.start).add(duration),
-      );
-    });
-
-    it('cannot deposit', async function () {
-      await expect(this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, 0, 0, this.accounts.user.address))
-      .to.be.revertedWith('Vault doesn\'t accept deposit');
-    });
-
-    it('cannot withdraw', async function () {
-      await expect(this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address, this.accounts.user.address))
-      .to.be.revertedWith('Vault is locked');
-    });
-
-    describe('after vault setup', function () {
+    describe('after lock setup', function () {
       beforeEach(async function () {
-        this.duration = 12 * 30 * 86400;
-        await this.locking.connect(this.accounts.user).vaultSetup(this.creatorToken.address, this.duration)
-        await this.locking.connect(this.accounts.other).vaultSetup(this.creatorToken.address, this.duration / 2)
+        const tx         = await this.locking.connect(this.accounts.admin).lockSetup(this.creatorToken.address);
+        this.start       = await ethers.provider.getBlock(tx.blockNumber).then(({timestamp }) => timestamp);
+        this.DELAY       = await this.locking.DELAY();
+        this.MIN_DURATION = await this.locking.MIN_DURATION();
+        this.MAX_DURATION = await this.locking.MAX_DURATION();
       })
 
       it('lock details', async function () {
@@ -181,17 +123,9 @@ describe('Locking', function () {
         expect(details.totalWeight).to.be.equal(0);
       });
 
-      it('vault details', async function () {
+      it('empty vault details', async function () {
         const details = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address);
-        expect(details.maturity).to.be.equal(this.DELAY.add(this.start).add(this.duration));
-        expect(details.value).to.be.equal(0);
-        expect(details.extra).to.be.equal(0);
-        expect(details.weight).to.be.equal(0);
-      });
-
-      it('more vault details', async function () {
-        const details = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.other.address);
-        expect(details.maturity).to.be.equal(this.DELAY.add(this.start).add(this.duration / 2));
+        expect(details.maturity).to.be.equal(0);
         expect(details.value).to.be.equal(0);
         expect(details.extra).to.be.equal(0);
         expect(details.weight).to.be.equal(0);
@@ -202,22 +136,28 @@ describe('Locking', function () {
         .to.be.revertedWith('Locking already configured');
       });
 
-      it('cannot re setup vault', async function () {
-        await expect(this.locking.connect(this.accounts.user).vaultSetup(this.creatorToken.address, this.duration))
-        .to.be.revertedWith('Vault already configured');
+      it('cannot setup vault with invalid duration', async function () {
+        await expect(this.locking.connect(this.accounts.user).vaultSetup(this.creatorToken.address, this.MIN_DURATION.sub(1)))
+        .to.be.reverted;
+
+        await expect(this.locking.connect(this.accounts.user).vaultSetup(this.creatorToken.address, this.MAX_DURATION.add(1)))
+        .to.be.reverted;
       });
 
-      it('can deposit', async function () {
-        await this.token.connect(this.accounts.user).approve(this.locking.address, ethers.constants.MaxUint256);
-        await this.creatorToken.connect(this.accounts.user).approve(this.locking.address, ethers.constants.MaxUint256);
+      it('can setup vault', async function () {
+        const duration = 12 * 30 * 86400;
 
-        const tx     = await this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, value, value.div(2), this.accounts.other.address);
-        const weight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.other.address).then(({ weight }) => weight);
+        await expect(this.locking.connect(this.accounts.user).vaultSetup(this.creatorToken.address, duration))
+        .to.emit(this.locking, 'VaultSetup').withArgs(
+          this.creatorToken.address,
+          this.accounts.user.address,
+          this.DELAY.add(this.start).add(duration),
+        );
+      });
 
-        await expect(tx)
-        .to.emit(this.token, 'Transfer').withArgs(this.accounts.user.address, this.locking.address, value.div(2))
-        .to.emit(this.creatorToken, 'Transfer').withArgs(this.accounts.user.address, this.locking.address, value)
-        .to.emit(this.locking, 'Deposit').withArgs(this.creatorToken.address, this.accounts.other.address, value, value.div(2), weight);
+      it('cannot deposit', async function () {
+        await expect(this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, 0, 0, this.accounts.user.address))
+        .to.be.revertedWith('Vault doesn\'t accept deposit');
       });
 
       it('cannot withdraw', async function () {
@@ -225,19 +165,168 @@ describe('Locking', function () {
         .to.be.revertedWith('Vault is locked');
       });
 
-      describe.skip('after deposit', function () {
+      describe('after vault setup', function () {
         beforeEach(async function () {
-          // transfer tokens for user to other
-          // transfer creatortoken for user to other
-          // approve all
-          // deposit for user
-          // deposit for other
+          this.duration = 12 * 30 * 86400;
+          await this.locking.connect(this.accounts.user).vaultSetup(this.creatorToken.address, this.duration)
+          await this.locking.connect(this.accounts.other).vaultSetup(this.creatorToken.address, this.duration / 2)
+        })
+
+        it('lock details', async function () {
+          const details = await this.locking.lockDetails(this.creatorToken.address);
+          expect(details.start).to.be.equal(this.DELAY.add(this.start));
+          // expect(details.rate).to.be.equal(0);
+          expect(details.reward).to.be.equal(VALUE);
+          expect(details.totalWeight).to.be.equal(0);
         });
 
+        it('vault details', async function () {
+          const details = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address);
+          expect(details.maturity).to.be.equal(this.DELAY.add(this.start).add(this.duration));
+          expect(details.value).to.be.equal(0);
+          expect(details.extra).to.be.equal(0);
+          expect(details.weight).to.be.equal(0);
+        });
+
+        it('more vault details', async function () {
+          const details = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.other.address);
+          expect(details.maturity).to.be.equal(this.DELAY.add(this.start).add(this.duration / 2));
+          expect(details.value).to.be.equal(0);
+          expect(details.extra).to.be.equal(0);
+          expect(details.weight).to.be.equal(0);
+        });
+
+        it('cannot re setup lock', async function () {
+          await expect(this.locking.connect(this.accounts.admin).lockSetup(this.creatorToken.address))
+          .to.be.revertedWith('Locking already configured');
+        });
+
+        it('cannot re setup vault', async function () {
+          await expect(this.locking.connect(this.accounts.user).vaultSetup(this.creatorToken.address, this.duration))
+          .to.be.revertedWith('Vault already configured');
+        });
+
+        it('can deposit', async function () {
+          await this.token.connect(this.accounts.user).approve(this.locking.address, ethers.constants.MaxUint256);
+          await this.creatorToken.connect(this.accounts.user).approve(this.locking.address, ethers.constants.MaxUint256);
+
+          const tx     = await this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, value, value.div(2), this.accounts.other.address);
+          const weight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.other.address).then(({ weight }) => weight);
+
+          await expect(tx)
+          .to.emit(this.token, 'Transfer').withArgs(this.accounts.user.address, this.locking.address, value.div(2))
+          .to.emit(this.creatorToken, 'Transfer').withArgs(this.accounts.user.address, this.locking.address, value)
+          .to.emit(this.locking, 'Deposit').withArgs(this.creatorToken.address, this.accounts.other.address, value, value.div(2), weight);
+        });
+
+        it('cannot withdraw', async function () {
+          await expect(this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address, this.accounts.user.address))
+          .to.be.revertedWith('Vault is locked');
+        });
+
+        describe('after deposit', function () {
+          beforeEach(async function () {
+            await Promise.all([ this.token, this.creatorToken ].flatMap(token => [
+              token.connect(this.accounts.user).transfer(this.accounts.other.address, value),
+              token.connect(this.accounts.user).approve(this.locking.address, ethers.constants.MaxUint256),
+              token.connect(this.accounts.other).approve(this.locking.address, ethers.constants.MaxUint256),
+            ]));
+
+            await Promise.all([ this.accounts.user, this.accounts.other ].flatMap(account => [
+              this.locking.connect(account).deposit(this.creatorToken.address, value, value.div(2), account.address),
+            ]));
+          });
+
+          it('check status', async function () {
+            const userDetails  = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address);
+            const otherDetails = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.other.address);
+
+            expect(userDetails.maturity).to.be.equal(this.DELAY.add(this.start).add(this.duration));
+            expect(userDetails.value).to.be.equal(value);
+            expect(userDetails.extra).to.be.equal(value.div(2));
+            // expect(userDetails.weight).to.be.equal();
+            expect(otherDetails.maturity).to.be.equal(this.DELAY.add(this.start).add(this.duration / 2));
+            expect(otherDetails.value).to.be.equal(value);
+            expect(otherDetails.extra).to.be.equal(value.div(2));
+            // expect(otherDetails.weight).to.be.equal();
+            expect(userDetails.weight).to.be.gt(otherDetails.weight);
+          });
+
+          it('can deposit more', async function () {
+            const oldWeight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address).then(({ weight }) => weight);
+            const tx        = await this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, value, 0, this.accounts.user.address);
+            const newWeight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address).then(({ weight }) => weight);
+
+            await expect(tx)
+            .to.emit(this.creatorToken, 'Transfer').withArgs(this.accounts.user.address, this.locking.address, value)
+            .to.emit(this.locking, 'Deposit').withArgs(this.creatorToken.address, this.accounts.user.address, value, 0, newWeight)
+            .to.not.emit(this.token, 'Transfer');
+
+            expect(newWeight).to.be.gt(oldWeight);
+          });
+
+          it('can deposit only extra', async function () {
+            const oldWeight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address).then(({ weight }) => weight);
+            const tx        = await this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, 0, value.div(2), this.accounts.user.address);
+            const newWeight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address).then(({ weight }) => weight);
+
+            await expect(tx)
+            .to.emit(this.token, 'Transfer').withArgs(this.accounts.user.address, this.locking.address, value.div(2))
+            .to.emit(this.locking, 'Deposit').withArgs(this.creatorToken.address, this.accounts.user.address, 0, value.div(2), newWeight)
+            .to.not.emit(this.creatorToken, 'Transfer');
+
+            expect(newWeight).to.be.gt(oldWeight);
+          });
+
+          it('cannot withdraw', async function () {
+            await expect(this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address, this.accounts.user.address))
+            .to.be.revertedWith('Vault is locked');
+          });
 
 
+          describe('after expiration', function () {
+            beforeEach(async function () {
+              await network.provider.send('evm_increaseTime', [ this.DELAY.toNumber() ]);
+            });
 
+            it('cannot deposit anymore', async function () {
+              await expect(this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, value, 0, this.accounts.user.address))
+              .to.be.revertedWith('Locking not currently authorized for this token');
+            });
 
+            it('cannot withdraw', async function () {
+              await expect(this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address, this.accounts.user.address))
+              .to.be.revertedWith('Vault is locked');
+            });
+
+            describe('after expiration', function () {
+              beforeEach(async function () {
+                await network.provider.send('evm_increaseTime', [ this.duration ]);
+              });
+
+              it('withdraw', async function () {
+                const tx1     = await this.locking.connect(this.accounts.other).withdraw(this.creatorToken.address, this.accounts.other.address);
+                const reward1 = await tx1.wait().then(({ events }) => events.find(({ event }) => event == 'Withdraw').args.reward);
+
+                await expect(tx1)
+                .to.emit(this.locking, 'Withdraw').withArgs(this.creatorToken.address, this.accounts.other.address, this.accounts.other.address, reward1)
+                .to.emit(this.token, 'Transfer').withArgs(this.locking.address, this.accounts.other.address, value.div(2))
+                .to.emit(this.creatorToken, 'Transfer').withArgs(this.locking.address, this.accounts.other.address, value.add(reward1));
+
+                const tx2     = await this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address, this.accounts.user.address);
+                const reward2 = await tx2.wait().then(({ events }) => events.find(({ event }) => event == 'Withdraw').args.reward);
+
+                await expect(tx2)
+                .to.emit(this.locking, 'Withdraw').withArgs(this.creatorToken.address, this.accounts.user.address, this.accounts.user.address, reward2)
+                .to.emit(this.token, 'Transfer').withArgs(this.locking.address, this.accounts.user.address, value.div(2))
+                .to.emit(this.creatorToken, 'Transfer').withArgs(this.locking.address, this.accounts.user.address, value.add(reward2));
+
+                expect(reward1).to.be.gt(0);
+                expect(reward2).to.be.gt(reward1);
+              });
+            });
+          });
+        });
       });
     });
   });

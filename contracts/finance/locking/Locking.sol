@@ -187,8 +187,8 @@ contract Locking is AccessControl, Multicall {
         Vault storage vault = lock.vaults[msg.sender];
 
         uint256 reward = lock.splitter.release(msg.sender);
-        SafeERC20.safeTransferFrom(token, address(this), to, vault.value + reward);
-        SafeERC20.safeTransferFrom(pools, address(this), to, vault.extra);
+        SafeERC20.safeTransfer(token, to, vault.value + reward);
+        SafeERC20.safeTransfer(pools, to, vault.extra);
 
         delete lock.vaults[msg.sender];
 
