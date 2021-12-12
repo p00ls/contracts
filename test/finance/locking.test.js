@@ -339,7 +339,7 @@ describe('Locking', function () {
             expect(newWeight).to.be.gt(oldWeight);
           });
 
-          it('can deposit only extra', async function () {
+          it('can deposit more extra', async function () {
             const oldWeight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address).then(({ weight }) => weight);
             const tx        = await this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, 0, value.div(2));
             const newWeight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address).then(({ weight }) => weight);
