@@ -276,6 +276,23 @@ describe('Locking', function () {
           .to.emit(this.token, 'Approval').withArgs(this.accounts.user.address, this.locking.address, 0);
         });
 
+        it('protected against invalid erc1363\'s calls', async function () {
+          await expect(this.locking.onTransferReceived(
+            this.accounts.user.address,
+            this.accounts.user.address,
+            value,
+            ethers.utils.defaultAbiCoder.encode([ 'address', 'address' ],[ this.creatorToken.address, this.accounts.other.address ]),
+          ))
+          .to.be.revertedWith('invalid data');
+
+          await expect(this.locking.onApprovalReceived(
+            this.accounts.user.address,
+            value,
+            ethers.utils.defaultAbiCoder.encode([ 'address', 'address' ],[ this.creatorToken.address, this.accounts.other.address ]),
+          ))
+          .to.be.revertedWith('invalid data');
+        });
+
         it('cannot withdraw', async function () {
           await expect(this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address))
           .to.be.revertedWith('Vault is locked');
