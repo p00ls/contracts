@@ -1,7 +1,9 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
-const { CONFIG, prepare, utils } = require('../fixture.js');
+const { CONFIG, prepare, deploy, utils } = require('../fixture.js');
+
+const value = ethers.utils.parseEther('1');
 
 describe('$Crea Token', function () {
   prepare();
@@ -154,6 +156,94 @@ describe('$Crea Token', function () {
 
         await expect(this.xCreatorToken.connect(this.accounts.user).delegateBySig(this.accounts.other.address, 0, 0, 0, ethers.constants.HashZero, ethers.constants.HashZero))
         .to.be.revertedWith('P00lsTokenXCreator: delegation is registered on the creatorToken')
+      });
+    });
+
+    describe('ERC1363', function () {
+      beforeEach(async function () {
+        this.receiver = await deploy('ERC1363ReceiverMock');
+
+        await Promise.all(this.allocations.map(allocation => this.creatorToken.claim(allocation.index, allocation.account, allocation.amount, this.merkletree.getHexProof(utils.merkle.hashAllocation(allocation)))));
+        await this.creatorToken.connect(this.accounts.reserve).transfer(this.accounts.user.address, value);
+      });
+
+      describe('transferAndCall', function () {
+        it('without data', async function () {
+          const data = '0x';
+
+          await expect(this.creatorToken.connect(this.accounts.user).functions['transferAndCall(address,uint256)'](this.receiver.address, value))
+          .to.emit(this.creatorToken, 'Transfer').withArgs(this.accounts.user.address, this.receiver.address, value)
+          .to.emit(this.receiver, 'TransferReceived').withArgs(this.accounts.user.address, this.accounts.user.address, value, data);
+        });
+
+        it('with data', async function () {
+          const data = '0x123456';
+
+          await expect(this.creatorToken.connect(this.accounts.user).functions['transferAndCall(address,uint256,bytes)'](this.receiver.address, value, data))
+          .to.emit(this.creatorToken, 'Transfer').withArgs(this.accounts.user.address, this.receiver.address, value)
+          .to.emit(this.receiver, 'TransferReceived').withArgs(this.accounts.user.address, this.accounts.user.address, value, data);
+        });
+
+        it('with reverting hook', async function () {
+          const data = '0x01';
+
+          await expect(this.creatorToken.connect(this.accounts.user).functions['transferAndCall(address,uint256,bytes)'](this.receiver.address, value, data))
+          .to.be.revertedWith('onTransferReceived revert');
+        });
+      });
+
+      describe('transferFromAndCall', function () {
+        beforeEach(async function () {
+          await this.creatorToken.connect(this.accounts.user).approve(this.accounts.other.address, ethers.constants.MaxUint256);
+        });
+
+        it('without data', async function () {
+          const data = '0x';
+
+          await expect(this.creatorToken.connect(this.accounts.other).functions['transferFromAndCall(address,address,uint256)'](this.accounts.user.address, this.receiver.address, value))
+          .to.emit(this.creatorToken, 'Transfer').withArgs(this.accounts.user.address, this.receiver.address, value)
+          .to.emit(this.receiver, 'TransferReceived').withArgs(this.accounts.other.address, this.accounts.user.address, value, data);
+        });
+
+        it('with data', async function () {
+          const data = '0x123456';
+
+          await expect(this.creatorToken.connect(this.accounts.other).functions['transferFromAndCall(address,address,uint256,bytes)'](this.accounts.user.address, this.receiver.address, value, data))
+          .to.emit(this.creatorToken, 'Transfer').withArgs(this.accounts.user.address, this.receiver.address, value)
+          .to.emit(this.receiver, 'TransferReceived').withArgs(this.accounts.other.address, this.accounts.user.address, value, data);
+        });
+
+        it('with reverting hook', async function () {
+          const data = '0x01';
+
+          await expect(this.creatorToken.connect(this.accounts.other).functions['transferFromAndCall(address,address,uint256,bytes)'](this.accounts.user.address, this.receiver.address, value, data))
+          .to.be.revertedWith('onTransferReceived revert');
+        });
+      });
+
+      describe('approveAndCall', function () {
+        it('without data', async function () {
+          const data = '0x';
+
+          await expect(this.creatorToken.connect(this.accounts.user).functions['approveAndCall(address,uint256)'](this.receiver.address, value))
+          .to.emit(this.creatorToken, 'Approval').withArgs(this.accounts.user.address, this.receiver.address, value)
+          .to.emit(this.receiver, 'ApprovalReceived').withArgs(this.accounts.user.address, value, data);
+        });
+
+        it('with data', async function () {
+          const data = '0x123456';
+
+          await expect(this.creatorToken.connect(this.accounts.user).functions['approveAndCall(address,uint256,bytes)'](this.receiver.address, value, data))
+          .to.emit(this.creatorToken, 'Approval').withArgs(this.accounts.user.address, this.receiver.address, value)
+          .to.emit(this.receiver, 'ApprovalReceived').withArgs(this.accounts.user.address, value, data);
+        });
+
+        it('with reverting hook', async function () {
+          const data = '0x01';
+
+          await expect(this.creatorToken.connect(this.accounts.user).functions['approveAndCall(address,uint256,bytes)'](this.receiver.address, value, data))
+          .to.be.revertedWith('onApprovalReceived revert');
+        });
       });
     });
   });

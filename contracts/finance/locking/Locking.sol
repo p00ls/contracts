@@ -11,8 +11,9 @@ import "@amxx/hre/contracts/Splitters.sol";
 import "@amxx/hre/contracts/FullMath.sol";
 import "../amm/UniswapV2Router02.sol";
 import "../amm/libraries/Math.sol";
+import "../../tokens/extensions/IERC1363.sol";
 
-contract Locking is AccessControl, Multicall {
+contract Locking is AccessControl, Multicall, IERC1363Receiver {
     using Distributions for Distributions.Uint256;
     using Splitters     for Splitters.Splitter;
     using Timers        for Timers.Timestamp;
@@ -95,7 +96,7 @@ contract Locking is AccessControl, Multicall {
     }
 
     function lockDetails(IERC20 token)
-    public view returns (uint64 start, uint256 rate, uint256 reward, uint256 totalWeight)
+    external view returns (uint64 start, uint256 rate, uint256 reward, uint256 totalWeight)
     {
         Lock storage lock = _locks[token];
         return (
@@ -107,7 +108,7 @@ contract Locking is AccessControl, Multicall {
     }
 
     function vaultDetails(IERC20 token, address account)
-    public view returns (uint64 maturity, uint256 value, uint256 extra, uint256 weight)
+    external view returns (uint64 maturity, uint256 value, uint256 extra, uint256 weight)
     {
         Lock  storage lock  = _locks[token];
         Vault storage vault = lock.vaults[account];
@@ -120,7 +121,7 @@ contract Locking is AccessControl, Multicall {
     }
 
     function lockSetup(IERC20 token)
-    public
+    external
         onlyUnsetLock(token)
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
@@ -134,7 +135,7 @@ contract Locking is AccessControl, Multicall {
     }
 
     function vaultSetup(IERC20 token, uint64 duration)
-    public
+    external
         onlyActiveLock(token)
         onlyUnsetVault(token, msg.sender)
     {
@@ -150,14 +151,48 @@ contract Locking is AccessControl, Multicall {
         emit VaultSetup(token, msg.sender, expiration);
     }
 
-    function deposit(IERC20 token, uint256 amount, uint256 extra)
-    public
+    function onTransferReceived(address, address, uint256 value, bytes calldata data)
+    external override returns (bytes4)
     {
-        depositFor(token, amount, extra, msg.sender);
+        (IERC20 token, address to) = abi.decode(data, (IERC20, address));
+
+        if (msg.sender == address(token)) {
+            _deposit(token, value, 0, to);
+        } else if (msg.sender == address(pools)) {
+            _deposit(token, 0, value, to);
+        } else {
+            revert('invalid data');
+        }
+
+        return this.onTransferReceived.selector;
+    }
+
+    function deposit(IERC20 token, uint256 amount, uint256 extra)
+    external
+    {
+        _deposit(token, amount, extra, msg.sender);
     }
 
     function depositFor(IERC20 token, uint256 amount, uint256 extra, address to)
-    public
+    external
+    {
+        _deposit(token, amount, extra, to);
+    }
+
+    function withdraw(IERC20 token)
+    external
+    {
+        _withdraw(token, msg.sender);
+    }
+
+    function withdrawTo(IERC20 token, address to)
+    external
+    {
+        _withdraw(token, to);
+    }
+
+    function _deposit(IERC20 token, uint256 amount, uint256 extra, address to)
+    internal
         onlyActiveLock(token)
         onlyActiveVault(token, to)
     {
@@ -185,14 +220,8 @@ contract Locking is AccessControl, Multicall {
         emit Deposit(token, to, amount, extra, weight);
     }
 
-    function withdraw(IERC20 token)
-    public
-    {
-        withdrawTo(token, msg.sender);
-    }
-
-    function withdrawTo(IERC20 token, address to)
-    public
+    function _withdraw(IERC20 token, address to)
+    internal
         onlyExpiredVault(token, msg.sender)
     {
         Lock  storage lock  = _locks[token];
@@ -228,14 +257,18 @@ contract Locking is AccessControl, Multicall {
     /*****************************************************************************************************************
      *                                                Internal tools                                                 *
      *****************************************************************************************************************/
-    function _tokenToPools(IERC20 token) internal view returns (address[] memory path) {
+    function _tokenToPools(IERC20 token)
+    internal view returns (address[] memory path)
+    {
         path = new address[](3);
         path[0] = address(token);
         path[1] = router.WETH();
         path[2] = address(pools);
     }
 
-    function _poolsToToken(IERC20 token) internal view returns (address[] memory path) {
+    function _poolsToToken(IERC20 token)
+    internal view returns (address[] memory path)
+    {
         path = new address[](3);
         path[0] = address(pools);
         path[1] = router.WETH();
