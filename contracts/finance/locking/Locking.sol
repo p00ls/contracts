@@ -13,7 +13,7 @@ import "../amm/UniswapV2Router02.sol";
 import "../amm/libraries/Math.sol";
 import "../../tokens/extensions/IERC1363.sol";
 
-contract Locking is AccessControl, Multicall, IERC1363Receiver {
+contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender {
     using Distributions for Distributions.Uint256;
     using Splitters     for Splitters.Splitter;
     using Timers        for Timers.Timestamp;
@@ -151,15 +151,15 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver {
         emit VaultSetup(token, msg.sender, expiration);
     }
 
-    function onTransferReceived(address, address, uint256 value, bytes calldata data)
+    function onTransferReceived(address, address from, uint256 value, bytes calldata data)
     external override returns (bytes4)
     {
         (IERC20 token, address to) = abi.decode(data, (IERC20, address));
 
         if (msg.sender == address(token)) {
-            _deposit(token, value, 0, to);
+            _deposit(token, from, value, 0, to, true);
         } else if (msg.sender == address(pools)) {
-            _deposit(token, 0, value, to);
+            _deposit(token, from, 0, value, to, true);
         } else {
             revert('invalid data');
         }
@@ -167,31 +167,47 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver {
         return this.onTransferReceived.selector;
     }
 
+    function onApprovalReceived(address from, uint256 value, bytes memory data)
+    external override returns (bytes4)
+    {
+        (IERC20 token, address to) = abi.decode(data, (IERC20, address));
+
+        if (msg.sender == address(token)) {
+            _deposit(token, from, value, 0, to, false);
+        } else if (msg.sender == address(pools)) {
+            _deposit(token, from, 0, value, to, false);
+        } else {
+            revert('invalid data');
+        }
+
+        return this.onApprovalReceived.selector;
+    }
+
     function deposit(IERC20 token, uint256 amount, uint256 extra)
     external
     {
-        _deposit(token, amount, extra, msg.sender);
+        _deposit(token, msg.sender, amount, extra, msg.sender, false);
     }
 
     function depositFor(IERC20 token, uint256 amount, uint256 extra, address to)
     external
     {
-        _deposit(token, amount, extra, to);
+        _deposit(token, msg.sender, amount, extra, to, false);
     }
 
     function withdraw(IERC20 token)
     external
     {
-        _withdraw(token, msg.sender);
+        _withdraw(token, msg.sender, msg.sender);
     }
 
     function withdrawTo(IERC20 token, address to)
     external
     {
-        _withdraw(token, to);
+        _withdraw(token, msg.sender, to);
     }
 
-    function _deposit(IERC20 token, uint256 amount, uint256 extra, address to)
+    function _deposit(IERC20 token, address from, uint256 amount, uint256 extra, address to, bool erc1363received)
     internal
         onlyActiveLock(token)
         onlyActiveVault(token, to)
@@ -200,12 +216,12 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver {
         Vault storage vault = lock.vaults[to];
 
         if (amount > 0) {
-            SafeERC20.safeTransferFrom(token, msg.sender, address(this), amount);
+            if (!erc1363received) SafeERC20.safeTransferFrom(token, from, address(this), amount);
             vault.value += amount;
         }
 
         if (extra > 0) {
-            SafeERC20.safeTransferFrom(pools, msg.sender, address(this), extra);
+            if (!erc1363received) SafeERC20.safeTransferFrom(pools, from, address(this), extra);
             vault.extra += extra;
         }
 
@@ -220,20 +236,20 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver {
         emit Deposit(token, to, amount, extra, weight);
     }
 
-    function _withdraw(IERC20 token, address to)
+    function _withdraw(IERC20 token, address from, address to)
     internal
-        onlyExpiredVault(token, msg.sender)
+        onlyExpiredVault(token, from)
     {
         Lock  storage lock  = _locks[token];
-        Vault storage vault = lock.vaults[msg.sender];
+        Vault storage vault = lock.vaults[from];
 
-        uint256 reward = lock.splitter.release(msg.sender);
+        uint256 reward = lock.splitter.release(from);
         SafeERC20.safeTransfer(token, to, vault.value + reward);
         SafeERC20.safeTransfer(pools, to, vault.extra);
 
-        delete lock.vaults[msg.sender];
+        delete lock.vaults[from];
 
-        emit Withdraw(token, msg.sender, to, reward);
+        emit Withdraw(token, from, to, reward);
     }
 
     function estimateWeight(IERC20 token, uint256 duration, uint256 value, uint256 extra)
@@ -241,7 +257,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver {
     {
         uint256 rate        = _locks[token].rate;
         uint256 factor      = duration * Math.sqrt(duration);
-        uint256 extrafactor = extra == 0 ? 0 : Math.sqrt(FullMath.mulDiv(
+        uint256 extrafactor = value == 0 ? 0 : Math.sqrt(FullMath.mulDiv(
             rate * extra, // rate is * 1e18
             value,
             1e54

@@ -218,9 +218,7 @@ describe('Locking', function () {
           .to.emit(this.locking, 'Deposit').withArgs(this.creatorToken.address, this.accounts.other.address, value, value.div(2), weight);
         });
 
-        it.skip('can deposit creator token with transferAndCall', async function () {
-          console.log(this.creatorToken.address)
-
+        it('can deposit creator token with erc1363\'s transferAndCall', async function () {
           const tx = await this.creatorToken.connect(this.accounts.user).functions['transferAndCall(address,uint256,bytes)'](
             this.locking.address,
             value,
@@ -229,11 +227,12 @@ describe('Locking', function () {
           const weight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.other.address).then(({ weight }) => weight);
 
           await expect(tx)
+          .to.emit(this.locking, 'Deposit').withArgs(this.creatorToken.address, this.accounts.other.address, value, 0, weight)
           .to.emit(this.creatorToken, 'Transfer').withArgs(this.accounts.user.address, this.locking.address, value)
-          .to.emit(this.locking, 'Deposit').withArgs(this.creatorToken.address, this.accounts.other.address, value, 0, weight);
+          .to.not.emit(this.creatorToken, 'Approval');
         });
 
-        it.skip('can deposit extra token with transferAndCall', async function () {
+        it('can deposit extra token with erc1363\'s transferAndCall', async function () {
           const tx = await this.token.connect(this.accounts.user).functions['transferAndCall(address,uint256,bytes)'](
             this.locking.address,
             value.div(2),
@@ -242,8 +241,39 @@ describe('Locking', function () {
           const weight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.other.address).then(({ weight }) => weight);
 
           await expect(tx)
+          .to.emit(this.locking, 'Deposit').withArgs(this.creatorToken.address, this.accounts.other.address, 0, value.div(2), weight)
           .to.emit(this.token, 'Transfer').withArgs(this.accounts.user.address, this.locking.address, value.div(2))
-          .to.emit(this.locking, 'Deposit').withArgs(this.creatorToken.address, this.accounts.other.address, 0, value.div(2), weight);
+          .to.not.emit(this.creatorToken, 'Approval');
+        });
+
+        it('can deposit creator token with erc1363\'s approveAndCall', async function () {
+          const tx = await this.creatorToken.connect(this.accounts.user).functions['approveAndCall(address,uint256,bytes)'](
+            this.locking.address,
+            value,
+            ethers.utils.defaultAbiCoder.encode([ 'address', 'address' ],[ this.creatorToken.address, this.accounts.other.address ]),
+          );
+          const weight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.other.address).then(({ weight }) => weight);
+
+          await expect(tx)
+          .to.emit(this.locking, 'Deposit').withArgs(this.creatorToken.address, this.accounts.other.address, value, 0, weight)
+          .to.emit(this.creatorToken, 'Approval').withArgs(this.accounts.user.address, this.locking.address, value)
+          .to.emit(this.creatorToken, 'Transfer').withArgs(this.accounts.user.address, this.locking.address, value)
+          .to.emit(this.creatorToken, 'Approval').withArgs(this.accounts.user.address, this.locking.address, 0);
+        });
+
+        it('can deposit extra token with erc1363\'s approveAndCall', async function () {
+          const tx = await this.token.connect(this.accounts.user).functions['approveAndCall(address,uint256,bytes)'](
+            this.locking.address,
+            value.div(2),
+            ethers.utils.defaultAbiCoder.encode([ 'address', 'address' ],[ this.creatorToken.address, this.accounts.other.address ]),
+          );
+          const weight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.other.address).then(({ weight }) => weight);
+
+          await expect(tx)
+          .to.emit(this.locking, 'Deposit').withArgs(this.creatorToken.address, this.accounts.other.address, 0, value.div(2), weight)
+          .to.emit(this.token, 'Approval').withArgs(this.accounts.user.address, this.locking.address, value.div(2))
+          .to.emit(this.token, 'Transfer').withArgs(this.accounts.user.address, this.locking.address, value.div(2))
+          .to.emit(this.token, 'Approval').withArgs(this.accounts.user.address, this.locking.address, 0);
         });
 
         it('cannot withdraw', async function () {
