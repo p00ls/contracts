@@ -1,7 +1,7 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
-const { CONFIG, prepare, utils } = require('../fixture.js');
+const { prepare, utils } = require('../fixture.js');
 
 const VALUE = ethers.utils.parseEther('100');
 

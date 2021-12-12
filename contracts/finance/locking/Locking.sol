@@ -150,7 +150,13 @@ contract Locking is AccessControl, Multicall {
         emit VaultSetup(token, msg.sender, expiration);
     }
 
-    function deposit(IERC20 token, uint256 amount, uint256 extra, address to)
+    function deposit(IERC20 token, uint256 amount, uint256 extra)
+    public
+    {
+        depositFor(token, amount, extra, msg.sender);
+    }
+
+    function depositFor(IERC20 token, uint256 amount, uint256 extra, address to)
     public
         onlyActiveLock(token)
         onlyActiveVault(token, to)
@@ -179,7 +185,13 @@ contract Locking is AccessControl, Multicall {
         emit Deposit(token, to, amount, extra, weight);
     }
 
-    function withdraw(IERC20 token, address to)
+    function withdraw(IERC20 token)
+    public
+    {
+        withdrawTo(token, msg.sender);
+    }
+
+    function withdrawTo(IERC20 token, address to)
     public
         onlyExpiredVault(token, msg.sender)
     {

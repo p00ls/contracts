@@ -13,7 +13,7 @@ contract VestedAirdrops is
   Multicall
 {
   struct Schedule {
-    uint64  id; // salt
+    uint64  index; // salt
     uint64  start;
     uint64  cliff;
     uint64  duration;
@@ -26,7 +26,7 @@ contract VestedAirdrops is
   mapping(bytes32 => uint256) private _released;
 
   event Airdrop(bytes32 indexed airdrop, bool enabled);
-  event TokensReleased(bytes32 indexed airdrop, IERC20 indexed token, address indexed recipient, uint256 amount);
+  event TokensReleased(bytes32 indexed airdrop, bytes32 indexed leaf, IERC20 token, address recipient, uint256 amount);
 
   constructor(address admin) {
     _setupRole(DEFAULT_ADMIN_ROLE, admin);
@@ -37,33 +37,55 @@ contract VestedAirdrops is
     emit Airdrop(root, enable);
   }
 
-  function released(Schedule memory schedule) public view returns (uint256) {
-    return _released[keccak256(abi.encode(schedule))];
+  function enabled(bytes32 root) external view returns (bool) {
+    return _airdrops[root];
+  }
+
+  function released(bytes32 leaf) public view returns (uint256) {
+    return _released[leaf];
   }
 
   function release(Schedule memory schedule, bytes32[] memory proof) public {
     // check input validity
-    bytes32 leaf = keccak256(abi.encode(schedule));
+    bytes32 leaf = hashSchedule(schedule);
     bytes32 drop = MerkleProof.processProof(proof, leaf);
-    require(_airdrops[drop]);
+    require(_airdrops[drop], "unknown airdrop");
 
     // compute vesting remains
-    uint256 releasable = vestedAmount(schedule, uint64(block.timestamp)) - _released[leaf];
-    _released[leaf] += releasable;
+    uint256 vested     = vestedAmount(schedule, uint64(block.timestamp));
+    uint256 releasable = vested - released(leaf);
 
-    // emit notification
-    emit TokensReleased(drop, schedule.token, schedule.recipient, schedule.amount);
+    if (releasable > 0) {
+      _released[leaf] = vested;
 
-    // do release (might have reentrancy)
-    SafeERC20.safeTransfer(schedule.token, schedule.recipient, releasable);
+      // emit notification
+      emit TokensReleased(drop, leaf, schedule.token, schedule.recipient, releasable);
+
+      // do release
+      SafeERC20.safeTransfer(schedule.token, schedule.recipient, releasable);
+    }
   }
 
   function vestedAmount(Schedule memory schedule, uint64 timestamp) public pure returns (uint256) {
     return timestamp < schedule.start + schedule.cliff
     ? 0
+    : schedule.duration == 0
+    ? schedule.amount
     : Math.min(
         schedule.amount,
         schedule.amount * (timestamp - schedule.start) / schedule.duration
       );
+  }
+
+  function hashSchedule(Schedule memory schedule) public pure returns (bytes32) {
+    return keccak256(abi.encodePacked(
+      schedule.index,
+      schedule.start,
+      schedule.cliff,
+      schedule.duration,
+      schedule.token,
+      schedule.recipient,
+      schedule.amount
+    ));
   }
 }

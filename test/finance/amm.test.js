@@ -1,7 +1,7 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
-const { CONFIG, prepare, attach, utils } = require('../fixture.js');
+const { prepare, attach, utils } = require('../fixture.js');
 
 describe('AMM', function () {
   prepare();

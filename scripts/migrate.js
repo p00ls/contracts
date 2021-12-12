@@ -53,7 +53,7 @@ async function migrate() {
   DEBUG(`Escrow:        ${escrow.address}`);
 
   // Creator token registry/factory
-  const registry = await deployUpgradeable('P00lsCreatorRegistry', 'transparent', [
+  const registry = await deployUpgradeable('P00lsCreatorRegistry', 'uups', [
     accounts.admin.address,
     CONFIG.registry.name,
     CONFIG.registry.symbol,
@@ -78,7 +78,7 @@ async function migrate() {
   .then(tx => tx.wait())
   .then(receipt => receipt.events.find(({ event }) => event === 'Transfer'))
   .then(event => event.args.tokenId)
-  .then(tokenId => ethers.utils.getAddress(ethers.utils.hexlify(tokenId)))
+  .then(tokenId => ethers.utils.getAddress(ethers.utils.hexlify(ethers.utils.zeroPad(tokenId, 20))))
   .then(address => attach('P00lsTokenCreator', address));
 
   const getXCreatorToken = (creatorToken) => creatorToken.xCreatorToken()

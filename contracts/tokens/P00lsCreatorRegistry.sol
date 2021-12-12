@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "../utils/Beacon.sol";
 import "../utils/BeaconProxy.sol";
 import "../utils/RegistryOwnableUpgradeable.sol";
@@ -10,13 +11,12 @@ import "./P00lsTokenXCreator.sol";
 
 contract P00lsCreatorRegistry is
     ERC721URIStorageUpgradeable,
-    RegistryOwnableUpgradeable
+    RegistryOwnableUpgradeable,
+    UUPSUpgradeable
 {
     Beacon private __beaconCreator;
     Beacon private __beaconXCreator;
     string private __baseURI;
-
-    event Upgraded(address indexed implementation);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor()
@@ -117,4 +117,14 @@ contract P00lsCreatorRegistry is
     {
         ENSReverseRegistration.setName(ensregistry, ensname);
     }
+
+    /**
+     * Upgradeability
+     */
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        virtual
+        override
+        onlyOwner()
+    {}
 }

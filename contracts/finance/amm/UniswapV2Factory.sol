@@ -16,6 +16,13 @@ contract UniswapV2Factory is AccessControl {
 
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
 
+    modifier onlyRoleOrOpenRole(bytes32 role) {
+        if (!hasRole(role, address(0))) {
+            _checkRole(role, _msgSender());
+        }
+        _;
+    }
+
     constructor(address admin) {
         _setupRole(DEFAULT_ADMIN_ROLE, admin);
     }
@@ -24,7 +31,7 @@ contract UniswapV2Factory is AccessControl {
         return allPairs.length;
     }
 
-    function createPair(address tokenA, address tokenB) external onlyRole(PAIR_CREATOR_ROLE) returns (address pair) {
+    function createPair(address tokenA, address tokenB) external onlyRoleOrOpenRole(PAIR_CREATOR_ROLE) returns (address pair) {
         require(tokenA != tokenB, 'UniswapV2: IDENTICAL_ADDRESSES');
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(token0 != address(0), 'UniswapV2: ZERO_ADDRESS');

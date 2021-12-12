@@ -1,8 +1,7 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
-const { CONFIG, prepare, attach, utils } = require('../fixture.js');
-const { token } = require('../../scripts/config.js');
+const { prepare, attach, utils } = require('../fixture.js');
 
 const VALUE = ethers.utils.parseEther('100');
 const value = ethers.utils.parseEther('1');
@@ -97,12 +96,12 @@ describe('Locking', function () {
     });
 
     it('cannot deposit', async function () {
-      await expect(this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, 0, 0, this.accounts.user.address))
+      await expect(this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, 0, 0))
       .to.be.revertedWith('Locking not currently authorized for this token');
     });
 
     it('cannot withdraw', async function () {
-      await expect(this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address, this.accounts.user.address))
+      await expect(this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address))
       .to.be.revertedWith('Vault is locked');
     });
 
@@ -156,12 +155,12 @@ describe('Locking', function () {
       });
 
       it('cannot deposit', async function () {
-        await expect(this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, 0, 0, this.accounts.user.address))
+        await expect(this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, 0, 0,))
         .to.be.revertedWith('Vault doesn\'t accept deposit');
       });
 
       it('cannot withdraw', async function () {
-        await expect(this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address, this.accounts.user.address))
+        await expect(this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address))
         .to.be.revertedWith('Vault is locked');
       });
 
@@ -210,7 +209,7 @@ describe('Locking', function () {
           await this.token.connect(this.accounts.user).approve(this.locking.address, ethers.constants.MaxUint256);
           await this.creatorToken.connect(this.accounts.user).approve(this.locking.address, ethers.constants.MaxUint256);
 
-          const tx     = await this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, value, value.div(2), this.accounts.other.address);
+          const tx     = await this.locking.connect(this.accounts.user).depositFor(this.creatorToken.address, value, value.div(2), this.accounts.other.address);
           const weight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.other.address).then(({ weight }) => weight);
 
           await expect(tx)
@@ -220,7 +219,7 @@ describe('Locking', function () {
         });
 
         it('cannot withdraw', async function () {
-          await expect(this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address, this.accounts.user.address))
+          await expect(this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address))
           .to.be.revertedWith('Vault is locked');
         });
 
@@ -233,7 +232,7 @@ describe('Locking', function () {
             ]));
 
             await Promise.all([ this.accounts.user, this.accounts.other ].flatMap(account => [
-              this.locking.connect(account).deposit(this.creatorToken.address, value, value.div(2), account.address),
+              this.locking.connect(account).deposit(this.creatorToken.address, value, value.div(2)),
             ]));
           });
 
@@ -254,7 +253,7 @@ describe('Locking', function () {
 
           it('can deposit more', async function () {
             const oldWeight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address).then(({ weight }) => weight);
-            const tx        = await this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, value, 0, this.accounts.user.address);
+            const tx        = await this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, value, 0);
             const newWeight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address).then(({ weight }) => weight);
 
             await expect(tx)
@@ -267,7 +266,7 @@ describe('Locking', function () {
 
           it('can deposit only extra', async function () {
             const oldWeight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address).then(({ weight }) => weight);
-            const tx        = await this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, 0, value.div(2), this.accounts.user.address);
+            const tx        = await this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, 0, value.div(2));
             const newWeight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address).then(({ weight }) => weight);
 
             await expect(tx)
@@ -279,23 +278,22 @@ describe('Locking', function () {
           });
 
           it('cannot withdraw', async function () {
-            await expect(this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address, this.accounts.user.address))
+            await expect(this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address))
             .to.be.revertedWith('Vault is locked');
           });
 
-
-          describe('after expiration', function () {
+          describe('after delay', function () {
             beforeEach(async function () {
               await network.provider.send('evm_increaseTime', [ this.DELAY.toNumber() ]);
             });
 
             it('cannot deposit anymore', async function () {
-              await expect(this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, value, 0, this.accounts.user.address))
+              await expect(this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, value, 0))
               .to.be.revertedWith('Locking not currently authorized for this token');
             });
 
             it('cannot withdraw', async function () {
-              await expect(this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address, this.accounts.user.address))
+              await expect(this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address))
               .to.be.revertedWith('Vault is locked');
             });
 
@@ -304,8 +302,18 @@ describe('Locking', function () {
                 await network.provider.send('evm_increaseTime', [ this.duration ]);
               });
 
-              it('withdraw', async function () {
-                const tx1     = await this.locking.connect(this.accounts.other).withdraw(this.creatorToken.address, this.accounts.other.address);
+              it('can withdraw to someone else', async function () {
+                const tx     = await this.locking.connect(this.accounts.user).withdrawTo(this.creatorToken.address, this.accounts.other.address);
+                const reward = await tx.wait().then(({ events }) => events.find(({ event }) => event == 'Withdraw').args.reward);
+
+                await expect(tx)
+                .to.emit(this.locking, 'Withdraw').withArgs(this.creatorToken.address, this.accounts.user.address, this.accounts.other.address, reward)
+                .to.emit(this.token, 'Transfer').withArgs(this.locking.address, this.accounts.other.address, value.div(2))
+                .to.emit(this.creatorToken, 'Transfer').withArgs(this.locking.address, this.accounts.other.address, value.add(reward));
+              });
+
+              it('relative withdraw', async function () {
+                const tx1     = await this.locking.connect(this.accounts.other).withdraw(this.creatorToken.address);
                 const reward1 = await tx1.wait().then(({ events }) => events.find(({ event }) => event == 'Withdraw').args.reward);
 
                 await expect(tx1)
@@ -313,7 +321,7 @@ describe('Locking', function () {
                 .to.emit(this.token, 'Transfer').withArgs(this.locking.address, this.accounts.other.address, value.div(2))
                 .to.emit(this.creatorToken, 'Transfer').withArgs(this.locking.address, this.accounts.other.address, value.add(reward1));
 
-                const tx2     = await this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address, this.accounts.user.address);
+                const tx2     = await this.locking.connect(this.accounts.user).withdraw(this.creatorToken.address);
                 const reward2 = await tx2.wait().then(({ events }) => events.find(({ event }) => event == 'Withdraw').args.reward);
 
                 await expect(tx2)
@@ -350,7 +358,6 @@ describe('Locking', function () {
           this.creatorToken.address,
           VALUE.div(100), // value
           0, // no extra
-          this.accounts.user.address
         );
 
         const lockDetails  = await this.locking.lockDetails(this.creatorToken.address);
@@ -392,7 +399,6 @@ describe('Locking', function () {
           this.creatorToken.address,
           VALUE.div(100),             // value
           VALUE.div(100).mul(factor), // extra
-          this.accounts.user.address
         );
 
         const lockDetails  = await this.locking.lockDetails(this.creatorToken.address);
