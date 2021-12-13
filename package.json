@@ -10,7 +10,6 @@
   ],
   "scripts": {
     "prepublish": "rimraf artifacts build cache generated",
-    "prepare": "copyfiles -f node_modules/@amxx/hre/hardhat.config.js .",
     "prepack": "scripts/prepack.sh",
     "compile": "hardhat compile",
     "coverage": "hardhat coverage",
@@ -33,9 +32,10 @@
     "@uniswap/v2-periphery": "*"
   },
   "devDependencies": {
-    "@amxx/hre": "^0.0.3",
+    "@amxx/hre": "^0.0.4-1",
     "copyfiles": "^2.4.1",
     "debug": "^2.6.9",
+    "hardhat": "^2.7.1",
     "keccak256": "^1.0.2",
     "merkletreejs": "^0.2.18",
     "yargs": "^17.2.1"
