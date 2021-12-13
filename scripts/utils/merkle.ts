@@ -1,6 +1,6 @@
-import { ethers } from 'ethers';
-import MerkleTree from 'merkletreejs';
-import keccak256  from 'keccak256';
+import { ethers     } from 'ethers';
+import { MerkleTree } from 'merkletreejs';
+const keccak256 = require('keccak256');
 
 export interface Allocation {
   index:   ethers.BigNumberish;
@@ -18,12 +18,16 @@ export interface Vesting {
   amount:    ethers.BigNumberish;
 }
 
-export function createMerkleTree(leaves: Buffer[]) : MerkleTree {
-  return new MerkleTree(leaves, keccak256, { sort: true });
+export function createMerkleTree(leaves: ethers.BytesLike[]) : MerkleTree {
+  return new MerkleTree(leaves.map(leaf => ethers.utils.hexlify(leaf)), keccak256, { sort: true });
 }
 
-export function hashAllocation(allocation: Allocation): Buffer {
-  return Buffer.from(ethers.utils.solidityKeccak256([
+export function createMerkleProof(tree: MerkleTree, leaf: ethers.BytesLike) : ethers.BytesLike[] {
+  return tree.getHexProof(ethers.utils.hexlify(leaf));
+}
+
+export function hashAllocation(allocation: Allocation): ethers.BytesLike {
+  return ethers.utils.solidityKeccak256([
     'uint256',
     'address',
     'uint256',
@@ -31,11 +35,11 @@ export function hashAllocation(allocation: Allocation): Buffer {
     allocation.index,
     allocation.account,
     allocation.amount,
-  ]).slice(2), 'hex');
+  ]);
 }
 
-export function hashVesting(vesting: Vesting): Buffer {
-  return Buffer.from(ethers.utils.solidityKeccak256([
+export function hashVesting(vesting: Vesting): ethers.BytesLike {
+  return ethers.utils.solidityKeccak256([
     'uint64',
     'uint64',
     'uint64',
@@ -51,5 +55,5 @@ export function hashVesting(vesting: Vesting): Buffer {
     vesting.token,
     vesting.recipient,
     vesting.amount,
-  ]).slice(2), 'hex');
+  ]);
 }
