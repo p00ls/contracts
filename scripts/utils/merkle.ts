@@ -1,6 +1,6 @@
 import { ethers     } from 'ethers';
 import { MerkleTree } from 'merkletreejs';
-const keccak256 = require('keccak256');
+import * as keccak256 from 'keccak256';
 
 export interface Allocation {
   index:   ethers.BigNumberish;

@@ -1,17 +1,17 @@
 "use strict";
 exports.__esModule = true;
-exports.hashVesting = exports.hashAllocation = exports.genProof = exports.createMerkleTree = void 0;
+exports.hashVesting = exports.hashAllocation = exports.createMerkleProof = exports.createMerkleTree = void 0;
 var ethers_1 = require("ethers");
 var merkletreejs_1 = require("merkletreejs");
-var keccak256 = require('keccak256');
+var keccak256 = require("keccak256");
 function createMerkleTree(leaves) {
     return new merkletreejs_1.MerkleTree(leaves.map(function (leaf) { return ethers_1.ethers.utils.hexlify(leaf); }), keccak256, { sort: true });
 }
 exports.createMerkleTree = createMerkleTree;
-function genProof(tree, leaf) {
+function createMerkleProof(tree, leaf) {
     return tree.getHexProof(ethers_1.ethers.utils.hexlify(leaf));
 }
-exports.genProof = genProof;
+exports.createMerkleProof = createMerkleProof;
 function hashAllocation(allocation) {
     return ethers_1.ethers.utils.solidityKeccak256([
         'uint256',
