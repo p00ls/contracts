@@ -29,16 +29,27 @@ async function buildVesting(token) {
     return result;
 }
 
-async function enableAirdrop(token, airdropContract, vestings) {
+async function enableAirdrop(token, airdropContract, merkletree) {
     await token.transfer(airdropContract.address, CONFIG.TARGETSUPPLY);
-    const merkletree = createMerkleTree(vestings.map(hashVesting));
     const hexroot    = ethers.utils.hexlify(merkletree.getRoot());
     await airdropContract.enableAirdrop(hexroot, true);
+}
+
+function showProofs(airdropContract, vestings, merkletree) {
+    for (const vesting of vestings) {
+        const hash = hashVesting(vesting);
+        const proof = merkletree.getHexProof(hash);
+        console.log(vesting, ethers.utils.hexlify(hash), proof);
+        console.log(`data: ${airdropContract.interface.encodeFunctionData("release", [vesting, proof])}`);
+    }
+    console.log(`Airdrop contract: ${airdropContract.address}`);
 }
 
 (async () => {
     const result = await migrate.migrate();
     await distributeEthers(result.accounts.admin);
     const vestings = await buildVesting(result.token);
-    await enableAirdrop(result.token, result.vesting, vestings);
+    const merkletree = createMerkleTree(vestings.map(hashVesting));
+    await enableAirdrop(result.token, result.vesting, merkletree);
+    showProofs(result.vesting, vestings, merkletree);
 })();
