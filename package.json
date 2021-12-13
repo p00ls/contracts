@@ -16,7 +16,8 @@
     "coverage": "hardhat coverage",
     "test": "hardhat test test/**/*.test.js",
     "devnet:node": "hardhat node",
-    "devnet:migrate": "hardhat run scripts/migrate.js --network localhost"
+    "devnet:migrate": "hardhat run scripts/migrate.js --network localhost",
+    "devnet:migrate-with-airdrop": "hardhat run scripts/migrate-with-configured-airdrop.js --network localhost"
   },
   "repository": {
     "type": "git",
