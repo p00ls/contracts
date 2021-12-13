@@ -3,16 +3,15 @@ require('dotenv/config');
 const argv = require('yargs/yargs')()
   .env('')
   .options({
-    coverage:      { type: 'boolean',                                          default: false         },
-    report:        { type: 'boolean',                                          default: false         },
-    slow:          { type: 'boolean',                                          default: false         },
-    // compiler:      { type: 'string',                                           default: '0.8.10'      },
-    chainId:       { type: 'number',                                           default: 1337          },
-    hardfork:      { type: 'string',                                           default: 'london'      },
-    mode:          { type: 'string', choices: [ 'production', 'development' ], default: 'development' },
-    fork:          { type: 'string',                                                                  },
-    coinmarketcap: { type: 'string'                                                                   },
-    etherscan:     { type: 'string'                                                                   },
+    coverage:      { type: 'boolean',                                          default: true           },
+    report:        { type: 'boolean',                                          default: true           },
+    slow:          { type: 'boolean',                                          default: false          },
+    chainId:       { type: 'number',                                           default: 1337           },
+    hardfork:      { type: 'string',                                           default: 'arrowGlacier' },
+    mode:          { type: 'string', choices: [ 'production', 'development' ], default: 'production'   },
+    fork:          { type: 'string',                                                                   },
+    coinmarketcap: { type: 'string'                                                                    },
+    etherscan:     { type: 'string'                                                                    },
   })
   .argv;
 
