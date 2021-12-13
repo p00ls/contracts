@@ -74,7 +74,7 @@ async function migrate() {
   ));
 
   // token generation
-  const newCreatorToken = (admin, name, symbol, root) => registry.createToken(admin, name, symbol, root)
+  const newCreatorToken = (admin, name, symbol, xname, xsymbol, root) => registry.createToken(admin, name, symbol, xname, xsymbol, root)
   .then(tx => tx.wait())
   .then(receipt => receipt.events.find(({ event }) => event === 'Transfer'))
   .then(event => event.args.tokenId)
@@ -87,7 +87,14 @@ async function migrate() {
   // $00 as creator token
   const allocation = { index: 0, account: accounts.admin.address, amount: CONFIG.TARGETSUPPLY };
   const merkletree = merkle.createMerkleTree([ merkle.hashAllocation(allocation) ]);
-  const token  = await newCreatorToken(accounts.admin.address, CONFIG.token.name, CONFIG.token.symbol, merkletree.getRoot());
+  const token  = await newCreatorToken(
+    accounts.admin.address,
+    CONFIG.token.name,
+    CONFIG.token.symbol,
+    CONFIG.token.xname,
+    CONFIG.token.xsymbol,
+    merkletree.getRoot(),
+  );
   const xToken = await getXCreatorToken(token);
   DEBUG(`Token:         ${token.address}`);
   DEBUG(`xToken:        ${xToken.address}`);

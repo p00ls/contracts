@@ -15,7 +15,7 @@ describe('AMM', function () {
     beforeEach(async function () {
       this.allocation = { index: 0, account: this.amm.auction.address, amount: ethers.utils.parseEther('100') };
       this.merkletree = utils.merkle.createMerkleTree([ utils.merkle.hashAllocation(this.allocation) ]);
-      this.creatorToken  = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', '$Amxx', this.merkletree.getRoot());
+      this.creatorToken  = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', '$Amxx', 'X Hadrien Croubois', 'x$Amxx', this.merkletree.getRoot());
       this.xCreatorToken = await this.workflows.getXCreatorToken(this.creatorToken);
       await this.creatorToken.claim(this.allocation.index, this.allocation.account, this.allocation.amount, this.merkletree.getHexProof(utils.merkle.hashAllocation(this.allocation)))
 

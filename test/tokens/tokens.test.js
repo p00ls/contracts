@@ -43,7 +43,7 @@ describe('$Crea Token', function () {
 
       // Construct merkletree
       this.merkletree    = utils.merkle.createMerkleTree(this.allocations.map(utils.merkle.hashAllocation));
-      this.creatorToken  = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', '$Amxx', this.merkletree.getRoot());
+      this.creatorToken  = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', '$Amxx', 'X Hadrien Croubois', 'x$Amxx', this.merkletree.getRoot());
       this.xCreatorToken = await this.workflows.getXCreatorToken(this.creatorToken);
     });
 
@@ -82,7 +82,7 @@ describe('$Crea Token', function () {
 
       it('Creator xToken', async function () {
         expect(await this.xCreatorToken.name())
-          .to.be.equal('xHadrien Croubois');
+          .to.be.equal('X Hadrien Croubois');
         expect(await this.xCreatorToken.symbol())
           .to.be.equal('x$Amxx');
         expect(await this.xCreatorToken.owner())

@@ -41,7 +41,14 @@ contract P00lsCreatorRegistry is
     /**
      * Creator token creation
      */
-    function createToken(address owner, string calldata name, string calldata symbol, bytes32 root)
+    function createToken(
+        address owner,
+        string calldata name,
+        string calldata symbol,
+        string calldata xname,
+        string calldata xsymbol,
+        bytes32 root
+    )
     external virtual onlyOwner() returns (address)
     {
         address creator  = address(new BeaconProxy(__beaconCreator));
@@ -54,8 +61,8 @@ contract P00lsCreatorRegistry is
             xCreator
         );
         P00lsTokenXCreator(xCreator).initialize(
-            string(abi.encodePacked('x', name  )),
-            string(abi.encodePacked('x', symbol)),
+            xname,
+            xsymbol,
             creator
         );
 

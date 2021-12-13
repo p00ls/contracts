@@ -3,15 +3,15 @@ require('dotenv/config');
 const argv = require('yargs/yargs')()
   .env('')
   .options({
-    coverage:      { type: 'boolean',                                          default: true           },
-    report:        { type: 'boolean',                                          default: true           },
-    slow:          { type: 'boolean',                                          default: false          },
-    chainId:       { type: 'number',                                           default: 1337           },
-    hardfork:      { type: 'string',                                           default: 'arrowGlacier' },
-    mode:          { type: 'string', choices: [ 'production', 'development' ], default: 'production'   },
-    fork:          { type: 'string',                                                                   },
-    coinmarketcap: { type: 'string'                                                                    },
-    etherscan:     { type: 'string'                                                                    },
+    coverage:      { type: 'boolean',                                          default: false         },
+    report:        { type: 'boolean',                                          default: false         },
+    slow:          { type: 'boolean',                                          default: false         },
+    // compiler:      { type: 'string',                                           default: '0.8.7'       },
+    hardfork:      { type: 'string',                                           default: 'london'      },
+    mode:          { type: 'string', choices: [ 'production', 'development' ], default: 'development' },
+    fork:          { type: 'string',                                                                  },
+    coinmarketcap: { type: 'string'                                                                   },
+    etherscan:     { type: 'string'                                                                   },
   })
   .argv;
 
@@ -35,15 +35,14 @@ module.exports = {
   solidity: {
     compilers: [
       // { version: argv.compiler, settings },
-      { version: '0.8.10', settings },
-      { version: '0.7.6',  settings },
-      { version: '0.6.12', settings },
-      { version: '0.5.16', settings },
+      { version: '0.8.9',       settings },
+      { version: '0.7.6',       settings },
+      { version: '0.6.12',      settings },
+      { version: '0.5.16',      settings },
     ],
   },
   networks: {
     hardhat: {
-      chainId: argv.chainId,
       hardfork: argv.hardfork,
     },
   },
