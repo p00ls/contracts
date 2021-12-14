@@ -81,7 +81,7 @@ contract UniswapV2Pair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
         uint _kLast = kLast; // gas savings
         if (feeOn) {
             if (_kLast != 0) {
-                uint rootK = Math.sqrt(_reserve0 * _reserve1);
+                uint rootK = Math.sqrt(uint(_reserve0) * uint(_reserve1));
                 uint rootKLast = Math.sqrt(_kLast);
                 if (rootK > rootKLast) {
                     uint numerator = totalSupply() * (rootK - rootKLast);
@@ -168,7 +168,7 @@ contract UniswapV2Pair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
         { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
         uint balance0Adjusted = (balance0 * 1000) - (amount0In * 3);
         uint balance1Adjusted = (balance1 * 1000) - (amount1In * 3);
-        require(balance0Adjusted * balance1Adjusted >= _reserve0 * _reserve1 * 1000**2, 'UniswapV2: K');
+        require(balance0Adjusted * balance1Adjusted >= uint(_reserve0) * uint(_reserve1) * 1000**2, 'UniswapV2: K');
         }
 
         _update(balance0, balance1, _reserve0, _reserve1);
