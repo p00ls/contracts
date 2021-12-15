@@ -3,11 +3,7 @@ const migrate = require('./migrate.js');
 const CONFIG = require('./config');
 const { createMerkleTree, hashVesting} = require("./utils/merkle.js");
 
-const ethAccountsForAirdrop = [
-    '0xECB2d6583858Aae994F4248f8948E35516cfc9cF',
-    '0x386673855d10F86a705689412f432Fbc1cf32699',
-    '0x73bdEDE5415620d47353a9d940A3CD9360B74b9A'
-];
+const ethAccountsForAirdrop = ['0xECB2d6583858Aae994F4248f8948E35516cfc9cF','0x386673855d10F86a705689412f432Fbc1cf32699'];
 
 async function distributeEthers(account) {
     for (const ethAccount of ethAccountsForAirdrop) {
@@ -24,7 +20,7 @@ async function buildVesting(token) {
     let index = 0;
     for(const ethAccount of ethAccountsForAirdrop) {
         result.push({ index: index++, start: 0, cliff: 0, duration: 0, token: token.address, recipient: ethAccount, amount: ethers.utils.parseEther('1') })
-        result.push({ index: index++, start: now, cliff: 100, duration: 300, token: token.address, recipient: ethAccount, amount: ethers.utils.parseEther('1') });
+        result.push({ index: index++, start: now, cliff: 100, duration: 300, token: token.address, recipient: ethAccount, amount: ethers.utils.parseEther('10') });
     }
     return result;
 }
@@ -39,10 +35,16 @@ function showProofs(airdropContract, vestings, merkletree) {
     for (const vesting of vestings) {
         const hash = hashVesting(vesting);
         const proof = merkletree.getHexProof(hash);
-        console.log(vesting, ethers.utils.hexlify(hash), proof);
-        console.log(`data: ${airdropContract.interface.encodeFunctionData("release", [vesting, proof])}`);
+        console.log({...vesting, amount: vesting.amount.toString()});
+        console.log(`Hash: ${ethers.utils.hexlify(hash)}`);
+        console.log(`Proof: ${proof}`);
+        //console.log(`data: ${airdropContract.interface.encodeFunctionData("release", [vesting, proof])}`);
     }
-    console.log(`Airdrop contract: ${airdropContract.address}`);
+}
+
+function showContracts(migrationResult) {
+    console.log(`Airdrop contract: ${migrationResult.vesting.address}`);
+    console.log(`Token contract: ${migrationResult.token.address}`);
 }
 
 (async () => {
@@ -52,4 +54,5 @@ function showProofs(airdropContract, vestings, merkletree) {
     const merkletree = createMerkleTree(vestings.map(hashVesting));
     await enableAirdrop(result.token, result.vesting, merkletree);
     showProofs(result.vesting, vestings, merkletree);
+    showContracts(result);
 })();

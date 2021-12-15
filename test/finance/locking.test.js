@@ -39,7 +39,7 @@ describe('Locking', function () {
       [
         this.token,
         this.creatorToken,
-      ].map(({ address }) => this.amm.auction.start(address)
+      ].map(({ address }) => this.amm.auction.start(address, 14 * 86400)
         .then(() => this.amm.auction.getAuctionInstance(address))
         .then(address => attach('Auction', address))
       )
@@ -47,8 +47,8 @@ describe('Locking', function () {
 
     // run auctions
     await this.accounts.user.sendTransaction({ to: this.auctions[0].address, value: ethers.utils.parseEther('1') });
-    await this.accounts.user.sendTransaction({ to: this.auctions[1].address, value: ethers.utils.parseEther('1')  });
-    await network.provider.send('evm_increaseTime', [ 24 * 86400 ]);
+    await this.accounts.user.sendTransaction({ to: this.auctions[1].address, value: ethers.utils.parseEther('1') });
+    await network.provider.send('evm_increaseTime', [ 14 * 86400 ]);
     await this.amm.auction.finalize(this.token.address);
     await this.amm.auction.finalize(this.creatorToken.address);
 

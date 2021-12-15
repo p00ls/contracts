@@ -39,7 +39,7 @@ describe('Auction', function () {
   });
 
   it('cannot star instance without a balance', async function () {
-    await expect(this.amm.auction.start(this.xCreatorToken.address))
+    await expect(this.amm.auction.start(this.xCreatorToken.address, 14 * 86400))
     .to.be.reverted;
   });
 
@@ -50,7 +50,7 @@ describe('Auction', function () {
 
   describe('with auction', function () {
     beforeEach(async function () {
-      const txPromise = this.amm.auction.start(this.creatorToken.address);
+      const txPromise = this.amm.auction.start(this.creatorToken.address, 14 * 86400);
 
       this.auction = await this.amm.auction.getAuctionInstance(this.creatorToken.address).then(address => attach('Auction', address));
 

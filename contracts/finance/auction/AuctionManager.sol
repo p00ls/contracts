@@ -33,19 +33,19 @@ contract AuctionManager is AccessControl {
         require(_openPayments == 2);
     }
 
-    function start(IERC20 token) external onlyRole(DEFAULT_ADMIN_ROLE) returns (address) {
+    function start(IERC20 token, uint256 duration) external onlyRole(DEFAULT_ADMIN_ROLE) returns (address) {
         uint256 balance = token.balanceOf(address(this));
         require(balance > 0);
 
         address instance = Clones.cloneDeterministic(template, bytes32(bytes20(address(token))));
 
-        emit AuctionCreated(address(token), instance);
-
         // Send half of the token to the instance - keep the rest for the AMM
         SafeERC20.safeTransfer(token, instance, balance / 2);
 
         // Start auction
-        Auction(payable(instance)).initialize(token, uint64(block.timestamp + 14 days));
+        Auction(payable(instance)).initialize(token, uint64(block.timestamp + duration));
+
+        emit AuctionCreated(address(token), instance);
 
         return instance;
     }
