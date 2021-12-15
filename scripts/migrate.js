@@ -26,6 +26,8 @@ function performUpgrade(proxy, name, opts = {}) {
 }
 
 async function migrate() {
+  const network  = await ethers.provider.getNetwork();
+  network.isTest = network.chainId == 1337;
   const accounts = await ethers.getSigners();
   accounts.admin = accounts.shift();
   DEBUG(`Admin:         ${accounts.admin.address}`);
@@ -127,9 +129,11 @@ async function migrate() {
   const router = await deploy('UniswapV2Router02', [ factory.address, weth.address ]);
   DEBUG(`Router:        ${router.address}`);
 
+  const multicall = network.isTest && await deploy('UniswapInterfaceMulticall');
+  network.isTest && DEBUG(`Multicall:     ${multicall.address}`);
+
   const auction = await deploy('AuctionManager', [ accounts.admin.address, router.address, timelock.address ]);
   DEBUG(`Auction:       ${auction.address}`);
-
 
   /*******************************************************************************************************************
    *                                                     Locking                                                     *
@@ -167,6 +171,7 @@ async function migrate() {
     amm: {
       factory,
       router,
+      multicall,
       auction,
     },
     workflows: {
