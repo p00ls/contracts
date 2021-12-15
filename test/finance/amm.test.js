@@ -24,7 +24,7 @@ describe('AMM', function () {
 
     describe('with dutch auction', function () {
       beforeEach(async function () {
-        this.auction = await this.amm.auction.start(this.creatorToken.address)
+        this.auction = await this.amm.auction.start(this.creatorToken.address, 14 * 86400)
         .then(tx => tx.wait())
         .then(receipt => receipt.events.find(({ event }) => event === 'AuctionCreated'))
         .then(event => event.args.auction)
@@ -44,7 +44,7 @@ describe('AMM', function () {
         const value = ethers.utils.parseEther('1');
 
         await this.accounts.user.sendTransaction({ to: this.auction.address, value });
-        await network.provider.send('evm_increaseTime', [ 24 * 86400 ]);
+        await network.provider.send('evm_increaseTime', [ 14 * 86400 ]);
 
         const tx                = await this.amm.auction.finalize(this.creatorToken.address);
         const unipair           = await this.amm.factory.getPair(this.weth.address, this.creatorToken.address).then(address => attach('UniswapV2Pair', address));
