@@ -10,7 +10,6 @@ import "./Auction.sol";
 
 contract AuctionManager is AccessControl {
     address            public immutable template = address(new Auction());
-    address            public immutable dao;
     IUniswapV2Router02 public immutable router;
 
     uint8 private _openPayments;
@@ -23,10 +22,9 @@ contract AuctionManager is AccessControl {
         _openPayments = 1;
     }
 
-    constructor(address _admin, IUniswapV2Router02 _router, address _dao) {
+    constructor(address _admin, IUniswapV2Router02 _router) {
         _setupRole(DEFAULT_ADMIN_ROLE, _admin);
         router = _router;
-        dao    = _dao;
     }
 
     receive() external payable {
@@ -66,7 +64,14 @@ contract AuctionManager is AccessControl {
 
         // provide liquidity
         SafeERC20.safeApprove(token, address(router), balance);
-        router.addLiquidityETH{value: value}(address(token), balance, 0, 0, dao, block.timestamp);
+        router.addLiquidityETH{value: value}(
+            address(token),
+            balance,
+            0,
+            0,
+            IUniswapV2Factory(router.factory()).feeTo(),
+            block.timestamp
+        );
     }
 
     function getAuctionInstance(IERC20 token) public view returns (address) {

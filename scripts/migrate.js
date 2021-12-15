@@ -132,7 +132,7 @@ async function migrate() {
   const multicall = network.isTest && await deploy('UniswapInterfaceMulticall');
   network.isTest && DEBUG(`Multicall:     ${multicall.address}`);
 
-  const auction = await deploy('AuctionManager', [ accounts.admin.address, router.address, timelock.address ]);
+  const auction = await deploy('AuctionManager', [ accounts.admin.address, router.address ]);
   DEBUG(`Auction:       ${auction.address}`);
 
   /*******************************************************************************************************************
