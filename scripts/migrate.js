@@ -1,6 +1,6 @@
 const { ethers, upgrades } = require('hardhat');
 const merkle = require('./utils/merkle');
-const CONFIG = require('./config');
+const CONFIG = require('./defaultConfig');
 const DEBUG  = require('debug')('migration');
 
 async function getFactory(name, opts = {}) {
@@ -25,7 +25,7 @@ function performUpgrade(proxy, name, opts = {}) {
   return getFactory(name, opts).then(factory => upgrades.upgradeProxy(proxy.address, factory, {}));
 }
 
-async function migrate() {
+async function migrate(config) {
   const network  = await ethers.provider.getNetwork();
   network.isTest = network.chainId == 1337;
   const accounts = await ethers.getSigners();
@@ -48,6 +48,33 @@ async function migrate() {
   DEBUG(`Vesting:       ${vesting.address}`);
 
   /*******************************************************************************************************************
+   *                                                       Timelock                                                  *
+   *******************************************************************************************************************/
+  const timelock = await deploy('TimelockController', [
+    86400 * 7, // 7 days
+    [],
+    [],
+  ]);
+  DEBUG(`P00lsTimelock: ${timelock.address}`);
+
+  /*******************************************************************************************************************
+   *                                                       AMM                                                       *
+   *******************************************************************************************************************/
+      // Factory
+  const factory = await deploy('UniswapV2Factory', [ accounts.admin.address ]);
+  DEBUG(`Factory:       ${factory.address}`);
+
+  // Router
+  const router = await deploy('UniswapV2Router02', [ factory.address, weth.address ]);
+  DEBUG(`Router:        ${router.address}`);
+
+  const multicall = network.isTest && await deploy('UniswapInterfaceMulticall');
+  network.isTest && DEBUG(`Multicall:     ${multicall.address}`);
+
+  const auction = await deploy('AuctionManager', [ accounts.admin.address, router.address, timelock.address ]);
+  DEBUG(`Auction:       ${auction.address}`);
+
+  /*******************************************************************************************************************
    *                                              P00ls creator & token                                              *
    *******************************************************************************************************************/
 
@@ -57,8 +84,8 @@ async function migrate() {
   // Creator token registry/factory
   const registry = await deployUpgradeable('P00lsCreatorRegistry', 'uups', [
     accounts.admin.address,
-    CONFIG.registry.name,
-    CONFIG.registry.symbol,
+    config.registry.name,
+    config.registry.symbol,
   ]);
   DEBUG(`Registry:      ${registry.address}`);
 
@@ -72,7 +99,7 @@ async function migrate() {
   await Promise.all([].concat(
     registry.upgradeCreatorToken(implementations[0].address),
     registry.upgradeXCreatorToken(implementations[1].address),
-    registry.setBaseURI(CONFIG.registry.baseuri),
+    registry.setBaseURI(config.registry.baseuri),
   ));
 
   // token generation
@@ -87,53 +114,32 @@ async function migrate() {
   .then(address => attach('P00lsTokenXCreator', address));
 
   // $00 as creator token
-  const allocation = { index: 0, account: accounts.admin.address, amount: CONFIG.TARGETSUPPLY };
-  const merkletree = merkle.createMerkleTree([ merkle.hashAllocation(allocation) ]);
+  const allocations = [
+    { index: 0, account: accounts.admin.address, amount: config.TARGETSUPPLY.div(2) },
+    { index: 1, account: auction.address, amount: config.DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_AUCTION_MANAGER }
+  ];
+  const merkletree = merkle.createMerkleTree(allocations.map(merkle.hashAllocation));
   const token  = await newCreatorToken(
-    accounts.admin.address,
-    CONFIG.token.name,
-    CONFIG.token.symbol,
-    CONFIG.token.xname,
-    CONFIG.token.xsymbol,
-    merkletree.getRoot(),
+      accounts.admin.address,
+      config.token.name,
+      config.token.symbol,
+      config.token.xname,
+      config.token.xsymbol,
+      merkletree.getRoot(),
   );
   const xToken = await getXCreatorToken(token);
   DEBUG(`Token:         ${token.address}`);
   DEBUG(`xToken:        ${xToken.address}`);
-  await token.claim(allocation.index, allocation.account, allocation.amount, merkletree.getHexProof(merkle.hashAllocation(allocation)))
+  await Promise.all(allocations.map(allocation => token.claim(allocation.index, allocation.account, allocation.amount, merkletree.getHexProof(merkle.hashAllocation(allocation)))));
 
   /*******************************************************************************************************************
    *                                                       DAO                                                       *
    *******************************************************************************************************************/
-  const timelock = await deploy('TimelockController', [
-    86400 * 7, // 7 days
-    [],
-    [],
-  ]);
-  DEBUG(`P00lsTimelock: ${timelock.address}`);
-
   const dao = await deployUpgradeable('P00lsDAO', 'uups', [
     token.address,
     timelock.address,
   ]);
   DEBUG(`P00lsDAO:      ${dao.address}`);
-
-  /*******************************************************************************************************************
-   *                                                       AMM                                                       *
-   *******************************************************************************************************************/
-  // Factory
-  const factory = await deploy('UniswapV2Factory', [ accounts.admin.address ]);
-  DEBUG(`Factory:       ${factory.address}`);
-
-  // Router
-  const router = await deploy('UniswapV2Router02', [ factory.address, weth.address ]);
-  DEBUG(`Router:        ${router.address}`);
-
-  const multicall = network.isTest && await deploy('UniswapInterfaceMulticall');
-  network.isTest && DEBUG(`Multicall:     ${multicall.address}`);
-
-  const auction = await deploy('AuctionManager', [ accounts.admin.address, router.address, timelock.address ]);
-  DEBUG(`Auction:       ${auction.address}`);
 
   /*******************************************************************************************************************
    *                                                     Locking                                                     *
@@ -182,7 +188,7 @@ async function migrate() {
 }
 
 if (require.main === module) {
-  migrate()
+  migrate(CONFIG)
     .then(() => process.exit(0))
     .catch(error => {
       console.error(error);
@@ -191,7 +197,6 @@ if (require.main === module) {
 }
 
 module.exports = {
-  CONFIG,
   migrate,
   attach,
   deploy,
