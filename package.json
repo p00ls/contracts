@@ -38,6 +38,7 @@
     "debug": "^2.6.9",
     "hardhat": "^2.7.1",
     "keccak256": "^1.0.2",
+    "lodash.defaultsdeep": "^4.6.1",
     "merkletreejs": "^0.2.18",
     "yargs": "^17.2.1"
   }

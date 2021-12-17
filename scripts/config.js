@@ -25,7 +25,8 @@ module.exports = {
     locking: {},
   },
   extra: {
-    DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_DEPLOYER: ethers.utils.parseEther('500000'),
+    DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_DEPLOYER:        ethers.utils.parseEther('500000'),
+    DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_AUCTION_MANAGER: ethers.utils.parseEther('500000'),
   },
   noCache: false,
   noConfirm: false,
