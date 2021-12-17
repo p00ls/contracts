@@ -13,4 +13,5 @@ module.exports = {
     baseuri: "https://artists.p00ls.com/"
   },
   TARGETSUPPLY: ethers.utils.parseEther('1000000000'),
+  DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_AUCTION_MANAGER: '0'
 };
