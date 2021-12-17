@@ -32,7 +32,7 @@
     "@uniswap/v2-periphery": "*"
   },
   "devDependencies": {
-    "@amxx/hre": "^0.0.4-1",
+    "@amxx/hre": "^0.0.5",
     "copyfiles": "^2.4.1",
     "debug": "^2.6.9",
     "hardhat": "^2.7.1",
