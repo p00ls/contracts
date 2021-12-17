@@ -18,10 +18,10 @@ async function deploy(config = {}, env = {}) {
 
     // Put known addresses into the cache
     await manager.ready().then(() => Promise.all(
-        Object.entries(ENV[network.chainId] || {}).map(([ name, address ]) => manager.cache.set(name, address))
+        Object.entries(env[network.chainId] || {}).map(([ name, address ]) => manager.cache.set(name, address))
     ));
 
-    const opts = { noCache: config.noCache, noConfirm: CONFIG.noConfirm };
+    const opts = { noCache: config.noCache, noConfirm: config.noConfirm };
 
     /*******************************************************************************************************************
      *                                                   Environment                                                   *
@@ -45,7 +45,7 @@ async function deploy(config = {}, env = {}) {
         'timelock',
         getFactory('TimelockController', { signer }),
         [
-            CONFIG.timelock.mindelay,
+            config.timelock.mindelay,
             [],
             [],
         ],
@@ -94,8 +94,8 @@ async function deploy(config = {}, env = {}) {
         getFactory('P00lsCreatorRegistry', { signer }),
         [
             signer.address,
-            CONFIG.registry.name,
-            CONFIG.registry.symbol,
+            config.registry.name,
+            config.registry.symbol,
         ],
         {
             ...opts,
