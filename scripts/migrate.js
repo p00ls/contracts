@@ -48,16 +48,6 @@ async function migrate(config) {
   DEBUG(`Vesting:       ${vesting.address}`);
 
   /*******************************************************************************************************************
-   *                                                       Timelock                                                  *
-   *******************************************************************************************************************/
-  const timelock = await deploy('TimelockController', [
-    86400 * 7, // 7 days
-    [],
-    [],
-  ]);
-  DEBUG(`P00lsTimelock: ${timelock.address}`);
-
-  /*******************************************************************************************************************
    *                                                       AMM                                                       *
    *******************************************************************************************************************/
       // Factory
@@ -71,7 +61,7 @@ async function migrate(config) {
   const multicall = network.isTest && await deploy('UniswapInterfaceMulticall');
   network.isTest && DEBUG(`Multicall:     ${multicall.address}`);
 
-  const auction = await deploy('AuctionManager', [ accounts.admin.address, router.address, timelock.address ]);
+  const auction = await deploy('AuctionManager', [ accounts.admin.address, router.address ]);
   DEBUG(`Auction:       ${auction.address}`);
 
   /*******************************************************************************************************************
@@ -135,6 +125,13 @@ async function migrate(config) {
   /*******************************************************************************************************************
    *                                                       DAO                                                       *
    *******************************************************************************************************************/
+  const timelock = await deploy('TimelockController', [
+    86400 * 7, // 7 days
+    [],
+    [],
+  ]);
+  DEBUG(`P00lsTimelock: ${timelock.address}`);
+
   const dao = await deployUpgradeable('P00lsDAO', 'uups', [
     token.address,
     timelock.address,

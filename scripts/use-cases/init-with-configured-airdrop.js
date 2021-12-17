@@ -1,7 +1,7 @@
 const { ethers } = require('hardhat');
 const migrate = require('../migrate.js');
 const CONFIG = require('./config');
-const { createMerkleTree, hashVesting} = require("../utils/merkle.ts");
+const { createMerkleTree, hashVesting} = require("../utils/merkle");
 
 const ethAccountsForAirdrop = ['0xECB2d6583858Aae994F4248f8948E35516cfc9cF','0x386673855d10F86a705689412f432Fbc1cf32699'];
 
