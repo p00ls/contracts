@@ -16,6 +16,4 @@ module.exports = {
     baseuri: "https://artists.p00ls.com/"
   },
   TARGETSUPPLY: ethers.utils.parseEther('1000000000'),
-  noCache: true,
-  noConfirm: true,
 };

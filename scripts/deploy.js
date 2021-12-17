@@ -5,7 +5,7 @@ const {
 } = require('@amxx/hre/scripts');
 
 const DEBUG  = require('debug')('p00ls');
-const CONFIG = require('./config');
+const CONFIG = require('./defaultConfig');
 const ENV    = require('./env');
 
 async function deploy(config = {}, env = {}) {
@@ -193,13 +193,13 @@ async function deploy(config = {}, env = {}) {
     weth      && DEBUG(`WETH:      ${weth.address     }`);
     multicall && DEBUG(`Multicall: ${multicall.address}`);
     timelock  && DEBUG(`Timelock:  ${timelock.address }`);
-    dao       && DEBUG(`Dao:       ${dao.address      }`);
+    // dao       && DEBUG(`Dao:       ${dao.address      }`);
     vesting   && DEBUG(`Vesting:   ${vesting.address  }`);
     escrow    && DEBUG(`Escrow:    ${escrow.address   }`);
     registry  && DEBUG(`Registry:  ${registry.address }`);
     factory   && DEBUG(`Factory:   ${factory.address  }`);
     router    && DEBUG(`Router:    ${router.address   }`);
-    auction   && DEBUG(`Auction:   ${auction.address  }`);
+    // auction   && DEBUG(`Auction:   ${auction.address  }`);
 }
 
 if (require.main === module) {

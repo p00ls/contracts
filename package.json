@@ -16,7 +16,8 @@
     "test": "hardhat test test/**/*.test.js",
     "devnet:node": "hardhat node",
     "devnet:migrate": "hardhat run scripts/migrate.js --network localhost",
-    "devnet:migrate-with-airdrop": "hardhat run scripts/migrate-with-configured-airdrop.js --network localhost"
+    "devnet:init-with-airdrop": "hardhat run scripts/use-cases/init-with-configured-airdrop.js --network localhost",
+    "devnet:init-with-pair": "hardhat run scripts/use-cases/init-with-configured-dex-pair.js --network localhost"
   },
   "repository": {
     "type": "git",
