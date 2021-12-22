@@ -14,20 +14,20 @@ describe('$00 Token', function () {
 
   it('Check social token', async function () {
     expect(await this.token.name())
-      .to.be.equal(CONFIG.token.name);
+      .to.be.equal(CONFIG.contracts.token.name);
     expect(await this.token.symbol())
-      .to.be.equal(CONFIG.token.symbol);
+      .to.be.equal(CONFIG.contracts.token.symbol);
     expect(await this.token.owner())
       .to.be.equal(this.accounts.admin.address);
     expect(await this.registry.ownerOf(this.token.address))
       .to.be.equal(this.accounts.admin.address);
     expect(await this.registry.tokenURI(this.token.address))
-      .to.be.equal(`${CONFIG.registry.baseuri}${ethers.BigNumber.from(this.token.address).toString()}`);
+      .to.be.equal(`${CONFIG.contracts.registry.baseuri}${ethers.BigNumber.from(this.token.address).toString()}`);
 
     expect(await this.xToken.name())
-      .to.be.equal(CONFIG.token.xname);
+      .to.be.equal(CONFIG.contracts.token.xname);
     expect(await this.xToken.symbol())
-      .to.be.equal(CONFIG.token.xsymbol);
+      .to.be.equal(CONFIG.contracts.token.xsymbol);
     expect(await this.xToken.owner())
       .to.be.equal(this.accounts.admin.address);
   });
@@ -45,7 +45,7 @@ describe('$00 Token', function () {
 
         expect(await this.token.balanceOf(this.accounts.user.address)).to.be.equal(value);
         expect(await this.xToken.balanceOf(this.accounts.user.address)).to.be.equal(0);
-        expect(await this.governance.dao.getVotes(this.accounts.user.address, tx.blockNumber)).to.be.equal(value);
+        expect(await this.dao.getVotes(this.accounts.user.address, tx.blockNumber)).to.be.equal(value);
       }
       {
         const tx = await this.xToken.connect(this.accounts.user).deposit(value.div(2));
@@ -54,7 +54,7 @@ describe('$00 Token', function () {
 
         expect(await this.token.balanceOf(this.accounts.user.address)).to.be.equal(value.div(2));
         expect(await this.xToken.balanceOf(this.accounts.user.address)).to.be.equal(value.div(2));
-        expect(await this.governance.dao.getVotes(this.accounts.user.address, tx.blockNumber)).to.be.equal(value);
+        expect(await this.dao.getVotes(this.accounts.user.address, tx.blockNumber)).to.be.equal(value);
       }
       {
         const tx = await this.token.transfer(this.xToken.address, value);
@@ -63,7 +63,7 @@ describe('$00 Token', function () {
 
         expect(await this.token.balanceOf(this.accounts.user.address)).to.be.equal(value.div(2));
         expect(await this.xToken.balanceOf(this.accounts.user.address)).to.be.equal(value.div(2));
-        expect(await this.governance.dao.getVotes(this.accounts.user.address, tx.blockNumber)).to.be.equal(value);
+        expect(await this.dao.getVotes(this.accounts.user.address, tx.blockNumber)).to.be.equal(value);
       }
       {
         const tx = await this.xToken.onEscrowRelease(0);
@@ -72,7 +72,7 @@ describe('$00 Token', function () {
 
         expect(await this.token.balanceOf(this.accounts.user.address)).to.be.equal(value.div(2));
         expect(await this.xToken.balanceOf(this.accounts.user.address)).to.be.equal(value.div(2));
-        expect(await this.governance.dao.getVotes(this.accounts.user.address, tx.blockNumber)).to.be.equal(value.mul(2));
+        expect(await this.dao.getVotes(this.accounts.user.address, tx.blockNumber)).to.be.equal(value.mul(2));
       }
     });
   });

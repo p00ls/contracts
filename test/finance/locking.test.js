@@ -1,7 +1,7 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
-const { CONFIG, prepare, attach, utils } = require('../fixture.js');
+const { CONFIG, prepare, utils } = require('../fixture.js');
 
 const VALUE = ethers.utils.parseEther('100');
 const value = ethers.utils.parseEther('1');
@@ -17,11 +17,11 @@ describe('Locking', function () {
 
   beforeEach(async function () {
     // allocate pool to the auction manager
-    this.token.transfer(this.amm.auction.address, VALUE);
+    this.token.transfer(this.auction.address, VALUE);
 
     // createtor token with allocation to the auction manager
     this.allocations = [
-      { index: 0, account: this.amm.auction.address, amount: VALUE },
+      { index: 0, account: this.auction.address, amount: VALUE },
       { index: 1, account: this.locking.address,     amount: VALUE },
       // { index: 0, account: this.accounts.admin.address, amount: CONFIG.TARGETSUPPLY },
     ],
@@ -31,8 +31,8 @@ describe('Locking', function () {
     await Promise.all(this.allocations.map(allocation => this.creatorToken.claim(allocation.index, allocation.account, allocation.amount, this.merkletree.getHexProof(utils.merkle.hashAllocation(allocation)))));
 
     // check balances
-    expect(await this.token.balanceOf(this.amm.auction.address)).to.be.equal(VALUE);
-    expect(await this.creatorToken.balanceOf(this.amm.auction.address)).to.be.equal(VALUE);
+    expect(await this.token.balanceOf(this.auction.address)).to.be.equal(VALUE);
+    expect(await this.creatorToken.balanceOf(this.auction.address)).to.be.equal(VALUE);
 
     // initiate auction
     const { timestamp: now } = await ethers.provider.getBlock('latest');
@@ -47,20 +47,20 @@ describe('Locking', function () {
     );
 
     // run auctions
-    await this.accounts.user.sendTransaction({ to: this.auctions[0].address, value: ethers.utils.parseEther('1') });
-    await this.accounts.user.sendTransaction({ to: this.auctions[1].address, value: ethers.utils.parseEther('1') });
+    await this.accounts.user.sendTransaction({ to: this.auction_instances[0].address, value: ethers.utils.parseEther('1') });
+    await this.accounts.user.sendTransaction({ to: this.auction_instances[1].address, value: ethers.utils.parseEther('1') });
     await network.provider.send('evm_increaseTime', [ 14 * 86400 ]);
-    await this.amm.auction.finalize(this.token.address);
-    await this.amm.auction.finalize(this.creatorToken.address);
+    await this.auction.finalize(this.token.address);
+    await this.auction.finalize(this.creatorToken.address);
 
     // withdraw funds
-    await this.auctions[0].connect(this.accounts.user).withdraw(this.accounts.user.address);
-    await this.auctions[1].connect(this.accounts.user).withdraw(this.accounts.user.address);
+    await this.auction_instances[0].connect(this.accounts.user).withdraw(this.accounts.user.address);
+    await this.auction_instances[1].connect(this.accounts.user).withdraw(this.accounts.user.address);
 
     // check balances
-    expect(await this.token.balanceOf(this.amm.auction.address)).to.be.equal('0');
+    expect(await this.token.balanceOf(this.auction.address)).to.be.equal('0');
     expect(await this.token.balanceOf(this.accounts.user.address)).to.be.equal(VALUE.div(2));
-    expect(await this.creatorToken.balanceOf(this.amm.auction.address)).to.be.equal('0');
+    expect(await this.creatorToken.balanceOf(this.auction.address)).to.be.equal('0');
     expect(await this.creatorToken.balanceOf(this.accounts.user.address)).to.be.equal(VALUE.div(2));
   });
 

@@ -1,7 +1,7 @@
 const { ethers } = require('hardhat');
 const { expect } = require('chai');
 
-const { CONFIG, prepare, deploy, utils } = require('../fixture.js');
+const { CONFIG, prepare, utils } = require('../fixture.js');
 
 const value = ethers.utils.parseEther('1');
 
@@ -27,17 +27,17 @@ describe('$Crea Token', function () {
         // 40% vesting (creator + user)
         {
           account: this.vesting.address,
-          amount: CONFIG.TARGETSUPPLY.mul(40).div(100),
+          amount: CONFIG.extra.DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_DEPLOYER.mul(40).div(100),
         },
         // 10% AMM (+ dutch auction)
         {
-          account: this.amm.auction.address,
-          amount: CONFIG.TARGETSUPPLY.mul(10).div(100),
+          account: this.auction.address,
+          amount: CONFIG.extra.DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_DEPLOYER.mul(10).div(100),
         },
         // 50% staking & liquidity mining - TODO
         {
           account: this.accounts.reserve.address,
-          amount: CONFIG.TARGETSUPPLY.mul(50).div(100),
+          amount: CONFIG.extra.DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_DEPLOYER.mul(50).div(100),
         },
       ].map((obj, index) => Object.assign(obj, { index }));
 
@@ -50,23 +50,23 @@ describe('$Crea Token', function () {
     describe('Check state', function () {
       it('Creator registry', async function () {
         expect(await this.registry.name())
-          .to.be.equal('P00ls Creator Token Registry');
+          .to.be.equal(CONFIG.contracts.registry.name);
         expect(await this.registry.symbol())
-          .to.be.equal('P00ls');
+          .to.be.equal(CONFIG.contracts.registry.symbol);
         expect(await this.registry.owner())
           .to.be.equal(this.accounts.admin.address);
 
         expect(await this.registry.ownerOf(this.registry.address))
           .to.be.equal(this.accounts.admin.address);
         expect(await this.registry.tokenURI(this.registry.address))
-          .to.be.equal(`${CONFIG.registry.baseuri}${ethers.BigNumber.from(this.registry.address).toString()}`);
+          .to.be.equal(`${CONFIG.contracts.registry.baseuri}${ethers.BigNumber.from(this.registry.address).toString()}`);
         expect(await this.registry.admin())
           .to.be.equal(this.accounts.admin.address);
 
         expect(await this.registry.ownerOf(this.creatorToken.address))
           .to.be.equal(this.accounts.artist.address);
         expect(await this.registry.tokenURI(this.creatorToken.address))
-          .to.be.equal(`${CONFIG.registry.baseuri}${ethers.BigNumber.from(this.creatorToken.address).toString()}`);
+          .to.be.equal(`${CONFIG.contracts.registry.baseuri}${ethers.BigNumber.from(this.creatorToken.address).toString()}`);
         expect(await this.creatorToken.admin())
           .to.be.equal(this.accounts.admin.address);
       });
@@ -161,7 +161,7 @@ describe('$Crea Token', function () {
 
     describe('ERC1363', function () {
       beforeEach(async function () {
-        this.receiver = await deploy('ERC1363ReceiverMock');
+        this.receiver = await utils.deploy('ERC1363ReceiverMock');
 
         await Promise.all(this.allocations.map(allocation => this.creatorToken.claim(allocation.index, allocation.account, allocation.amount, this.merkletree.getHexProof(utils.merkle.hashAllocation(allocation)))));
         await this.creatorToken.connect(this.accounts.reserve).transfer(this.accounts.user.address, value);

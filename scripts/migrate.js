@@ -1,205 +1,228 @@
-const { ethers, upgrades } = require('hardhat');
-const merkle = require('./utils/merkle');
-const CONFIG = require('./defaultConfig');
-const DEBUG  = require('debug')('migration');
+const {
+    MigrationManager,
+    getFactory,
+    attach,
+} = require('@amxx/hre/scripts');
 
-async function getFactory(name, opts = {}) {
-  return ethers.getContractFactory(name).then(contract => contract.connect(opts.signer || contract.signer));
-}
+const DEBUG = require('debug')('p00ls');
 
-function attach(name, address, opts = {}) {
-  return getFactory(name, opts).then(factory => factory.attach(address));
-}
+async function migrate(config = {}, env = {}) {
 
-function deploy(name, args = [], opts = {}) {
-  if (!Array.isArray(args)) { opts = args; args = []; }
-  return getFactory(name, opts).then(factory => factory.deploy(...args)).then(contract => contract.deployed());
-}
+    const provider = env.provider || ethers.provider;
+    const signer   = env.signer   || await ethers.getSigner();
+    const network  = await ethers.provider.getNetwork();
+    const manager  = new MigrationManager(provider);
 
-function deployUpgradeable(name, kind, args = [], opts = {}) {
-  if (!Array.isArray(args)) { opts = args; args = []; }
-  return getFactory(name, opts).then(factory => upgrades.deployProxy(factory, args, { kind })).then(contract => contract.deployed());
-}
+    // Put known addresses into the cache
+    await manager.ready().then(() => Promise.all(
+        Object.entries(env[network.chainId] || {}).map(([ name, address ]) => manager.cache.set(name, address))
+    ));
 
-function performUpgrade(proxy, name, opts = {}) {
-  return getFactory(name, opts).then(factory => upgrades.upgradeProxy(proxy.address, factory, {}));
-}
+    const opts = { noCache: config.noCache, noConfirm: config.noConfirm };
+    const isEnabled = (...keys) => keys.every(key => !config.contracts[key]?.disabled);
 
-async function migrate(config) {
-  const network  = await ethers.provider.getNetwork();
-  network.isTest = network.chainId == 1337;
-  const accounts = await ethers.getSigners();
-  accounts.admin = accounts.shift();
-  DEBUG(`Admin:         ${accounts.admin.address}`);
+    /*******************************************************************************************************************
+     *                                                   Environment                                                   *
+     *******************************************************************************************************************/
+    const weth = isEnabled('weth') && await manager.migrate(
+        'weth',
+        getFactory('WETH', { signer }),
+        { ...opts },
+    );
 
-  /*******************************************************************************************************************
-   *                                                   Environment                                                   *
-   *******************************************************************************************************************/
-  // Weth
-  const weth = await deploy('WETH');
-  DEBUG(`WETH:          ${weth.address}`);
+    const multicall = isEnabled('multicall') && await manager.migrate(
+        'multicall',
+        getFactory('UniswapInterfaceMulticall', { signer }),
+        { ...opts },
+    );
 
-  /*******************************************************************************************************************
-   *                                                     Vesting                                                     *
-   *******************************************************************************************************************/
-  const vesting = await deploy('VestedAirdrops', [
-    accounts.admin.address,
-  ]);
-  DEBUG(`Vesting:       ${vesting.address}`);
+    /*******************************************************************************************************************
+     *                                                       DAO                                                       *
+     *******************************************************************************************************************/
+    const timelock = isEnabled('timelock') && await manager.migrate(
+        'timelock',
+        getFactory('TimelockController', { signer }),
+        [
+            config.contracts.timelock.mindelay,
+            [],
+            [],
+        ],
+        { ...opts },
+    );
 
-  /*******************************************************************************************************************
-   *                                                       AMM                                                       *
-   *******************************************************************************************************************/
-      // Factory
-  const factory = await deploy('UniswapV2Factory', [ accounts.admin.address ]);
-  DEBUG(`Factory:       ${factory.address}`);
+    const dao = isEnabled('dao', 'token') && timelock && await manager.migrate(
+        'dao',
+        getFactory('P00lsDAO', { signer }),
+        [
+            config.contracts.token.address,
+            timelock.address,
+        ],
+        { ...opts,  kind: 'uups' },
+    );
 
-  // Router
-  const router = await deploy('UniswapV2Router02', [ factory.address, weth.address ]);
-  DEBUG(`Router:        ${router.address}`);
+    /*******************************************************************************************************************
+     *                                                     Vesting                                                     *
+     *******************************************************************************************************************/
+    const vesting = isEnabled('vesting') && await manager.migrate(
+        'vesting',
+        getFactory('VestedAirdrops', { signer }),
+        [
+            signer.address,
+        ],
+        { ...opts },
+    );
 
-  const multicall = network.isTest && await deploy('UniswapInterfaceMulticall');
-  network.isTest && DEBUG(`Multicall:     ${multicall.address}`);
+    /*******************************************************************************************************************
+     *                                                  P00ls creator                                                  *
+     *******************************************************************************************************************/
+    const escrow = isEnabled('escrow') && await manager.migrate(
+        'escrow',
+        getFactory('Escrow', { signer }),
+        [
+            signer.address,
+        ],
+        { ...opts },
+    );
 
-  const auction = await deploy('AuctionManager', [ accounts.admin.address, router.address ]);
-  DEBUG(`Auction:       ${auction.address}`);
+    const registry = isEnabled('registry') && await manager.migrate(
+        'registry',
+        getFactory('P00lsCreatorRegistry', { signer }),
+        [
+            signer.address,
+            config.contracts.registry.name,
+            config.contracts.registry.symbol,
+        ],
+        { ...opts, kind: 'uups' },
+    );
 
-  /*******************************************************************************************************************
-   *                                              P00ls creator & token                                              *
-   *******************************************************************************************************************/
+    const tokenCreator = isEnabled('registry') && registry && await manager.migrate(
+        'tokenCreator',
+        getFactory('P00lsTokenCreator', { signer }),
+        [
+            registry.address,
+        ],
+        { ...opts, noConfirm: true },
+    );
 
-  const escrow = await deploy('Escrow', [ accounts.admin.address ]);
-  DEBUG(`Escrow:        ${escrow.address}`);
+    const tokenXCreator = isEnabled('registry') && registry && await manager.migrate(
+        'tokenXCreator',
+        getFactory('P00lsTokenXCreator', { signer }),
+        [
+            escrow.address,
+        ],
+        { ...opts, noConfirm: true },
+    );
 
-  // Creator token registry/factory
-  const registry = await deployUpgradeable('P00lsCreatorRegistry', 'uups', [
-    accounts.admin.address,
-    config.registry.name,
-    config.registry.symbol,
-  ]);
-  DEBUG(`Registry:      ${registry.address}`);
+    /*******************************************************************************************************************
+     *                                                       AMM                                                       *
+     *******************************************************************************************************************/
+    const factory = isEnabled('amm') && await manager.migrate(
+        'amm-factory',
+        getFactory('UniswapV2Factory', { signer }),
+        [
+            signer.address,
+        ],
+        { ...opts },
+    );
 
-  // Creator token template
-  const implementations = await Promise.all([
-    deploy('P00lsTokenCreator',  [ registry.address ]),
-    deploy('P00lsTokenXCreator', [ escrow.address   ]),
-  ]);
+    const router = isEnabled('amm') && factory && await manager.migrate(
+        'amm-router',
+        getFactory('UniswapV2Router02', { signer }),
+        [
+            factory.address,
+            weth.address,
+        ],
+        { ...opts, noConfirm: true },
+    );
 
-  // setup
-  await Promise.all([].concat(
-    registry.upgradeCreatorToken(implementations[0].address),
-    registry.upgradeXCreatorToken(implementations[1].address),
-    registry.setBaseURI(config.registry.baseuri),
-  ));
+    const auction = isEnabled('auction') && router && await manager.migrate(
+        'auction',
+        getFactory('AuctionManager', { signer }),
+        [
+            signer.address,
+            router.address,
+        ],
+        { ...opts },
+    );
 
-  // token generation
-  const newCreatorToken = (admin, name, symbol, xname, xsymbol, root) => registry.createToken(admin, name, symbol, xname, xsymbol, root)
-  .then(tx => tx.wait())
-  .then(receipt => receipt.events.find(({ event }) => event === 'Transfer'))
-  .then(event => event.args.tokenId)
-  .then(tokenId => ethers.utils.getAddress(ethers.utils.hexlify(ethers.utils.zeroPad(tokenId, 20))))
-  .then(address => attach('P00lsTokenCreator', address));
+    /*******************************************************************************************************************
+     *                                                     Locking                                                     *
+     *******************************************************************************************************************/
+    const locking = isEnabled('locking', 'token') && router && await manager.migrate(
+        'locking',
+        getFactory('Locking', { signer }),
+        [
+            signer.address,
+            router.address,
+            config.contracts.token.address,
+        ],
+        { ...opts },
+    );
 
-  const getXCreatorToken = (creatorToken) => creatorToken.xCreatorToken()
-  .then(address => attach('P00lsTokenXCreator', address));
+    /*******************************************************************************************************************
+     *                                                       AMM                                                       *
+     *******************************************************************************************************************/
+    const roles = await Promise.all(Object.entries({
+        DEFAULT_ADMIN: ethers.constants.HashZero,
+        PAIR_CREATOR:  ethers.utils.id('PAIR_CREATOR_ROLE'),
+    }).map(entry => Promise.all(entry))).then(Object.fromEntries);
 
-  // $00 as creator token
-  const allocations = [
-    { index: 0, account: accounts.admin.address, amount: config.TARGETSUPPLY.div(2) },
-    { index: 1, account: auction.address, amount: config.DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_AUCTION_MANAGER }
-  ];
-  const merkletree = merkle.createMerkleTree(allocations.map(merkle.hashAllocation));
-  const token  = await newCreatorToken(
-      accounts.admin.address,
-      config.token.name,
-      config.token.symbol,
-      config.token.xname,
-      config.token.xsymbol,
-      merkletree.getRoot(),
-  );
-  const xToken = await getXCreatorToken(token);
-  DEBUG(`Token:         ${token.address}`);
-  DEBUG(`xToken:        ${xToken.address}`);
-  await Promise.all(allocations.map(allocation => token.claim(allocation.index, allocation.account, allocation.amount, merkletree.getHexProof(merkle.hashAllocation(allocation)))));
+    await Promise.all([].concat(
+        factory && factory.feeTo().then(address => address == timelock.address || factory.setFeeTo(timelock.address)),
+        factory && factory.hasRole(roles.PAIR_CREATOR,  auction.address ).then(yes => yes || factory.grantRole   (roles.PAIR_CREATOR,  auction.address )),
+        factory && factory.hasRole(roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || factory.grantRole   (roles.DEFAULT_ADMIN, timelock.address)),
+        factory && factory.hasRole(roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && factory.renounceRole(roles.DEFAULT_ADMIN, signer.address  )),
+        registry && tokenCreator && registry.beaconCreator()
+            .then(address => attach('Beacon', address))
+            .then(beacon => beacon.implementation())
+            .then(implementation => implementation == tokenCreator.address || registry.upgradeCreatorToken(tokenCreator.address)),
+        registry && tokenXCreator && registry.beaconXCreator()
+            .then(address => attach('Beacon', address))
+            .then(beacon => beacon.implementation())
+            .then(implementation => implementation == tokenXCreator.address || registry.upgradeXCreatorToken(tokenXCreator.address)),
+    ));
 
-  /*******************************************************************************************************************
-   *                                                       DAO                                                       *
-   *******************************************************************************************************************/
-  const timelock = await deploy('TimelockController', [
-    86400 * 7, // 7 days
-    [],
-    [],
-  ]);
-  DEBUG(`P00lsTimelock: ${timelock.address}`);
+    weth      && DEBUG(`WETH:      ${weth.address     }`);
+    multicall && DEBUG(`Multicall: ${multicall.address}`);
+    timelock  && DEBUG(`Timelock:  ${timelock.address }`);
+    dao       && DEBUG(`Dao:       ${dao.address      }`);
+    vesting   && DEBUG(`Vesting:   ${vesting.address  }`);
+    escrow    && DEBUG(`Escrow:    ${escrow.address   }`);
+    registry  && DEBUG(`Registry:  ${registry.address }`);
+    factory   && DEBUG(`Factory:   ${factory.address  }`);
+    router    && DEBUG(`Router:    ${router.address   }`);
+    auction   && DEBUG(`Auction:   ${auction.address  }`);
+    locking   && DEBUG(`Locking:   ${locking.address  }`);
 
-  const dao = await deployUpgradeable('P00lsDAO', 'uups', [
-    token.address,
-    timelock.address,
-  ]);
-  DEBUG(`P00lsDAO:      ${dao.address}`);
-
-  /*******************************************************************************************************************
-   *                                                     Locking                                                     *
-   *******************************************************************************************************************/
-  const locking = await deploy('Locking', [ accounts.admin.address, router.address, token.address ]);
-  DEBUG(`Locking:       ${locking.address}`);
-
-  /*******************************************************************************************************************
-   *                                                      Roles                                                      *
-   *******************************************************************************************************************/
-   const roles = await Promise.all(Object.entries({
-    DEFAULT_ADMIN: ethers.constants.HashZero,
-    PAIR_CREATOR:  factory.PAIR_CREATOR_ROLE(),
-  }).map(entry => Promise.all(entry))).then(Object.fromEntries);
-
-  await Promise.all([
-    factory.connect(accounts.admin).grantRole(roles.PAIR_CREATOR,  auction.address       ),
-    factory.connect(accounts.admin).setFeeTo(timelock.address), // do that until p00l launch and the staking program starts
-  ].map(promise => promise.then(tx => tx.wait())));
-
-  return {
-    accounts,
-    roles,
-    vesting,
-    registry,
-    token,
-    xToken,
-    escrow,
-    weth,
-    locking,
-    governance: {
-      dao,
-      timelock,
-    },
-    amm: {
-      factory,
-      router,
-      multicall,
-      auction,
-    },
-    workflows: {
-      newCreatorToken,
-      getXCreatorToken,
-    }
-  };
+    return {
+        config,
+        roles,
+        contracts: {
+            weth,
+            multicall,
+            timelock,
+            dao,
+            vesting,
+            escrow,
+            registry,
+            factory,
+            router,
+            auction,
+            locking,
+        },
+    };
 }
 
 if (require.main === module) {
-  migrate(CONFIG)
-    .then(() => process.exit(0))
-    .catch(error => {
-      console.error(error);
-      process.exit(1);
-    });
+    const CONFIG = require('./config');
+    const ENV    = require('./env');
+
+    migrate(CONFIG, ENV)
+        .then(() => process.exit(0))
+        .catch(error => {
+            console.error(error);
+            process.exit(1);
+        });
 }
 
-module.exports = {
-  migrate,
-  attach,
-  deploy,
-  deployUpgradeable,
-  performUpgrade,
-  utils: {
-    merkle,
-  },
-};
+module.exports = migrate;

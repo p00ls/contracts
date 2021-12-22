@@ -104,6 +104,18 @@ contract P00lsCreatorRegistry is
     /**
      * Beacon
      */
+    function beaconCreator()
+    external view returns (address)
+    {
+        return address(__beaconCreator);
+    }
+
+    function beaconXCreator()
+    external view returns (address)
+    {
+        return address(__beaconXCreator);
+    }
+
     function upgradeCreatorToken(address newImplementation)
     external onlyOwner()
     {

@@ -1,9 +1,18 @@
-const migrate = require('../scripts/migrate.js');
-const CONFIG = require('./config');
+const {
+    attach,
+    deploy,
+    deployUpgradeable,
+    performUpgrade,
+} = require('@amxx/hre/scripts');
+
+const migrate = require('../scripts/migrateAll');
+const merkle  = require('../scripts/utils/merkle');
+const CONFIG  = require('./config');
 
 function prepare() {
     before(async function () {
-        await migrate.migrate(CONFIG).then(env => Object.assign(this, env));
+        await migrate(CONFIG).then(context => Object.assign(this, context, context.contracts));
+        this.accounts.admin = this.accounts.shift();
         __SNAPSHOT_ID__ = await ethers.provider.send('evm_snapshot');
     });
 
@@ -16,5 +25,11 @@ function prepare() {
 module.exports = {
     prepare,
     CONFIG,
-    ...migrate,
+    utils: {
+        attach,
+        deploy,
+        deployUpgradeable,
+        performUpgrade,
+        merkle,
+    }
 };
