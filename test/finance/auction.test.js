@@ -39,7 +39,8 @@ describe('Auction', function () {
   });
 
   it('cannot star instance without a balance', async function () {
-    await expect(this.auction.start(this.xCreatorToken.address, 14 * 86400))
+    const { timestamp: now } = await ethers.provider.getBlock('latest');
+    await expect(this.auction.start(this.xCreatorToken.address, now, 14 * 86400))
     .to.be.reverted;
   });
 
@@ -50,7 +51,8 @@ describe('Auction', function () {
 
   describe('with auction', function () {
     beforeEach(async function () {
-      const txPromise = this.auction.start(this.creatorToken.address, 14 * 86400);
+      const { timestamp: now } = await ethers.provider.getBlock('latest');
+      const txPromise = this.auction.start(this.creatorToken.address, now, 14 * 86400);
 
       this.auction_instance = await this.auction.getAuctionInstance(this.creatorToken.address).then(address => utils.attach('Auction', address));
 

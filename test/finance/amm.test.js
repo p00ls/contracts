@@ -24,7 +24,8 @@ describe('AMM', function () {
 
     describe('with dutch auction', function () {
       beforeEach(async function () {
-        this.auction_instance = await this.auction.start(this.creatorToken.address, 14 * 86400)
+        const { timestamp: now } = await ethers.provider.getBlock('latest');
+        this.auction_instance = await this.auction.start(this.creatorToken.address, now, 14 * 86400)
         .then(tx => tx.wait())
         .then(receipt => receipt.events.find(({ event }) => event === 'AuctionCreated'))
         .then(event => event.args.auction)

@@ -35,11 +35,12 @@ describe('Locking', function () {
     expect(await this.creatorToken.balanceOf(this.auction.address)).to.be.equal(VALUE);
 
     // initiate auction
+    const { timestamp: now } = await ethers.provider.getBlock('latest');
     this.auction_instances = await Promise.all(
       [
         this.token,
         this.creatorToken,
-      ].map(({ address }) => this.auction.start(address, 14 * 86400)
+      ].map(({ address }) => this.auction.start(address, now, 14 * 86400)
         .then(() => this.auction.getAuctionInstance(address))
         .then(address => utils.attach('Auction', address))
       )

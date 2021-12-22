@@ -12,10 +12,12 @@ import "@amxx/hre/contracts/FullMath.sol";
 import "../amm/UniswapV2Router02.sol";
 import "../amm/libraries/Math.sol";
 import "../../tokens/extensions/IERC1363.sol";
+// import "../../utils/Timers.sol";
 
 contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender {
     using Distributions for Distributions.Uint256;
     using Splitters     for Splitters.Splitter;
+    using Timers        for uint64;
     using Timers        for Timers.Timestamp;
 
     uint64  public  constant DELAY             =      30 days;
@@ -100,6 +102,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     {
         Lock storage lock = _locks[token];
         return (
+            // lock.delay.toUint64(),
             lock.delay.getDeadline(),
             lock.rate,
             SafeCast.toUint256(SafeCast.toInt256(lock.splitter._bounty) + lock.splitter._released._total),
@@ -113,6 +116,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
         Lock  storage lock  = _locks[token];
         Vault storage vault = lock.vaults[account];
         return (
+            // vault.delay.toUint64(),
             vault.delay.getDeadline(),
             vault.value,
             vault.extra,
@@ -127,7 +131,8 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     {
         Lock storage lock = _locks[token];
 
-        lock.delay.setDeadline(uint64(block.timestamp) + DELAY);
+        // lock.delay = uint64(block.timestamp + DELAY).toTimestamp();
+        lock.delay.setDeadline(uint64(block.timestamp + DELAY));
         lock.splitter.reward(token.balanceOf(address(this)));
         lock.rate = router.getAmountsOut(1e18, _poolsToToken(token))[2]; // this is subject to pricefeed manipulation if executed in refreshWeight
 
@@ -145,6 +150,8 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
         Lock  storage lock  = _locks[token];
         Vault storage vault = lock.vaults[msg.sender];
 
+        // uint64 expiration = lock.delay.toUint64() + duration;
+        // vault.delay = expiration.toTimestamp();
         uint64 expiration = lock.delay.getDeadline() + duration;
         vault.delay.setDeadline(expiration);
 
@@ -227,6 +234,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
 
         uint256 weight = estimateWeight(
             token,
+            // vault.delay.toUint64() - lock.delay.toUint64(),
             vault.delay.getDeadline() - lock.delay.getDeadline(),
             vault.value,
             vault.extra
