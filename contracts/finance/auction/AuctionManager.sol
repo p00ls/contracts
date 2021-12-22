@@ -31,7 +31,7 @@ contract AuctionManager is AccessControl {
         require(_openPayments == 2);
     }
 
-    function start(IERC20 token, uint256 duration) external onlyRole(DEFAULT_ADMIN_ROLE) returns (address) {
+    function start(IERC20 token, uint64 timestamp, uint64 duration) external onlyRole(DEFAULT_ADMIN_ROLE) returns (address) {
         uint256 balance = token.balanceOf(address(this));
         require(balance > 0);
 
@@ -41,7 +41,7 @@ contract AuctionManager is AccessControl {
         SafeERC20.safeTransfer(token, instance, balance / 2);
 
         // Start auction
-        Auction(payable(instance)).initialize(token, uint64(block.timestamp + duration));
+        Auction(payable(instance)).initialize(token, timestamp, timestamp + duration);
 
         emit AuctionCreated(address(token), instance);
 

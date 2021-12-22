@@ -35,13 +35,14 @@ describe('Locking', function () {
     expect(await this.creatorToken.balanceOf(this.amm.auction.address)).to.be.equal(VALUE);
 
     // initiate auction
-    this.auctions = await Promise.all(
+    const { timestamp: now } = await ethers.provider.getBlock('latest');
+    this.auction_instances = await Promise.all(
       [
         this.token,
         this.creatorToken,
-      ].map(({ address }) => this.amm.auction.start(address, 14 * 86400)
-        .then(() => this.amm.auction.getAuctionInstance(address))
-        .then(address => attach('Auction', address))
+      ].map(({ address }) => this.auction.start(address, now, 14 * 86400)
+        .then(() => this.auction.getAuctionInstance(address))
+        .then(address => utils.attach('Auction', address))
       )
     );
 
