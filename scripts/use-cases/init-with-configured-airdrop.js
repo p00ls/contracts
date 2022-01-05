@@ -1,5 +1,5 @@
 const { ethers } = require('hardhat');
-const migrate = require('../migrate.js');
+const migrateAll = require('../migrateAll.js');
 const CONFIG = require('./config');
 const { createMerkleTree, hashVesting} = require("../utils/merkle");
 
@@ -26,7 +26,7 @@ async function buildVesting(token) {
 }
 
 async function enableAirdrop(token, airdropContract, merkletree) {
-    await token.transfer(airdropContract.address, CONFIG.TARGETSUPPLY.div(2));
+    await token.transfer(airdropContract.address, ethers.utils.parseEther('500000'));
     const hexroot    = ethers.utils.hexlify(merkletree.getRoot());
     await airdropContract.enableAirdrop(hexroot, true);
 }
@@ -43,16 +43,16 @@ function showProofs(airdropContract, vestings, merkletree) {
 }
 
 function showContracts(migrationResult) {
-    console.log(`Airdrop contract: ${migrationResult.vesting.address}`);
-    console.log(`Token contract: ${migrationResult.token.address}`);
+    console.log(`Airdrop contract: ${migrationResult.contracts.vesting.address}`);
+    console.log(`Token contract: ${migrationResult.contracts.token.address}`);
 }
 
 (async () => {
-    const result = await migrate.migrate(CONFIG);
-    await distributeEthers(result.accounts.admin);
-    const vestings = await buildVesting(result.token);
+    const result = await migrateAll(CONFIG);
+    await distributeEthers(result.accounts[0]);
+    const vestings = await buildVesting(result.contracts.token);
     const merkletree = createMerkleTree(vestings.map(hashVesting));
-    await enableAirdrop(result.token, result.vesting, merkletree);
-    showProofs(result.vesting, vestings, merkletree);
+    await enableAirdrop(result.contracts.token, result.contracts.vesting, merkletree);
+    showProofs(result.contracts.vesting, vestings, merkletree);
     showContracts(result);
 })();

@@ -1,6 +1,7 @@
 const { ethers } = require('hardhat');
-const migrate = require('../migrate.js');
+const migrateAll = require('../migrateAll.js');
 const CONFIG = require('./config');
+const { attach } = require('@amxx/hre/scripts');
 
 const faucetAccounts = ['0xECB2d6583858Aae994F4248f8948E35516cfc9cF'];
 
@@ -14,22 +15,22 @@ async function distributeEthers(account) {
 }
 
 (async () => {
-    const result = await migrate.migrate(CONFIG);
-    await distributeEthers(result.accounts.admin);
-    await result.amm.auction.start(result.token.address, 30);
-    const auction = await result.amm.auction.getAuctionInstance(result.token.address).then(address => migrate.attach('Auction', address));
-    await result.accounts.admin.sendTransaction({ to: auction.address, value: ethers.utils.parseEther('10') });
+    const result = await migrateAll(CONFIG);
+    await distributeEthers(result.accounts[0]);
+    const now = (await ethers.provider.getBlock()).timestamp
+    await result.contracts.auction.start(result.contracts.token.address, now, 30);
+    const auction = await result.contracts.auction.getAuctionInstance(result.contracts.token.address).then(address => attach('Auction', address));
+    await result.accounts[0].sendTransaction({ to: auction.address, value: ethers.utils.parseEther('10') });
     await network.provider.send('evm_increaseTime', [ 40 ]);
-    await result.amm.auction.finalize(result.token.address);
-    const pair = await result.amm.factory.getPair(
-        result.token.address,
-        result.weth.address
+    await result.contracts.auction.finalize(result.contracts.token.address);
+    const pair = await result.contracts.factory.getPair(
+        result.contracts.token.address,
+        result.contracts.weth.address
     );
-    console.log(result.amm.router)
-    console.log(`WETH: ${result.weth.address}`)
-    console.log(`Factory: ${result.amm.factory.address}`)
-    console.log(`Router: ${result.amm.router.address}`)
-    console.log(`Multicall: ${result.amm.multicall.address}`)
+    console.log(`WETH: ${result.contracts.weth.address}`)
+    console.log(`Factory: ${result.contracts.factory.address}`)
+    console.log(`Router: ${result.contracts.router.address}`)
+    console.log(`Multicall: ${result.contracts.multicall.address}`)
     console.log(`Pair: ${pair}`);
-    console.log(`Token: ${result.token.address}`)
+    console.log(`Token: ${result.contracts.token.address}`)
 })();

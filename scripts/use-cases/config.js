@@ -1,17 +1,33 @@
 const ethers = require("ethers");
 
 module.exports = {
-  token: {
-    name: "P00ls token",
-    symbol: "$00",
-    xname: "P00ls X token",
-    xsymbol: "x$00"
+  contracts: {
+    token: {
+      disabled: true,
+      name: "P00ls token",
+      symbol: "$00",
+      xname: "P00ls X token",
+      xsymbol: "x$00"
+    },
+    timelock: {
+      mindelay: 86400 * 7,
+    },
+    dao: {},
+    vesting: {},
+    escrow: {},
+    registry: {
+      name:   "P00ls Creator Token",
+      symbol: "P00lsCrea",
+      baseuri: "https://artists.p00ls.com/",
+    },
+    amm: {},
+    auction: {},
+    locking: {},
   },
-  registry: {
-    name:   "P00ls Creator Token Registry",
-    symbol: "P00ls",
-    baseuri: "https://artists.p00ls.com/"
+  extra: {
+    DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_DEPLOYER:        ethers.utils.parseEther('500000'),
+    DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_AUCTION_MANAGER: ethers.utils.parseEther('500000'),
   },
-  TARGETSUPPLY: ethers.utils.parseEther('1000000'),
-  DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_AUCTION_MANAGER: ethers.utils.parseEther('1000000').div(2)
+  noCache: false,
+  noConfirm: false,
 };
