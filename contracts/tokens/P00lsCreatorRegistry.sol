@@ -1,19 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@amxx/hre/contracts/ENSReverseRegistration.sol";
+import "@openzeppelin/contracts/utils/Multicall.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "../utils/Beacon.sol";
 import "../utils/BeaconProxy.sol";
-import "../utils/RegistryOwnableUpgradeable.sol";
+import "../utils/RegistryOwnable.sol";
 import "./P00lsTokenCreator.sol";
 import "./P00lsTokenXCreator.sol";
 
 contract P00lsCreatorRegistry is
+    AccessControlUpgradeable,
     ERC721URIStorageUpgradeable,
     RegistryOwnableUpgradeable,
-    UUPSUpgradeable
+    UUPSUpgradeable,
+    Multicall
 {
+    bytes32 public constant REGISTRY_MANAGER_ROLE = keccak256("REGISTRY_MANAGER_ROLE");
+    bytes32 public constant UPGRADER_ROLE         = keccak256("UPGRADER_ROLE");
+
     Beacon private __beaconCreator;
     Beacon private __beaconXCreator;
     string private __baseURI;
@@ -30,13 +38,23 @@ contract P00lsCreatorRegistry is
     )
     external initializer
     {
+        __AccessControl_init();
         __ERC721_init(_name, _symbol);
         __RegistryOwnable_init(address(this));
-        _mint(_admin, uint256(uint160(address(this))));
+
+        _mint(_admin, addressToUint256(address(this))); // this is the "admin" for creator tokens
+        _setupRole(DEFAULT_ADMIN_ROLE,    _admin); // TODO: remove this when the NFT is considered in `hasRole`
+        _setupRole(REGISTRY_MANAGER_ROLE, _admin);
+        _setupRole(UPGRADER_ROLE,         _admin);
 
         __beaconCreator  = new Beacon();
         __beaconXCreator = new Beacon();
     }
+
+    // // Default admin is overriden to use the NFT mechanism
+    // function hasRole(bytes32 role, address account) public view virtual override returns (bool) {
+    //     return role == DEFAULT_ADMIN_ROLE && owner() == account || super.hasRole(role, account);
+    // }
 
     /**
      * Creator token creation
@@ -49,7 +67,7 @@ contract P00lsCreatorRegistry is
         string calldata xsymbol,
         bytes32 root
     )
-    external virtual onlyOwner() returns (address)
+    external virtual onlyRole(REGISTRY_MANAGER_ROLE) returns (address)
     {
         address creator  = address(new BeaconProxy(__beaconCreator));
         address xCreator = address(new BeaconProxy(__beaconXCreator));
@@ -76,7 +94,7 @@ contract P00lsCreatorRegistry is
     function _isApprovedOrOwner(address spender, uint256 tokenId)
     internal view virtual override returns (bool)
     {
-        return uint256(uint160(spender)) == tokenId || super._isApprovedOrOwner(spender, tokenId);
+        return addressToUint256(spender) == tokenId || super._isApprovedOrOwner(spender, tokenId);
     }
 
     /**
@@ -90,7 +108,7 @@ contract P00lsCreatorRegistry is
     }
 
     function setBaseURI(string memory baseURI)
-    external virtual onlyOwner()
+    external virtual onlyRole(REGISTRY_MANAGER_ROLE)
     {
         __baseURI = baseURI;
     }
@@ -117,13 +135,13 @@ contract P00lsCreatorRegistry is
     }
 
     function upgradeCreatorToken(address newImplementation)
-    external onlyOwner()
+    external onlyRole(UPGRADER_ROLE)
     {
         __beaconCreator.upgradeTo(newImplementation);
     }
 
     function upgradeXCreatorToken(address newImplementation)
-    external onlyOwner()
+    external onlyRole(UPGRADER_ROLE)
     {
         __beaconXCreator.upgradeTo(newImplementation);
     }
@@ -132,7 +150,7 @@ contract P00lsCreatorRegistry is
      * ENS
      */
     function setName(address ensregistry, string calldata ensname)
-    external onlyOwner()
+    external onlyRole(DEFAULT_ADMIN_ROLE)
     {
         ENSReverseRegistration.setName(ensregistry, ensname);
     }
@@ -144,6 +162,13 @@ contract P00lsCreatorRegistry is
         internal
         virtual
         override
-        onlyOwner()
+        onlyRole(UPGRADER_ROLE)
     {}
+
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual override(AccessControlUpgradeable, ERC721Upgradeable) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
 }

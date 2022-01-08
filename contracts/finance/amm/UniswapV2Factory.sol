@@ -6,9 +6,9 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 import './UniswapV2Pair.sol';
 
 contract UniswapV2Factory is AccessControl {
-    address public immutable template = address(new UniswapV2Pair());
-    bytes32 public constant  PAIR_CREATOR_ROLE = keccak256("PAIR_CREATOR_ROLE");
+    bytes32 public constant PAIR_CREATOR_ROLE = keccak256("PAIR_CREATOR_ROLE");
 
+    address public immutable template = address(new UniswapV2Pair());
     address public feeTo;
 
     mapping(address => mapping(address => address)) public getPair;

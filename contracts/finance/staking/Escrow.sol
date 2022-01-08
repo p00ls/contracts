@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@amxx/hre/contracts/ENSReverseRegistration.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import "@openzeppelin/contracts/utils/Multicall.sol";
 import "@amxx/hre/contracts/FullMath.sol";
 import "../../tokens/interfaces.sol";
 
@@ -12,8 +14,10 @@ interface IEscrowReceiver {
     function onEscrowRelease(uint256) external;
 }
 
-contract Escrow is AccessControl {
+contract Escrow is AccessControl, Multicall {
     using SafeCast for uint256;
+
+    bytes32 public constant ESCROW_MANAGER_ROLE = keccak256("ESCROW_MANAGER_ROLE");
 
     /*****************************************************************************************************************
      *                                                    Storage                                                    *
@@ -36,11 +40,12 @@ contract Escrow is AccessControl {
      *****************************************************************************************************************/
     constructor(address _admin)
     {
-        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
+        _setupRole(DEFAULT_ADMIN_ROLE,  _admin);
+        _setupRole(ESCROW_MANAGER_ROLE, _admin);
     }
 
     function configure(IP00lsTokenCreator token, uint64 start, uint64 stop)
-    external onlyRole(DEFAULT_ADMIN_ROLE)
+    external onlyRole(ESCROW_MANAGER_ROLE)
     {
         require(start > 0, "Invalid input: start should be non 0");
         require(stop > start, "Invalid input: start must be before stop");
@@ -91,5 +96,11 @@ contract Escrow is AccessControl {
         }
 
         return balance;
+    }
+
+    function setName(address ensregistry, string calldata ensname)
+    external onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        ENSReverseRegistration.setName(ensregistry, ensname);
     }
 }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@amxx/hre/contracts/ENSReverseRegistration.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -20,10 +21,11 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     using Timers        for uint64;
     using Timers        for Timers.Timestamp;
 
-    uint64  public  constant DELAY             =      30 days;
-    uint64  public  constant MIN_DURATION      =  3 * 30 days;
-    uint64  public  constant MAX_DURATION      = 36 * 30 days;
-    uint256 private constant EXTRA_FACTOR_BASE = 1e18; // sqrt(1e36) = 1e18 → double for 1 extra
+    bytes32 public  constant LOCKING_MANAGER_ROLE = keccak256("LOCKING_MANAGER_ROLE");
+    uint64  public  constant DELAY                =      30 days;
+    uint64  public  constant MIN_DURATION         =  3 * 30 days;
+    uint64  public  constant MAX_DURATION         = 36 * 30 days;
+    uint256 private constant EXTRA_FACTOR_BASE    = 1e18; // sqrt(1e36) = 1e18 → double for 1 extra
 
     UniswapV2Router02 public immutable router;
     IERC20            public immutable pools;
@@ -92,7 +94,8 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
      *****************************************************************************************************************/
     constructor(address _admin, UniswapV2Router02 _router, IERC20 _pools)
     {
-        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
+        _setupRole(DEFAULT_ADMIN_ROLE,   _admin);
+        _setupRole(LOCKING_MANAGER_ROLE, _admin);
         router   = _router;
         pools    = _pools;
     }
@@ -127,7 +130,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     function lockSetup(IERC20 token)
     external
         onlyUnsetLock(token)
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyRole(LOCKING_MANAGER_ROLE)
     {
         Lock storage lock = _locks[token];
 
@@ -276,6 +279,12 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
             EXTRA_FACTOR_BASE,                // renormalization
             EXTRA_FACTOR_BASE + extrafactor   // extra factor
         );
+    }
+
+    function setName(address ensregistry, string calldata ensname)
+    external onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        ENSReverseRegistration.setName(ensregistry, ensname);
     }
 
     /*****************************************************************************************************************

@@ -46,7 +46,7 @@ describe('Vested airdrop', function () {
     expect(await this.vesting.enabled(this.hexroot)).to.be.false;
 
     await expect(this.vesting.connect(this.accounts.other).enableAirdrop(this.hexroot, true))
-    .to.be.revertedWith(`AccessControl: account ${this.accounts.other.address.toLowerCase()} is missing role ${ethers.constants.HashZero}`)
+    .to.be.revertedWith(`AccessControl: account ${this.accounts.other.address.toLowerCase()} is missing role ${this.roles.VESTING_MANAGER}`);
 
     expect(await this.vesting.enabled(this.hexroot)).to.be.false;
   });
