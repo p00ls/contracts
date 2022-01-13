@@ -33,7 +33,8 @@
     "@openzeppelin/contracts": "^4.7.0",
     "@openzeppelin/contracts-upgradeable": "^4.7.0",
     "@uniswap/v2-core": "^1.0.1",
-    "@uniswap/v2-periphery": "*"
+    "@uniswap/v2-periphery": "*",
+    "defender-relay-client": "^1.26.1"
   },
   "devDependencies": {
     "@openzeppelin/hardhat-upgrades": "^1.18.3",

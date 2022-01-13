@@ -1,3 +1,17 @@
+const {
+  DefenderRelaySigner,
+  DefenderRelayProvider,
+} = require("defender-relay-client/lib/ethers");
+
+const credentials = {
+  apiKey: "apiKey", // replace me
+  apiSecret: "apiSecret", // repalce me
+};
+const provider = new DefenderRelayProvider(credentials);
+const signer = new DefenderRelaySigner(credentials, provider, {
+  speed: "fast",
+});
+
 module.exports = {
   1: {
     weth:      "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
@@ -15,4 +29,6 @@ module.exports = {
     weth:      "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
     multicall: "0xcA11bde05977b3631167028862bE2a173976CA11",
   },
+  provider,
+  signer,
 };

@@ -59,6 +59,14 @@ module.exports = {
       chainId: argv.chainId,
       hardfork: argv.hardfork,
     },
+    rinkeby: {
+      chainId: 4,
+      hardfork: argv.hardfork,
+      url: 'infuraUrl', // repalce me
+      accounts: {
+        mnemonic: "test test test test test test test test test test test junk",
+      },
+    },
   },
   etherscan: {
     apiKey: argv.etherscan,
