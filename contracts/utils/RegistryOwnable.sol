@@ -25,15 +25,26 @@ abstract contract RegistryOwnable {
         _;
     }
 
-    constructor(address ownershipRegistry_) {
+    constructor(address ownershipRegistry_)
+    {
         ownershipRegistry = IERC721(ownershipRegistry_);
     }
 
-    function owner() public view virtual returns (address) {
+    function owner()
+        public
+        view
+        virtual
+        returns (address)
+    {
         return ownershipRegistry.ownerOf(addressToUint256(address(this)));
     }
 
-    function admin() public view virtual returns (address) {
+    function admin()
+        public
+        view
+        virtual
+        returns (address)
+    {
         return ownershipRegistry.ownerOf(addressToUint256(address(ownershipRegistry)));
     }
 
@@ -55,19 +66,36 @@ abstract contract RegistryOwnableUpgradeable is Initializable {
         _;
     }
 
-    function __RegistryOwnable_init(address ownershipRegistry_) public initializer {
+    function __RegistryOwnable_init(address ownershipRegistry_)
+        public
+        initializer
+    {
         ownershipRegistry = IERC721(ownershipRegistry_);
     }
 
-    function owner() public view virtual returns (address) {
+    function owner()
+        public
+        view
+        virtual
+        returns (address)
+    {
         return ownershipRegistry.ownerOf(addressToUint256(address(this)));
     }
 
-    function admin() public view virtual returns (address) {
+    function admin()
+        public
+        view
+        virtual
+        returns (address)
+    {
         return ownershipRegistry.ownerOf(addressToUint256(address(ownershipRegistry)));
     }
 
-    function transferOwnership(address newOwner) public virtual onlyOwner {
+    function transferOwnership(address newOwner)
+        public
+        virtual
+        onlyOwner
+    {
         ownershipRegistry.transferFrom(owner(), newOwner, uint256(uint160(address(this))));
     }
 }

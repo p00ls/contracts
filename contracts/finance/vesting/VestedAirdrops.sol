@@ -28,29 +28,43 @@ contract VestedAirdrops is AccessControl, Multicall {
     event Airdrop(bytes32 indexed airdrop, bool enabled);
     event TokensReleased(bytes32 indexed airdrop, bytes32 indexed leaf, IERC20 token, address recipient, uint256 amount);
 
-    constructor(address admin) {
+    constructor(address admin)
+    {
         _setupRole(DEFAULT_ADMIN_ROLE, admin);
         _setupRole(VESTING_MANAGER,    admin);
     }
 
-    function enableAirdrop(bytes32 root, bool enable) external onlyRole(VESTING_MANAGER) {
+    function enableAirdrop(bytes32 root, bool enable)
+        external
+        onlyRole(VESTING_MANAGER)
+    {
         _airdrops[root] = enable;
         emit Airdrop(root, enable);
     }
 
-    function enabled(bytes32 root) external view returns (bool) {
+    function enabled(bytes32 root)
+        public
+        view
+        returns (bool)
+    {
         return _airdrops[root];
     }
 
-    function released(bytes32 leaf) public view returns (uint256) {
+    function released(bytes32 leaf)
+        public
+        view
+        returns (uint256)
+    {
         return _released[leaf];
     }
 
-    function release(Schedule memory schedule, bytes32[] memory proof) public {
+    function release(Schedule memory schedule, bytes32[] memory proof)
+        public
+    {
         // check input validity
         bytes32 leaf = hashSchedule(schedule);
         bytes32 drop = MerkleProof.processProof(proof, leaf);
-        require(_airdrops[drop], "unknown airdrop");
+        require(enabled(drop), "unknown airdrop");
 
         // compute vesting remains
         uint256 vested     = vestedAmount(schedule, uint64(block.timestamp));
@@ -67,7 +81,11 @@ contract VestedAirdrops is AccessControl, Multicall {
         }
     }
 
-    function vestedAmount(Schedule memory schedule, uint64 timestamp) public pure returns (uint256) {
+    function vestedAmount(Schedule memory schedule, uint64 timestamp)
+        public
+        pure
+        returns (uint256)
+    {
         return timestamp < schedule.start + schedule.cliff
         ? 0
         : schedule.duration == 0
@@ -78,7 +96,11 @@ contract VestedAirdrops is AccessControl, Multicall {
         );
     }
 
-    function hashSchedule(Schedule memory schedule) public pure returns (bytes32) {
+    function hashSchedule(Schedule memory schedule)
+        public
+        pure
+        returns (bytes32)
+    {
         return keccak256(abi.encodePacked(
             schedule.index,
             schedule.start,
@@ -91,7 +113,8 @@ contract VestedAirdrops is AccessControl, Multicall {
     }
 
     function setName(address ensregistry, string calldata ensname)
-    external onlyRole(DEFAULT_ADMIN_ROLE)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
     {
         ENSReverseRegistration.setName(ensregistry, ensname);
     }

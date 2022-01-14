@@ -34,13 +34,14 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address escrow)
-    initializer
+        initializer
     {
         stakingEscrow = Escrow(escrow);
     }
 
     function initialize(string calldata name, string calldata symbol, address parent)
-    external initializer
+        external
+        initializer
     {
         __ERC20_init(name, symbol);
         __ERC20Permit_init(name);
@@ -50,7 +51,11 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
         conversion.push(1 ether);
     }
 
-    function owner() public view virtual override returns (address)
+    function owner()
+        public
+        view
+        override
+        returns (address)
     {
         return creatorToken.owner();
     }
@@ -58,7 +63,8 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
     /**
      * Deposit / withdraw
      */
-    function onEscrowRelease(uint256) public virtual
+    function onEscrowRelease(uint256)
+        public
     {
         uint256 value = sharesToValue(1 ether);
         if (value != conversion.latest())
@@ -68,19 +74,20 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
     }
 
     function deposit(uint256 value)
-    public virtual
+        public
     {
         depositFor(value, msg.sender);
     }
 
     function withdraw(uint256 shares)
-    public virtual
+        public
     {
         withdrawTo(shares, msg.sender);
     }
 
     function depositFor(uint256 value, address receiver)
-    public virtual accrue()
+        public
+        accrue()
     {
         uint256 shares = valueToShares(value);
 
@@ -91,7 +98,8 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
     }
 
     function withdrawTo(uint256 shares, address receiver)
-    public virtual accrue()
+        public
+        accrue()
     {
         uint256 value  = sharesToValue(shares);
 
@@ -102,7 +110,9 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
     }
 
     function valueToShares(uint256 value)
-    public view virtual returns (uint256)
+        public
+        view
+        returns (uint256)
     {
         uint256 supply  = totalSupply();
         uint256 balance = IERC20(creatorToken).balanceOf(address(this));
@@ -110,7 +120,9 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
     }
 
     function sharesToValue(uint256 shares)
-    public view virtual returns (uint256)
+        public
+        view
+        returns (uint256)
     {
         uint256 supply  = totalSupply();
         uint256 balance = IERC20(creatorToken).balanceOf(address(this));
@@ -118,7 +130,9 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
     }
 
     function pastSharesToValue(uint256 shares, uint256 blockNumber)
-    public view virtual returns (uint256)
+        public
+        view
+        returns (uint256)
     {
         return FullMath.mulDiv(conversion.past(blockNumber), 1 ether, shares);
     }
@@ -127,19 +141,22 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
      * Delegation
      */
     function __delegate(address delegator, address delegatee)
-    external virtual onlyParent()
+        external
+        onlyParent()
     {
         _delegate(delegator, delegatee);
     }
 
     function delegate(address)
-    public virtual override
+        public
+        override
     {
         revert("P00lsTokenXCreator: delegation is registered on the creatorToken");
     }
 
     function delegateBySig(address, uint256, uint256, uint8, bytes32, bytes32)
-    public virtual override
+        public
+        override
     {
         revert("P00lsTokenXCreator: delegation is registered on the creatorToken");
     }

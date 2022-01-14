@@ -26,17 +26,25 @@ contract AuctionFactory is AccessControl, Multicall {
         _openPayments = 1;
     }
 
-    constructor(address _admin, IUniswapV2Router02 _router) {
+    constructor(address _admin, IUniswapV2Router02 _router)
+    {
         _setupRole(DEFAULT_ADMIN_ROLE,   _admin);
         _setupRole(AUCTION_MANAGER_ROLE, _admin);
         router = _router;
     }
 
-    receive() external payable {
+    receive()
+        external
+        payable
+    {
         require(_openPayments == 2);
     }
 
-    function start(IERC20 token, uint64 timestamp, uint64 duration) external onlyRole(AUCTION_MANAGER_ROLE) returns (address) {
+    function start(IERC20 token, uint64 timestamp, uint64 duration)
+        external
+        onlyRole(AUCTION_MANAGER_ROLE)
+        returns (address)
+    {
         uint256 balance = token.balanceOf(address(this));
         require(balance > 0);
 
@@ -53,7 +61,11 @@ contract AuctionFactory is AccessControl, Multicall {
         return instance;
     }
 
-    function finalize(IERC20 token) external onlyRole(AUCTION_MANAGER_ROLE) withPayments() {
+    function finalize(IERC20 token)
+        external
+        onlyRole(AUCTION_MANAGER_ROLE)
+        withPayments()
+    {
         address instance = getAuctionInstance(token);
         Auction(payable(instance)).finalize(payable(this));
 
@@ -79,14 +91,19 @@ contract AuctionFactory is AccessControl, Multicall {
         );
     }
 
-    function getAuctionInstance(IERC20 token) public view returns (address) {
+    function getAuctionInstance(IERC20 token)
+        public
+        view
+        returns (address)
+    {
         address instance = Clones.predictDeterministicAddress(template, bytes32(bytes20(address(token))));
         require(Address.isContract(instance), "No auction for this token");
         return instance;
     }
 
     function setName(address ensregistry, string calldata ensname)
-    external onlyRole(DEFAULT_ADMIN_ROLE)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
     {
         ENSReverseRegistration.setName(ensregistry, ensname);
     }

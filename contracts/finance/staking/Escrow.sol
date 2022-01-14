@@ -45,7 +45,8 @@ contract Escrow is AccessControl, Multicall {
     }
 
     function configure(IP00lsTokenCreator token, uint64 start, uint64 stop)
-    external onlyRole(ESCROW_MANAGER_ROLE)
+        external
+        onlyRole(ESCROW_MANAGER_ROLE)
     {
         require(start > 0, "Invalid input: start should be non 0");
         require(stop > start, "Invalid input: start must be before stop");
@@ -63,7 +64,8 @@ contract Escrow is AccessControl, Multicall {
     }
 
     function release(IERC20 token)
-    external returns (uint256)
+        external
+        returns (uint256)
     {
         Details memory manifest = manifests[token];
 
@@ -99,7 +101,8 @@ contract Escrow is AccessControl, Multicall {
     }
 
     function setName(address ensregistry, string calldata ensname)
-    external onlyRole(DEFAULT_ADMIN_ROLE)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
     {
         ENSReverseRegistration.setName(ensregistry, ensname);
     }
