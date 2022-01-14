@@ -1,10 +1,8 @@
-const {
-    MigrationManager,
-    getFactory,
-    attach,
-} = require('@amxx/hre/scripts');
-
+const { upgrades                             } = require('hardhat');
+const { MigrationManager, getFactory, attach } = require('@amxx/hre/scripts');
 const DEBUG = require('debug')('p00ls');
+
+upgrades.silenceWarnings();
 
 async function migrate(config = {}, env = {}) {
 
@@ -92,7 +90,7 @@ async function migrate(config = {}, env = {}) {
             config.contracts.registry.name,
             config.contracts.registry.symbol,
         ],
-        { ...opts, kind: 'uups' },
+        { ...opts, kind: 'uups', unsafeAllow: 'delegatecall' },
     );
 
     const tokenCreator = isEnabled('registry') && registry && await manager.migrate(
@@ -137,7 +135,7 @@ async function migrate(config = {}, env = {}) {
 
     const auction = isEnabled('auction') && router && await manager.migrate(
         'auction',
-        getFactory('AuctionManager', { signer }),
+        getFactory('AuctionFactory', { signer }),
         [
             signer.address,
             router.address,
@@ -163,8 +161,14 @@ async function migrate(config = {}, env = {}) {
      *                                                       AMM                                                       *
      *******************************************************************************************************************/
     const roles = await Promise.all(Object.entries({
-        DEFAULT_ADMIN: ethers.constants.HashZero,
-        PAIR_CREATOR:  ethers.utils.id('PAIR_CREATOR_ROLE'),
+        DEFAULT_ADMIN:    ethers.constants.HashZero,
+        PAIR_CREATOR:     ethers.utils.id('PAIR_CREATOR_ROLE'),
+        VESTING_MANAGER:  ethers.utils.id('VESTING_MANAGER_ROLE'),
+        AUCTION_MANAGER:  ethers.utils.id('AUCTION_MANAGER_ROLE'),
+        ESCROW_MANAGER:   ethers.utils.id('ESCROW_MANAGER_ROLE'),
+        LOCKING_MANAGER:  ethers.utils.id('LOCKING_MANAGER_ROLE'),
+        REGISTRY_MANAGER: ethers.utils.id('REGISTRY_MANAGER_ROLE'),
+        UPGRADER:         ethers.utils.id('UPGRADER_ROLE'),
     }).map(entry => Promise.all(entry))).then(Object.fromEntries);
 
     await Promise.all([].concat(

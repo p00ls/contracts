@@ -3,17 +3,22 @@ require('dotenv/config');
 const argv = require('yargs/yargs')(process.argv.slice(2))
   .env('')
   .options({
-    coverage:      { type: 'boolean',                                          default: false        },
-    report:        { type: 'boolean',                                          default: false        },
-    slow:          { type: 'boolean',                                          default: false        },
-    compiler:      { type: 'string',                                           default: '0.8.10'     },
-    chainId:       { type: 'number',                                           default: 1337         },
-    hardfork:      { type: 'string',                                           default: 'london'     },
-    mode:          { type: 'string', choices: [ 'production', 'development' ], default: 'production' },
-    runs:          { type: 'number',                                           default: 200          },
-    fork:          { type: 'string',                                                                 },
-    coinmarketcap: { type: 'string'                                                                  },
-    etherscan:     { type: 'string'                                                                  },
+    // modules
+    coverage:      { type: 'boolean',                                          default: false          },
+    report:        { type: 'boolean',                                          default: false          },
+    // compilations
+    compiler:      { type: 'string',                                           default: '0.8.11'       },
+    hardfork:      { type: 'string',                                           default: 'arrowGlacier' },
+    mode:          { type: 'string', choices: [ 'production', 'development' ], default: 'production'   },
+    runs:          { type: 'number',                                           default: 200            },
+    revertStrings: { type: 'string', choices: [ 'default', 'strip'          ], default: 'default'      },
+    // chain
+    fork:          { type: 'string',                                                                   },
+    chainId:       { type: 'number',                                           default: 1337           },
+    slow:          { type: 'boolean',                                          default: false          },
+    // APIs
+    coinmarketcap: { type: 'string'                                                                    },
+    etherscan:     { type: 'string'                                                                    },
   })
   .argv;
 
@@ -30,13 +35,16 @@ const settings = {
     enabled: argv.mode === 'production' || argv.report,
     runs: argv.runs,
   },
+  debug: {
+    revertStrings: argv.revertStrings,
+  },
 };
 
 module.exports = {
   solidity: {
     compilers: [
       { version: argv.compiler, settings },
-      { version: '0.8.10',      settings },
+      { version: '0.8.11',      settings },
       { version: '0.7.6',       settings },
       { version: '0.6.12',      settings },
       { version: '0.5.16',      settings },

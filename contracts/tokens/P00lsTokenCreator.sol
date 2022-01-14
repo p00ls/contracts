@@ -18,12 +18,13 @@ contract P00lsTokenCreator is P00lsTokenBase, RegistryOwnable
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address registry)
-    RegistryOwnable(registry)
-    initializer
+        RegistryOwnable(registry)
+        initializer
     {}
 
     function initialize(string calldata name, string calldata symbol, bytes32 root, address child)
-    external initializer
+        external
+        initializer
     {
         __ERC20_init(name, symbol);
         __ERC20Permit_init(name);
@@ -32,13 +33,15 @@ contract P00lsTokenCreator is P00lsTokenBase, RegistryOwnable
     }
 
     function isClaimed(uint256 index)
-    external view returns (bool)
+        external
+        view
+        returns (bool)
     {
         return __claimedBitMap.get(index);
     }
 
     function claim(uint256 index, address account, uint256 amount, bytes32[] calldata merkleProof)
-    external
+        external
     {
         require(!__claimedBitMap.get(index), "P00lsTokenCreator::claim: drop already claimed");
 
@@ -49,7 +52,10 @@ contract P00lsTokenCreator is P00lsTokenBase, RegistryOwnable
     }
 
     function owner()
-    public view virtual override(P00lsTokenBase, RegistryOwnable) returns (address)
+        public
+        view
+        override(P00lsTokenBase, RegistryOwnable)
+        returns (address)
     {
         return super.owner();
     }
@@ -58,7 +64,8 @@ contract P00lsTokenCreator is P00lsTokenBase, RegistryOwnable
      * xCreatorToken bindings
      */
     function _delegate(address delegator, address delegatee)
-    internal virtual override
+        internal
+        override
     {
         super._delegate(delegator, delegatee);
         xCreatorToken.__delegate(delegator, delegatee);
@@ -68,7 +75,11 @@ contract P00lsTokenCreator is P00lsTokenBase, RegistryOwnable
         address sender,
         address recipient,
         uint256 amount
-    ) public virtual override returns (bool) {
+    )
+        public
+        override
+        returns (bool)
+    {
         if (_msgSender() == address(xCreatorToken)) {
             _transfer(sender, recipient, amount);
             return true;

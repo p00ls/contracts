@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@amxx/hre/contracts/ENSReverseRegistration.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -20,10 +21,11 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     using Timers        for uint64;
     using Timers        for Timers.Timestamp;
 
-    uint64  public  constant DELAY             =      30 days;
-    uint64  public  constant MIN_DURATION      =  3 * 30 days;
-    uint64  public  constant MAX_DURATION      = 36 * 30 days;
-    uint256 private constant EXTRA_FACTOR_BASE = 1e18; // sqrt(1e36) = 1e18 → double for 1 extra
+    bytes32 public  constant LOCKING_MANAGER_ROLE = keccak256("LOCKING_MANAGER_ROLE");
+    uint64  public  constant DELAY                =      30 days;
+    uint64  public  constant MIN_DURATION         =  3 * 30 days;
+    uint64  public  constant MAX_DURATION         = 36 * 30 days;
+    uint256 private constant EXTRA_FACTOR_BASE    = 1e18; // sqrt(1e36) = 1e18 → double for 1 extra
 
     UniswapV2Router02 public immutable router;
     IERC20            public immutable pools;
@@ -92,13 +94,16 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
      *****************************************************************************************************************/
     constructor(address _admin, UniswapV2Router02 _router, IERC20 _pools)
     {
-        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
+        _setupRole(DEFAULT_ADMIN_ROLE,   _admin);
+        _setupRole(LOCKING_MANAGER_ROLE, _admin);
         router   = _router;
         pools    = _pools;
     }
 
     function lockDetails(IERC20 token)
-    external view returns (uint64 start, uint256 rate, uint256 reward, uint256 totalWeight)
+        external
+        view
+        returns (uint64 start, uint256 rate, uint256 reward, uint256 totalWeight)
     {
         Lock storage lock = _locks[token];
         return (
@@ -111,7 +116,9 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     }
 
     function vaultDetails(IERC20 token, address account)
-    external view returns (uint64 maturity, uint256 value, uint256 extra, uint256 weight)
+        external
+        view
+        returns (uint64 maturity, uint256 value, uint256 extra, uint256 weight)
     {
         Lock  storage lock  = _locks[token];
         Vault storage vault = lock.vaults[account];
@@ -125,9 +132,9 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     }
 
     function lockSetup(IERC20 token)
-    external
+        external
         onlyUnsetLock(token)
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyRole(LOCKING_MANAGER_ROLE)
     {
         Lock storage lock = _locks[token];
 
@@ -140,7 +147,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     }
 
     function vaultSetup(IERC20 token, uint64 duration)
-    external
+        external
         onlyActiveLock(token)
         onlyUnsetVault(token, msg.sender)
     {
@@ -159,7 +166,9 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     }
 
     function onTransferReceived(address, address from, uint256 value, bytes calldata data)
-    external override returns (bytes4)
+        external
+        override
+        returns (bytes4)
     {
         (IERC20 token, address to) = abi.decode(data, (IERC20, address));
 
@@ -175,7 +184,9 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     }
 
     function onApprovalReceived(address from, uint256 value, bytes memory data)
-    external override returns (bytes4)
+        external
+        override
+        returns (bytes4)
     {
         (IERC20 token, address to) = abi.decode(data, (IERC20, address));
 
@@ -191,31 +202,31 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     }
 
     function deposit(IERC20 token, uint256 amount, uint256 extra)
-    external
+        external
     {
         _deposit(token, msg.sender, amount, extra, msg.sender, false);
     }
 
     function depositFor(IERC20 token, uint256 amount, uint256 extra, address to)
-    external
+        external
     {
         _deposit(token, msg.sender, amount, extra, to, false);
     }
 
     function withdraw(IERC20 token)
-    external
+        external
     {
         _withdraw(token, msg.sender, msg.sender);
     }
 
     function withdrawTo(IERC20 token, address to)
-    external
+        external
     {
         _withdraw(token, msg.sender, to);
     }
 
     function _deposit(IERC20 token, address from, uint256 amount, uint256 extra, address to, bool erc1363received)
-    internal
+        internal
         onlyActiveLock(token)
         onlyActiveVault(token, to)
     {
@@ -245,7 +256,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     }
 
     function _withdraw(IERC20 token, address from, address to)
-    internal
+        internal
         onlyExpiredVault(token, from)
     {
         Lock  storage lock  = _locks[token];
@@ -261,7 +272,9 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     }
 
     function estimateWeight(IERC20 token, uint256 duration, uint256 value, uint256 extra)
-    public view returns (uint256)
+        public
+        view
+        returns (uint256)
     {
         uint256 rate        = _locks[token].rate;
         uint256 factor      = duration * Math.sqrt(duration);
@@ -278,11 +291,20 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
         );
     }
 
+    function setName(address ensregistry, string calldata ensname)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        ENSReverseRegistration.setName(ensregistry, ensname);
+    }
+
     /*****************************************************************************************************************
      *                                                Internal tools                                                 *
      *****************************************************************************************************************/
     function _tokenToPools(IERC20 token)
-    internal view returns (address[] memory path)
+        internal
+        view
+        returns (address[] memory path)
     {
         path = new address[](3);
         path[0] = address(token);
@@ -291,7 +313,9 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     }
 
     function _poolsToToken(IERC20 token)
-    internal view returns (address[] memory path)
+        internal
+        view
+        returns (address[] memory path)
     {
         path = new address[](3);
         path[0] = address(pools);

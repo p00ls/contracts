@@ -7,11 +7,17 @@ import "@openzeppelin/contracts/proxy/Proxy.sol";
 contract BeaconProxy is Proxy {
     IBeacon private immutable _beacon;
 
-    constructor(IBeacon beacon) {
+    constructor(IBeacon beacon)
+    {
         _beacon = beacon;
     }
 
-    function _implementation() internal view virtual override returns (address) {
+    function _implementation()
+        internal
+        view
+        override
+        returns (address)
+    {
         return IBeacon(_beacon).implementation();
     }
 }

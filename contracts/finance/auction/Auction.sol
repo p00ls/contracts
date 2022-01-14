@@ -21,11 +21,16 @@ contract Auction is ERC20PermitUpgradeable, OwnableUpgradeable, Multicall {
     Timers.Timestamp public deadline;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() initializer {
+    constructor()
+        initializer
+    {
         auctionManager = msg.sender;
     }
 
-    function initialize(IERC20 _token, uint64 _start, uint64 _deadline) external initializer {
+    function initialize(IERC20 _token, uint64 _start, uint64 _deadline)
+        external
+        initializer
+    {
         __Ownable_init();
         __ERC20_init("P00ls Auction Token", "P00ls-Auction");
         __ERC20Permit_init("P00ls Auction Token");
@@ -37,23 +42,33 @@ contract Auction is ERC20PermitUpgradeable, OwnableUpgradeable, Multicall {
         deadline.setDeadline(_deadline);
     }
 
-    receive() external payable {
+    receive()
+        external
+        payable
+    {
         commit(msg.sender);
     }
 
-    function commit(address to) public payable {
+    function commit(address to)
+        public
+        payable
+    {
         require(start.isExpired() && deadline.isPending(), "Auction: auction not active");
         _mint(to, msg.value);
     }
 
-    function leave(address payable to) public {
+    function leave(address payable to)
+        public
+    {
         require(start.isExpired() && deadline.isPending(), "Auction: auction not active");
         uint256 value = balanceOf(msg.sender);
         _burn(msg.sender, value);
         Address.sendValue(to, FullMath.mulDiv(80, 100, value)); // 20% penalty
     }
 
-    function withdraw(address to) public {
+    function withdraw(address to)
+        public
+    {
         require(deadline.isExpired(), "Auction: auction not finished");
         uint256 value = balanceOf(msg.sender);
         uint256 amount = ethToAuctionned(value); // must be computed BEFORE the _burn operation
@@ -61,16 +76,27 @@ contract Auction is ERC20PermitUpgradeable, OwnableUpgradeable, Multicall {
         SafeERC20.safeTransfer(token, to, amount);
     }
 
-    function finalize(address payable to) public onlyOwner() {
+    function finalize(address payable to)
+        public
+        onlyOwner()
+    {
         require(deadline.isExpired(), "Auction: auction not finished");
         Address.sendValue(to, address(this).balance);
     }
 
-    function ethToAuctionned(uint256 amount) public view returns (uint256) {
+    function ethToAuctionned(uint256 amount)
+       public
+       view
+       returns (uint256)
+    {
         return FullMath.mulDiv(amount, totalSupply(), token.balanceOf(address(this)));
     }
 
-    function auctionnedToEth(uint256 amount) public view returns (uint256) {
+    function auctionnedToEth(uint256 amount)
+        public
+        view
+        returns (uint256)
+    {
         return FullMath.mulDiv(amount, token.balanceOf(address(this)), totalSupply());
     }
 }

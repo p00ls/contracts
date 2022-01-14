@@ -83,7 +83,7 @@ describe('Locking', function () {
 
     it('unauthorized cannot setup lock', async function () {
       await expect(this.locking.connect(this.accounts.other).lockSetup(this.creatorToken.address))
-      .to.be.revertedWith(`AccessControl: account ${this.accounts.other.address.toLowerCase()} is missing role ${ethers.constants.HashZero}`);
+      .to.be.revertedWith(`AccessControl: account ${this.accounts.other.address.toLowerCase()} is missing role ${this.roles.LOCKING_MANAGER}`);
     });
 
     it('admin can setup lock', async function () {

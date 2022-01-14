@@ -90,6 +90,53 @@ describe('$Crea Token', function () {
       });
     });
 
+    describe('Metadata', function () {
+      describe('registry', function () {
+        it('Authorized', async function () {
+          await expect(this.registry.connect(this.accounts.admin).setBaseURI('http://some-base-uri/'))
+            .to.be.not.reverted;
+
+          expect(await this.registry.tokenURI(this.creatorToken.address))
+            .to.be.equal(`http://some-base-uri/${ethers.BigNumber.from(this.creatorToken.address).toString()}`);
+        });
+
+        it('Protected', async function () {
+          await expect(this.registry.connect(this.accounts.artist).setBaseURI('http://not-a-valid-uri/'))
+            .to.be.reverted;
+        });
+      });
+
+      describe('creatorToken', function () {
+        it('Authorized', async function () {
+          await expect(this.creatorToken.connect(this.accounts.artist).setTokenURI('http://some-uri/'))
+            .to.be.not.reverted;
+
+          expect(await this.creatorToken.tokenURI())
+            .to.be.equal('http://some-uri/');
+        });
+
+        it('Protected', async function () {
+          await expect(this.creatorToken.connect(this.accounts.admin).setTokenURI('http://not-a-valid-uri/'))
+            .to.be.reverted;
+        });
+      });
+
+      describe('xCreatorToken', function () {
+        it('Authorized', async function () {
+          await expect(this.xCreatorToken.connect(this.accounts.artist).setTokenURI('http://some-uri/'))
+            .to.be.not.reverted;
+
+          expect(await this.xCreatorToken.tokenURI())
+            .to.be.equal('http://some-uri/');
+        });
+
+        it('Protected', async function () {
+          await expect(this.xCreatorToken.connect(this.accounts.admin).setTokenURI('http://not-a-valid-uri/'))
+            .to.be.reverted;
+        });
+      });
+    });
+
     describe('Transfer ownership', function () {
       describe('Creator registry', function () {
         it('Protected', async function () {

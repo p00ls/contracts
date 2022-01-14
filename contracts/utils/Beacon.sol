@@ -10,16 +10,26 @@ contract Beacon is IBeacon, Ownable {
 
     event Upgraded(address indexed implementation);
 
-    function implementation() public view virtual override returns (address) {
+    function implementation()
+        public
+        view
+        override
+        returns (address)
+    {
         return _implementation;
     }
 
-    function upgradeTo(address newImplementation) public virtual onlyOwner {
+    function upgradeTo(address newImplementation)
+        public
+        onlyOwner
+    {
         _setImplementation(newImplementation);
         emit Upgraded(newImplementation);
     }
 
-    function _setImplementation(address newImplementation) private {
+    function _setImplementation(address newImplementation)
+        private
+    {
         require(Address.isContract(newImplementation), "UpgradeableBeacon: implementation is not a contract");
         _implementation = newImplementation;
     }

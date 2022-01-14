@@ -1,26 +1,34 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
+import "@amxx/hre/contracts/ENSReverseRegistration.sol";
+import "@openzeppelin/contracts/utils/Multicall.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "../utils/Beacon.sol";
 import "../utils/BeaconProxy.sol";
-import "../utils/RegistryOwnableUpgradeable.sol";
+import "../utils/RegistryOwnable.sol";
 import "./P00lsTokenCreator.sol";
 import "./P00lsTokenXCreator.sol";
 
 contract P00lsCreatorRegistry is
-    ERC721URIStorageUpgradeable,
+    AccessControlUpgradeable,
+    ERC721Upgradeable,
     RegistryOwnableUpgradeable,
-    UUPSUpgradeable
+    UUPSUpgradeable,
+    Multicall
 {
+    bytes32 public constant REGISTRY_MANAGER_ROLE = keccak256("REGISTRY_MANAGER_ROLE");
+    bytes32 public constant UPGRADER_ROLE         = keccak256("UPGRADER_ROLE");
+
     Beacon private __beaconCreator;
     Beacon private __beaconXCreator;
     string private __baseURI;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor()
-    initializer
+        initializer
     {}
 
     function initialize(
@@ -28,11 +36,16 @@ contract P00lsCreatorRegistry is
         string memory _name,
         string memory _symbol
     )
-    external initializer
+        external
+        initializer
     {
+        __AccessControl_init();
         __ERC721_init(_name, _symbol);
         __RegistryOwnable_init(address(this));
-        _mint(_admin, uint256(uint160(address(this))));
+
+        _mint(_admin, addressToUint256(address(this)));
+        _setupRole(REGISTRY_MANAGER_ROLE, _admin);
+        _setupRole(UPGRADER_ROLE,         _admin);
 
         __beaconCreator  = new Beacon();
         __beaconXCreator = new Beacon();
@@ -49,7 +62,9 @@ contract P00lsCreatorRegistry is
         string calldata xsymbol,
         bytes32 root
     )
-    external virtual onlyOwner() returns (address)
+        external
+        onlyRole(REGISTRY_MANAGER_ROLE)
+        returns (address)
     {
         address creator  = address(new BeaconProxy(__beaconCreator));
         address xCreator = address(new BeaconProxy(__beaconXCreator));
@@ -74,29 +89,41 @@ contract P00lsCreatorRegistry is
      * Support transferOwnership by the tokenized contracts
      */
     function _isApprovedOrOwner(address spender, uint256 tokenId)
-    internal view virtual override returns (bool)
+        internal
+        view
+        override
+        returns (bool)
     {
-        return uint256(uint160(spender)) == tokenId || super._isApprovedOrOwner(spender, tokenId);
+        return addressToUint256(spender) == tokenId || super._isApprovedOrOwner(spender, tokenId);
+    }
+
+    /**
+     *Default admin is overriden to use the NFT mechanism
+     */
+    function hasRole(bytes32 role, address account)
+        public
+        view
+        override
+        returns (bool)
+    {
+        return role == DEFAULT_ADMIN_ROLE && owner() == account || super.hasRole(role, account);
     }
 
     /**
      * Token URI customization
      */
-    function setTokenURI(uint256 tokenId, string memory _tokenURI)
-    external
-    {
-        require(msg.sender == ownerOf(tokenId), "ERC721: Only owner can set URI");
-        _setTokenURI(tokenId, _tokenURI);
-    }
-
     function setBaseURI(string memory baseURI)
-    external virtual onlyOwner()
+        external
+        onlyRole(REGISTRY_MANAGER_ROLE)
     {
         __baseURI = baseURI;
     }
 
     function _baseURI()
-    internal view virtual override returns (string memory)
+        internal
+        view
+        override
+        returns (string memory)
     {
         return __baseURI;
     }
@@ -105,25 +132,31 @@ contract P00lsCreatorRegistry is
      * Beacon
      */
     function beaconCreator()
-    external view returns (address)
+        external
+        view
+        returns (address)
     {
         return address(__beaconCreator);
     }
 
     function beaconXCreator()
-    external view returns (address)
+        external
+        view
+        returns (address)
     {
         return address(__beaconXCreator);
     }
 
     function upgradeCreatorToken(address newImplementation)
-    external onlyOwner()
+        external
+        onlyRole(UPGRADER_ROLE)
     {
         __beaconCreator.upgradeTo(newImplementation);
     }
 
     function upgradeXCreatorToken(address newImplementation)
-    external onlyOwner()
+        external
+        onlyRole(UPGRADER_ROLE)
     {
         __beaconXCreator.upgradeTo(newImplementation);
     }
@@ -132,7 +165,8 @@ contract P00lsCreatorRegistry is
      * ENS
      */
     function setName(address ensregistry, string calldata ensname)
-    external onlyOwner()
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
     {
         ENSReverseRegistration.setName(ensregistry, ensname);
     }
@@ -142,8 +176,19 @@ contract P00lsCreatorRegistry is
      */
     function _authorizeUpgrade(address newImplementation)
         internal
-        virtual
         override
-        onlyOwner()
+        onlyRole(UPGRADER_ROLE)
     {}
+
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(AccessControlUpgradeable, ERC721Upgradeable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
 }
