@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@amxx/hre/contracts/FullMath.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Multicall.sol";
@@ -27,13 +28,16 @@ contract Auction is ERC20PermitUpgradeable, OwnableUpgradeable, Multicall {
         auctionManager = msg.sender;
     }
 
-    function initialize(IERC20 _token, uint64 _start, uint64 _deadline)
+    function initialize(IERC20Metadata _token, uint64 _start, uint64 _deadline)
         external
         initializer
     {
+        string memory _name   = string(abi.encodePacked("P00ls Auction Token - ", _token.name()));
+        string memory _symbol = string(abi.encodePacked("P00lsAuction-",         _token.symbol()));
+
         __Ownable_init();
-        __ERC20_init("P00ls Auction Token", "P00ls-Auction");
-        __ERC20Permit_init("P00ls Auction Token");
+        __ERC20_init(_name, _symbol);
+        __ERC20Permit_init(_name);
 
         token    = _token;
         // start    = _start.toTimestamp();

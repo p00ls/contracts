@@ -61,6 +61,16 @@ describe('Auction', function () {
       .to.emit(this.creatorToken, 'Transfer').withArgs(this.auction.address, this.auction_instance.address, VALUE.div(2));
     });
 
+    it.only('get instance', async function () {
+      expect(await this.auction.getAuctionInstance(this.creatorToken.address))
+      .to.be.equal(this.auction_instance.address);
+
+      expect(await this.auction_instance.name())
+      .to.be.equal(`P00ls Auction Token - ${await this.creatorToken.name()}`);
+      expect(await this.auction_instance.symbol())
+      .to.be.equal(`P00lsAuction-${await this.creatorToken.symbol()}`);
+    });
+
     it('check balances', async function () {
       expect(await this.creatorToken.balanceOf(this.auction.address)).to.be.equal(VALUE.div(2));
       expect(await this.creatorToken.balanceOf(this.auction_instance.address)).to.be.equal(VALUE.div(2));

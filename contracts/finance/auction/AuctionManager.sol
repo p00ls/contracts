@@ -40,7 +40,7 @@ contract AuctionFactory is AccessControl, Multicall {
         require(_openPayments == 2);
     }
 
-    function start(IERC20 token, uint64 timestamp, uint64 duration)
+    function start(IERC20Metadata token, uint64 timestamp, uint64 duration)
         external
         onlyRole(AUCTION_MANAGER_ROLE)
         returns (address)
@@ -61,7 +61,7 @@ contract AuctionFactory is AccessControl, Multicall {
         return instance;
     }
 
-    function finalize(IERC20 token)
+    function finalize(IERC20Metadata token)
         external
         onlyRole(AUCTION_MANAGER_ROLE)
         withPayments()
@@ -91,7 +91,7 @@ contract AuctionFactory is AccessControl, Multicall {
         );
     }
 
-    function getAuctionInstance(IERC20 token)
+    function getAuctionInstance(IERC20Metadata token)
         public
         view
         returns (address)
