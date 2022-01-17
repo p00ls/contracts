@@ -61,7 +61,7 @@ describe('Auction', function () {
       .to.emit(this.creatorToken, 'Transfer').withArgs(this.auction.address, this.auction_instance.address, VALUE.div(2));
     });
 
-    it.only('get instance', async function () {
+    it('get instance', async function () {
       expect(await this.auction.getAuctionInstance(this.creatorToken.address))
       .to.be.equal(this.auction_instance.address);
 
