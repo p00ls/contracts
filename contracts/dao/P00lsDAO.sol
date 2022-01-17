@@ -21,10 +21,13 @@ contract P00lsDAO is
     uint256            private _quorum;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() initializer {}
+    constructor()
+        initializer()
+    {}
 
     function initialize(IP00lsTokenCreator __token, TimelockControllerUpgradeable __timelock)
-        public initializer()
+        external
+        initializer()
     {
         __Governor_init("p00lsDAO");
         __GovernorSettings_init(1, 40320, 0); // initialVotingDelay = 1 block, initialVotingPeriod = ~1 week, initialProposalThreshold = 0
@@ -35,7 +38,12 @@ contract P00lsDAO is
         _quorum = 1;
     }
 
-    function getVotes(address account, uint256 blockNumber) public view virtual override returns (uint256) {
+    function getVotes(address account, uint256 blockNumber)
+        public
+        view
+        override
+        returns (uint256)
+    {
         IP00lsTokenCreator  _token  = token;
         IP00lsTokenXCreator _xtoken = _token.xCreatorToken();
         uint256             votes   = _token.getPastVotes(account, blockNumber);

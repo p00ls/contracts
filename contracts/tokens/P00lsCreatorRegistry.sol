@@ -29,7 +29,7 @@ contract P00lsCreatorRegistry is
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor()
-        initializer
+        initializer()
     {}
 
     function initialize(
@@ -38,7 +38,7 @@ contract P00lsCreatorRegistry is
         string memory _symbol
     )
         external
-        initializer
+        initializer()
     {
         __AccessControl_init();
         __ERC721_init(_name, _symbol);

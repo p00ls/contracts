@@ -19,12 +19,12 @@ contract P00lsTokenCreator is P00lsTokenBase, RegistryOwnable
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address registry)
         RegistryOwnable(registry)
-        initializer
+        initializer()
     {}
 
     function initialize(string calldata name, string calldata symbol, bytes32 root, address child)
         external
-        initializer
+        initializer()
     {
         __ERC20_init(name, symbol);
         __ERC20Permit_init(name);

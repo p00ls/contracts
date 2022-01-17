@@ -34,14 +34,14 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address escrow)
-        initializer
+        initializer()
     {
         stakingEscrow = Escrow(escrow);
     }
 
     function initialize(string calldata name, string calldata symbol, address parent)
         external
-        initializer
+        initializer()
     {
         __ERC20_init(name, symbol);
         __ERC20Permit_init(name);

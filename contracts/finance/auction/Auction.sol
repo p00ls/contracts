@@ -23,14 +23,14 @@ contract Auction is ERC20PermitUpgradeable, OwnableUpgradeable, Multicall {
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor()
-        initializer
+        initializer()
     {
         auctionManager = msg.sender;
     }
 
     function initialize(IERC20Metadata _token, uint64 _start, uint64 _deadline)
         external
-        initializer
+        initializer()
     {
         string memory _name   = string(abi.encodePacked("P00ls Auction Token - ", _token.name()));
         string memory _symbol = string(abi.encodePacked("P00lsAuction-",         _token.symbol()));
