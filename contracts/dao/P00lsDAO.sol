@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "../tokens/P00lsTokenCreator.sol";
 import "../tokens/P00lsTokenXCreator.sol";
 
+/// @custom:security-contact security@p00ls.com
 contract P00lsDAO is
     Initializable,
     GovernorSettingsUpgradeable,

@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.8;
 
-/**
- * @dev Tooling for timepoints, timers and delays
- */
+/// @custom:security-contact security@p00ls.com
 library Timers {
     type Timestamp is uint64;
     type BlockNumber is uint64;

@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
+/// @custom:security-contact security@p00ls.com
 contract Beacon is IBeacon, Ownable {
     address private _implementation;
 

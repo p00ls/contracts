@@ -8,7 +8,7 @@ import "../finance/staking/Escrow.sol";
 import "./P00lsTokenBase.sol";
 import "./interfaces.sol";
 
-// TODO: use onlyOwner to perform admin operations
+/// @custom:security-contact security@p00ls.com
 contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
 {
     using Checkpoints for Checkpoints.History;

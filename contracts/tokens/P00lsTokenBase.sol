@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import "./extensions/ERC1046Upgradeable.sol";
 import "./extensions/ERC1363Upgradeable.sol";
 
+/// @custom:security-contact security@p00ls.com
 abstract contract P00lsTokenBase is
     ERC20VotesUpgradeable,
     ERC1046Upgradeable,

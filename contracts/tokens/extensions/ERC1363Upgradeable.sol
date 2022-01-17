@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "./IERC1363.sol";
 
+/// @custom:security-contact security@p00ls.com
 abstract contract ERC1363Upgradeable is IERC1363, ERC20Upgradeable {
     function transferAndCall(address to, uint256 value) public override returns (bool) {
         return transferAndCall(to, value, bytes(""));

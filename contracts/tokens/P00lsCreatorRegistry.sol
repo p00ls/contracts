@@ -12,6 +12,7 @@ import "../utils/RegistryOwnable.sol";
 import "./P00lsTokenCreator.sol";
 import "./P00lsTokenXCreator.sol";
 
+/// @custom:security-contact security@p00ls.com
 contract P00lsCreatorRegistry is
     AccessControlUpgradeable,
     ERC721Upgradeable,

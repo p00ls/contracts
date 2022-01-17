@@ -3,21 +3,11 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/interfaces/IERC20.sol";
 import "@openzeppelin/contracts/interfaces/draft-IERC2612.sol";
-// import "@openzeppelin/contracts/governance/utils/IVotes.sol";
+import "@openzeppelin/contracts/governance/utils/IVotes.sol";
 import "./extensions/IERC1046.sol";
 import "./extensions/IERC1363.sol";
 
-interface IVotes {
-    event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);
-    event DelegateVotesChanged(address indexed delegate, uint256 previousBalance, uint256 newBalance);
-    function getVotes(address account) external view returns (uint256);
-    function getPastVotes(address account, uint256 blockNumber) external view returns (uint256);
-    function getPastTotalSupply(uint256 blockNumber) external view returns (uint256);
-    function delegates(address account) external view returns (address);
-    function delegate(address delegatee) external;
-    function delegateBySig(address delegatee, uint256 nonce, uint256 expiry, uint8 v, bytes32 r, bytes32 s) external;
-}
-
+/// @custom:security-contact security@p00ls.com
 interface IP00lsTokenBase is IERC20, IERC1046, IERC1363, IERC2612, IVotes
 {
     function owner() external view returns (address);
@@ -25,6 +15,7 @@ interface IP00lsTokenBase is IERC20, IERC1046, IERC1363, IERC2612, IVotes
     function setName(address, string calldata) external;
 }
 
+/// @custom:security-contact security@p00ls.com
 interface IP00lsTokenCreator is IP00lsTokenBase {
     function xCreatorToken() external view returns (IP00lsTokenXCreator);
     function merkleRoot() external view returns (bytes32);
@@ -32,6 +23,7 @@ interface IP00lsTokenCreator is IP00lsTokenBase {
     function claim(uint256, address, uint256, bytes32[] calldata) external;
 }
 
+/// @custom:security-contact security@p00ls.com
 interface IP00lsTokenXCreator is IP00lsTokenBase {
     function creatorToken() external view returns (IP00lsTokenCreator);
     function escrow() external view returns (address);

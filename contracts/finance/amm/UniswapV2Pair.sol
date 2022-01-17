@@ -9,6 +9,7 @@ import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "./libraries/Math.sol";
 import "./libraries/UQ112x112.sol";
 
+/// @custom:security-contact security@p00ls.com
 contract UniswapV2Pair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
     using UQ112x112 for uint224;
 

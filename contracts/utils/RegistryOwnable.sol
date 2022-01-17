@@ -12,6 +12,7 @@ function uint256ToAddress(uint256 i) pure returns (address) {
     return address(uint160(i));
 }
 
+/// @custom:security-contact security@p00ls.com
 abstract contract RegistryOwnable {
     IERC721 public immutable ownershipRegistry;
 
@@ -53,6 +54,7 @@ abstract contract RegistryOwnable {
     }
 }
 
+/// @custom:security-contact security@p00ls.com
 abstract contract RegistryOwnableUpgradeable is Initializable {
     IERC721 public ownershipRegistry;
 

@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import './UniswapV2Pair.sol';
 
+/// @custom:security-contact security@p00ls.com
 contract UniswapV2Factory is AccessControl {
     bytes32 public constant PAIR_CREATOR_ROLE = keccak256("PAIR_CREATOR_ROLE");
 
