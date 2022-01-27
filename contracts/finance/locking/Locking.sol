@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/utils/Multicall.sol";
 import "@amxx/hre/contracts/Splitters.sol";
 import "@amxx/hre/contracts/FullMath.sol";
 import "../amm/UniswapV2Router02.sol";
-import "../amm/libraries/Math.sol";
+import "../amm/libraries/UniswapV2Math.sol";
 import "../../tokens/extensions/IERC1363.sol";
 // import "../../utils/Timers.sol";
 
@@ -277,8 +277,8 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
         returns (uint256)
     {
         uint256 rate        = _locks[token].rate;
-        uint256 factor      = duration * Math.sqrt(duration);
-        uint256 extrafactor = value == 0 ? 0 : Math.sqrt(FullMath.mulDiv(
+        uint256 factor      = duration * UniswapV2Math.sqrt(duration);
+        uint256 extrafactor = value == 0 ? 0 : UniswapV2Math.sqrt(FullMath.mulDiv(
             rate * extra, // rate is * 1e18
             value,
             1e54

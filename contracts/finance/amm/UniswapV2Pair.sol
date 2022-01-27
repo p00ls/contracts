@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Callee.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
-import "./libraries/Math.sol";
+import "./libraries/UniswapV2Math.sol";
 import "./libraries/UQ112x112.sol";
 
 /// @custom:security-contact security@p00ls.com
@@ -82,8 +82,8 @@ contract UniswapV2Pair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
         uint _kLast = kLast; // gas savings
         if (feeOn) {
             if (_kLast != 0) {
-                uint rootK = Math.sqrt(uint(_reserve0) * uint(_reserve1));
-                uint rootKLast = Math.sqrt(_kLast);
+                uint rootK = UniswapV2Math.sqrt(uint(_reserve0) * uint(_reserve1));
+                uint rootKLast = UniswapV2Math.sqrt(_kLast);
                 if (rootK > rootKLast) {
                     uint numerator = totalSupply() * (rootK - rootKLast);
                     uint denominator = rootK * 5 + rootKLast;
@@ -107,10 +107,10 @@ contract UniswapV2Pair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
         bool feeOn = _mintFee(_reserve0, _reserve1);
         uint _totalSupply = totalSupply();
         if (_totalSupply == 0) {
-            liquidity = Math.sqrt(amount0 * amount1) - MINIMUM_LIQUIDITY;
+            liquidity = UniswapV2Math.sqrt(amount0 * amount1) - MINIMUM_LIQUIDITY;
            _mint(address(0xdead), MINIMUM_LIQUIDITY); // permanently lock the first MINIMUM_LIQUIDITY tokens
         } else {
-            liquidity = Math.min(amount0 * _totalSupply / _reserve0, amount1 * _totalSupply / _reserve1);
+            liquidity = UniswapV2Math.min(amount0 * _totalSupply / _reserve0, amount1 * _totalSupply / _reserve1);
         }
         require(liquidity > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED');
         _mint(to, liquidity);
