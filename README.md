@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This repo contains the smart contract for the [p00l](https://www.p00ls.io/) platform.
+This repo contains the smart contract for the [p00ls](https://www.p00ls.io/) platform.
 
 Some parts of these contracts are still being worked on and might change. See the [status](#Status) section below.
 
