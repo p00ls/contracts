@@ -167,6 +167,7 @@ async function migrate(config = {}, env = {}) {
         AUCTION_MANAGER:  ethers.utils.id('AUCTION_MANAGER_ROLE'),
         ESCROW_MANAGER:   ethers.utils.id('ESCROW_MANAGER_ROLE'),
         LOCKING_MANAGER:  ethers.utils.id('LOCKING_MANAGER_ROLE'),
+        METADATA_MANAGER: ethers.utils.id('METADATA_MANAGER_ROLE'),
         REGISTRY_MANAGER: ethers.utils.id('REGISTRY_MANAGER_ROLE'),
         UPGRADER:         ethers.utils.id('UPGRADER_ROLE'),
     }).map(entry => Promise.all(entry))).then(Object.fromEntries);

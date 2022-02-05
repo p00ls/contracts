@@ -20,6 +20,7 @@ contract P00lsCreatorRegistry is
     UUPSUpgradeable,
     Multicall
 {
+    bytes32 public constant METADATA_MANAGER_ROLE = keccak256("METADATA_MANAGER_ROLE");
     bytes32 public constant REGISTRY_MANAGER_ROLE = keccak256("REGISTRY_MANAGER_ROLE");
     bytes32 public constant UPGRADER_ROLE         = keccak256("UPGRADER_ROLE");
 
@@ -45,6 +46,7 @@ contract P00lsCreatorRegistry is
         __RegistryOwnable_init(address(this));
 
         _mint(_admin, addressToUint256(address(this)));
+        _setupRole(METADATA_MANAGER_ROLE, _admin);
         _setupRole(REGISTRY_MANAGER_ROLE, _admin);
         _setupRole(UPGRADER_ROLE,         _admin);
 
@@ -115,7 +117,7 @@ contract P00lsCreatorRegistry is
      */
     function setBaseURI(string memory baseURI)
         external
-        onlyRole(REGISTRY_MANAGER_ROLE)
+        onlyRole(METADATA_MANAGER_ROLE)
     {
         __baseURI = baseURI;
     }
@@ -167,7 +169,7 @@ contract P00lsCreatorRegistry is
      */
     function setName(address ensregistry, string calldata ensname)
         external
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyRole(METADATA_MANAGER_ROLE)
     {
         ENSReverseRegistration.setName(ensregistry, ensname);
     }
