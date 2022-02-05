@@ -82,7 +82,7 @@ contract P00lsCreatorRegistry is
             creator
         );
 
-        _mint(owner, uint256(uint160(creator)));
+        _mint(owner, addressToUint256(creator));
         return creator;
     }
 

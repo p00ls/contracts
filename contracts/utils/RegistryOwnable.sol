@@ -8,10 +8,6 @@ function addressToUint256(address a) pure returns (uint256) {
     return uint256(uint160(a));
 }
 
-function uint256ToAddress(uint256 i) pure returns (address) {
-    return address(uint160(i));
-}
-
 /// @custom:security-contact security@p00ls.com
 abstract contract RegistryOwnable {
     IERC721 public immutable ownershipRegistry;
@@ -50,7 +46,7 @@ abstract contract RegistryOwnable {
     }
 
     function transferOwnership(address newOwner) public virtual onlyOwner {
-        ownershipRegistry.transferFrom(owner(), newOwner, uint256(uint160(address(this))));
+        ownershipRegistry.transferFrom(owner(), newOwner, addressToUint256(address(this)));
     }
 }
 
@@ -98,6 +94,6 @@ abstract contract RegistryOwnableUpgradeable is Initializable {
         virtual
         onlyOwner
     {
-        ownershipRegistry.transferFrom(owner(), newOwner, uint256(uint160(address(this))));
+        ownershipRegistry.transferFrom(owner(), newOwner, addressToUint256(address(this)));
     }
 }

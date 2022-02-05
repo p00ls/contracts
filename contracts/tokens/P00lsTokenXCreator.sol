@@ -149,6 +149,7 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
 
     function delegate(address)
         public
+        pure
         override
     {
         revert("P00lsTokenXCreator: delegation is registered on the creatorToken");
@@ -156,6 +157,7 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
 
     function delegateBySig(address, uint256, uint256, uint8, bytes32, bytes32)
         public
+        pure
         override
     {
         revert("P00lsTokenXCreator: delegation is registered on the creatorToken");
