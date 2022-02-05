@@ -1,14 +1,14 @@
-# P00ls Contracts
+![P00ls Contracts](imgs/preview.jpg)
 
-## Introduction
+# Introduction
 
 This repo contains the smart contract for the [p00ls](https://www.p00ls.io/) platform.
 
 Some parts of these contracts are still being worked on and might change. See the [status](#Status) section below.
 
-## Setup
+# Setup
 
-### Environment
+## Environment
 
 The development and test environments are configured through environment variables. It is recommended to configure that using a `.env` file. The `.env.example` provides an example of such file, with the different variables listed.
 
@@ -26,11 +26,11 @@ If both `MNEMONIC` and `PRIVATE_KEY` are defined, `MNEMONIC` will take priority.
 - **REPORT**: enable the gas report plugin (will produce gas usage reports when running the tests)
 - **DEBUG**: add extra debug. Set `DEBUG=migration` for extra verbosity during deployments.
 
-### Contract configuration
+## Contract configuration
 
 The contract deployment script takes its parameters from the `scripts/config.js` file. This file contains can be used to customize the deployment. If anyone wants to perform a deployment of these contracts, it is strongly encouraged to read the deployment script AND do test deployments.
 
-## Compile
+# Compile
 
 To compile the contract smart contracts, run
 
@@ -38,7 +38,7 @@ To compile the contract smart contracts, run
 npm run compile
 ```
 
-## Run tests
+# Run tests
 
 - Tests are run using the following command
 
@@ -54,7 +54,7 @@ npm run test
 npm run coverage
 ```
 
-## Deploy
+# Deploy
 
 In other to deploy these contracts, one should fill two different files:
 
@@ -73,11 +73,11 @@ The migration script will produce a `.cache-<chainId>.json` file containing the 
 
 Note: the deployment workflow is still being worked on.
 
-## Architecture
+# Architecture
 
 ![architecture](imgs/architecture.jpg)
 
-## Status
+# Status
 
 | Contract name                                                     | Status           | Audited     | Deployment | Upgradeable        |
 |-------------------------------------------------------------------|------------------|-------------|------------|--------------------|
