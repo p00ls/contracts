@@ -50,37 +50,6 @@ contract VestedAirdrops is AccessControl, Multicall {
         return _airdrops[root];
     }
 
-    function released(bytes32 leaf)
-        public
-        view
-        returns (uint256)
-    {
-        return _released[leaf];
-    }
-
-    function release(Schedule memory schedule, bytes32[] memory proof)
-        public
-    {
-        // check input validity
-        bytes32 leaf = hashSchedule(schedule);
-        bytes32 drop = MerkleProof.processProof(proof, leaf);
-        require(enabled(drop), "unknown airdrop");
-
-        // compute vesting remains
-        uint256 vested     = vestedAmount(schedule, uint64(block.timestamp));
-        uint256 releasable = vested - released(leaf);
-
-        if (releasable > 0) {
-        _released[leaf] = vested;
-
-        // emit notification
-        emit TokensReleased(drop, leaf, schedule.token, schedule.recipient, releasable);
-
-        // do release
-        SafeERC20.safeTransfer(schedule.token, schedule.recipient, releasable);
-        }
-    }
-
     function vestedAmount(Schedule memory schedule, uint64 timestamp)
         public
         pure
@@ -94,6 +63,52 @@ contract VestedAirdrops is AccessControl, Multicall {
             schedule.amount,
             schedule.amount * (timestamp - schedule.start) / schedule.duration
         );
+    }
+
+    function released(bytes32 leaf)
+        public
+        view
+        returns (uint256)
+    {
+        return _released[leaf];
+    }
+
+    function checkRelease(Schedule memory schedule, bytes32[] memory proof)
+        public
+        view
+        returns (uint256, uint256, bytes32, bytes32)
+    {
+        // check proof
+        bytes32 leaf = hashSchedule(schedule);
+        bytes32 drop = MerkleProof.processProof(proof, leaf);
+        require(enabled(drop), "VestedAirdrops: unknown airdrop");
+
+        // get details
+        uint256 vested     = vestedAmount(schedule, uint64(block.timestamp));
+        uint256 releasable = vested - released(leaf);
+        return (vested, releasable, drop, leaf);
+    }
+
+    function release(Schedule memory schedule, bytes32[] memory proof)
+        public
+    {
+        // get schedule details
+        (
+            uint256 vested,
+            uint256 releasable,
+            bytes32 drop,
+            bytes32 leaf
+        ) = checkRelease(schedule, proof); // reverts it proof is invalud
+
+        if (releasable > 0) {
+            _released[leaf] = vested;
+
+            // emit notification
+            emit TokensReleased(drop, leaf, schedule.token, schedule.recipient, releasable);
+
+            // do release
+            SafeERC20.safeTransfer(schedule.token, schedule.recipient, releasable);
+        }
     }
 
     function hashSchedule(Schedule memory schedule)
