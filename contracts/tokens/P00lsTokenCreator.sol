@@ -71,20 +71,14 @@ contract P00lsTokenCreator is P00lsTokenBase, RegistryOwnable
         xCreatorToken.__delegate(delegator, delegatee);
     }
 
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint256 amount
-    )
+    function allowance(address holder, address spender)
         public
+        view
         override
-        returns (bool)
+        returns (uint256)
     {
-        if (_msgSender() == address(xCreatorToken)) {
-            _transfer(sender, recipient, amount);
-            return true;
-        } else {
-            return super.transferFrom(sender, recipient, amount);
-        }
+        return spender == address(xCreatorToken)
+            ? type(uint256).max
+            : super.allowance(holder, spender);
     }
 }

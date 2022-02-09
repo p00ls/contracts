@@ -29,13 +29,13 @@
   },
   "dependencies": {
     "@ensdomains/ens-contracts": "^0.0.8",
-    "@openzeppelin/contracts": "^4.5.0-rc.0",
-    "@openzeppelin/contracts-upgradeable": "^4.5.0-rc.0",
+    "@openzeppelin/contracts": "^4.5.0",
+    "@openzeppelin/contracts-upgradeable": "^4.5.0",
     "@uniswap/v2-core": "^1.0.1",
     "@uniswap/v2-periphery": "*"
   },
   "devDependencies": {
-    "@amxx/hre": "^0.0.5",
+    "@amxx/hre": "^0.0.6",
     "copyfiles": "^2.4.1",
     "debug": "^2.6.9",
     "hardhat": "^2.7.1",

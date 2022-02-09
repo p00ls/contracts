@@ -93,6 +93,19 @@ async function migrate(config = {}, env = {}) {
         { ...opts, kind: 'uups', unsafeAllow: 'delegatecall' },
     );
 
+    // Would be better but getting 'Deployment at address 0x0000000000000000000000000000000000000000 is not registered'
+    // const tokenCreator = isEnabled('registry') && registry && await upgrades.prepareUpgrade(
+    //     await registry.beaconCreator(),
+    //     await getFactory('P00lsTokenCreator', { signer }),
+    //     { ...opts, constructorArgs: [ registry.address ], unsafeAllow: 'delegatecall' },
+    // );
+
+    // const tokenXCreator = isEnabled('registry') && registry && await upgrades.prepareUpgrade(
+    //     await registry.beaconXCreator(),
+    //     await getFactory('P00lsTokenXCreator', { signer }),
+    //     { ...opts, constructorArgs: [ escrow.address ], unsafeAllow: 'delegatecall' },
+    // );
+
     const tokenCreator = isEnabled('registry') && registry && await manager.migrate(
         'tokenCreator',
         getFactory('P00lsTokenCreator', { signer }),
