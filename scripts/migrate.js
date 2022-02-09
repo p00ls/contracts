@@ -39,7 +39,7 @@ async function migrate(config = {}, env = {}) {
      *******************************************************************************************************************/
     const timelock = isEnabled('timelock') && await manager.migrate(
         'timelock',
-        getFactory('TimelockController', { signer }),
+        getFactory('P00lsTimelock', { signer }),
         [
             config.contracts.timelock.mindelay,
             [],
