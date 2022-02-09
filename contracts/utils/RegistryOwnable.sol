@@ -10,6 +10,7 @@ function addressToUint256(address a) pure returns (uint256) {
 
 /// @custom:security-contact security@p00ls.com
 abstract contract RegistryOwnable {
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IERC721 public immutable ownershipRegistry;
 
     modifier onlyOwner() {
@@ -22,6 +23,7 @@ abstract contract RegistryOwnable {
         _;
     }
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address ownershipRegistry_)
     {
         ownershipRegistry = IERC721(ownershipRegistry_);
