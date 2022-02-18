@@ -48,7 +48,7 @@ describe('$00 Token', function () {
         expect(await this.dao.getVotes(this.accounts.user.address, tx.blockNumber)).to.be.equal(value);
       }
       {
-        const tx = await this.xToken.connect(this.accounts.user).deposit(value.div(2));
+        const tx = await this.xToken.connect(this.accounts.user).deposit(value.div(2), this.accounts.user.address);
 
         await network.provider.send('evm_mine');
 
