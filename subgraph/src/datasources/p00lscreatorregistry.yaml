@@ -1,0 +1,23 @@
+  - kind: ethereum/contract
+    name: {id}
+    network: {chain}
+    source:
+      address: "{address}"
+      abi: P00lsCreatorRegistry
+      startBlock: {startBlock}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - ERC1155Contract
+      abis:
+        - name: P00lsCreatorRegistry
+          file: {root}/../artifacts/contracts/tokens/P00lsCreatorRegistry.sol/P00lsCreatorRegistry.json
+        - name: P00lsTokenCreator
+          file: {root}/../artifacts/contracts/tokens/P00lsTokenCreator.sol/P00lsTokenCreator.json
+        - name: P00lsTokenXCreator
+          file: {root}/../artifacts/contracts/tokens/P00lsTokenXCreator.sol/P00lsTokenXCreator.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer

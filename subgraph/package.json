@@ -1,0 +1,23 @@
+{
+  "name": "@p00ls/subgraph",
+  "description": "",
+  "author": "Hadrien Croubois (@Amxx)",
+  "version": "0.0.1",
+  "license": "MIT",
+  "scripts": {
+    "prepublish": "rimraf artifacts build cache generated",
+    "prepare": "mkdir -p generated artifacts && npm run prepare:subgraph",
+    "prepare:subgraph": "graph-compiler --config config/p00ls-rinkeby.json --include src/datasources --include node_modules/@openzeppelin/subgraphs/src/datasources --export-schema --export-subgraph",
+    "build": "npm run build:codegen && npm run build:compile",
+    "build:codegen": "graph codegen ${SUBGRAPH:-generated/p00ls-rinkeby.subgraph.yaml}",
+    "build:compile": "graph build ${SUBGRAPH:-generated/p00ls-rinkeby.subgraph.yaml}",
+    "deploy:studio": "yarn build && graph deploy --studio ${NAME:-p00ls-rinkeby} ${SUBGRAPH:-generated/p00ls-rinkeby.subgraph.yaml}",
+    "deploy:hosted": "yarn build && graph deploy --product hosted-service ${NAME:-amxx/p00ls-rinkeby} ${SUBGRAPH:-generated/p00ls-rinkeby.subgraph.yaml}"
+  },
+  "devDependencies": {
+    "@amxx/graphprotocol-utils": "^1.1.0-alpha.2",
+    "@graphprotocol/graph-cli": "^0.26.0",
+    "@graphprotocol/graph-ts": "^0.24.1",
+    "@openzeppelin/subgraphs": "^0.1.7-1"
+  }
+}

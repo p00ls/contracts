@@ -1,0 +1,31 @@
+{
+  "output": "./generated/p00ls-rinkeby.",
+  "chain": "rinkeby",
+  "datasources": [{
+    "address": "0xCFD7bB8Af69bd9f879b25EAf764878A168176188",
+    "startBlock": 9984607,
+    "name": "P00lsCreatorRegistry",
+    "module": [
+      "accesscontrol",
+      "erc721",
+      "erc1967upgrade",
+      "p00lscreatorregistry",
+      "voting"
+    ],
+    "templates": [
+      "erc20",
+      "erc1967upgrade",
+      "voting"
+    ]
+  },{
+    "address": "0xBeFB7D5C4D199b7D7f23cc1dCB3c458FcaD937e5",
+    "startBlock": 9984607,
+    "name": "beaconCreator",
+    "module": [ "erc1967upgrade", "ownable" ]
+  },{
+    "address": "0xd139f8C9cb3207EEB72EDB9d15ebB8D2001fb9D3",
+    "startBlock": 9984607,
+    "name": "beaconXCreator",
+    "module": [ "erc1967upgrade", "ownable" ]
+  }]
+}
