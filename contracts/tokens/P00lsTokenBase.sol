@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpg
 import "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import "./extensions/ERC1046Upgradeable.sol";
 import "./extensions/ERC1363Upgradeable.sol";
+import "./extensions/ERC4626Upgradeable.sol";
 
 /// @custom:security-contact security@p00ls.com
 abstract contract P00lsTokenBase is
@@ -42,6 +43,7 @@ abstract contract P00lsTokenBase is
      */
     function _mint(address account, uint256 amount)
         internal
+        virtual
         override(ERC20Upgradeable, ERC20VotesUpgradeable)
     {
         super._mint(account, amount);
@@ -49,6 +51,7 @@ abstract contract P00lsTokenBase is
 
     function _burn(address account, uint256 amount)
         internal
+        virtual
         override(ERC20Upgradeable, ERC20VotesUpgradeable)
     {
         super._burn(account, amount);
@@ -56,6 +59,7 @@ abstract contract P00lsTokenBase is
 
     function _afterTokenTransfer(address from, address to, uint256 amount)
         internal
+        virtual
         override(ERC20Upgradeable, ERC20VotesUpgradeable)
     {
         super._afterTokenTransfer(from, to, amount);

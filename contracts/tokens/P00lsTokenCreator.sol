@@ -8,7 +8,9 @@ import "./P00lsTokenBase.sol";
 import "./interfaces.sol";
 
 /// @custom:security-contact security@p00ls.com
-contract P00lsTokenCreator is P00lsTokenBase, RegistryOwnable
+contract P00lsTokenCreator is
+    P00lsTokenBase,
+    RegistryOwnable
 {
     using BitMaps for BitMaps.BitMap;
 
