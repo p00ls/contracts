@@ -85,7 +85,7 @@ describe('Vested airdrop', function () {
       const proof       = this.merkletree.getHexProof(vestingHash);
 
       await expect(this.vesting.release(vesting, proof))
-      .to.emit(this.vesting, 'TokensReleased').withArgs(this.hexroot, ethers.utils.hexlify(vestingHash), vesting.token, vesting.recipient, vesting.amount)
+      .to.emit(this.vesting, 'TokensReleased').withArgs(this.hexroot, ethers.utils.hexlify(vestingHash), vesting.token, vesting.recipient, vesting.amount, vesting.amount)
       .to.emit(this.creatorToken, 'Transfer').withArgs(this.vesting.address, vesting.recipient, vesting.amount);
     });
 
@@ -110,7 +110,7 @@ describe('Vested airdrop', function () {
           .to.not.emit(this.creatorToken, 'Transfer');
         } else {
           await expect(tx)
-          .to.emit(this.vesting, 'TokensReleased').withArgs(this.hexroot, ethers.utils.hexlify(vestingHash), vesting.token, vesting.recipient, releasable)
+          .to.emit(this.vesting, 'TokensReleased').withArgs(this.hexroot, ethers.utils.hexlify(vestingHash), vesting.token, vesting.recipient, releasable, vesting.amount)
           .to.emit(this.creatorToken, 'Transfer').withArgs(this.vesting.address, vesting.recipient, releasable);
         }
 
