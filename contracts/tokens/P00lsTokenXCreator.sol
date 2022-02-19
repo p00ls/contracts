@@ -120,6 +120,29 @@ contract P00lsTokenXCreator is
     }
 
     /**
+     * ERC4626 specialisation
+     */
+    function totalAssets() public view virtual override returns (uint256) {
+        return super.totalAssets() + stakingEscrow.releasable(creatorToken);
+    }
+
+    function deposit(uint256 assets, address receiver) public virtual override accrue() returns (uint256) {
+        return super.deposit(assets, receiver);
+    }
+
+    function mint(uint256 shares, address receiver) public virtual override accrue() returns (uint256) {
+        return super.mint(shares, receiver);
+    }
+
+    function withdraw(uint256 assets, address receiver, address holder) public virtual override accrue() returns (uint256) {
+        return super.withdraw(assets, receiver, holder);
+    }
+
+    function redeem(uint256 shares, address receiver, address holder) public virtual override accrue() returns (uint256) {
+        return super.redeem(shares, receiver, holder);
+    }
+
+    /**
      * Internal override resolution
      */
     function _mint(address account, uint256 amount)
@@ -144,21 +167,5 @@ contract P00lsTokenXCreator is
         override(ERC20Upgradeable, P00lsTokenBase)
     {
         super._afterTokenTransfer(from, to, amount);
-    }
-
-    function deposit(uint256 assets, address receiver) public virtual override accrue() returns (uint256) {
-        return super.deposit(assets, receiver);
-    }
-
-    function mint(uint256 shares, address receiver) public virtual override accrue() returns (uint256) {
-        return super.mint(shares, receiver);
-    }
-
-    function withdraw(uint256 assets, address receiver, address holder) public virtual override accrue() returns (uint256) {
-        return super.withdraw(assets, receiver, holder);
-    }
-
-    function redeem(uint256 shares, address receiver, address holder) public virtual override accrue() returns (uint256) {
-        return super.redeem(shares, receiver, holder);
     }
 }

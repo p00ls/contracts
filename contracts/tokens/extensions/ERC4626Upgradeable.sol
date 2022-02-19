@@ -94,13 +94,13 @@ abstract contract ERC4626Upgradeable is IERC4626, ERC20Upgradeable {
     }
 
     function _sharesToAssets(uint256 shares) internal view virtual returns (uint256 assets) {
-        return totalAssets() == 0 || totalSupply() == 0
+        return totalSupply() == 0
             ? shares * (10 ** IERC20MetadataUpgradeable(asset()).decimals()) / (10 ** decimals())
             : shares * totalAssets() / totalSupply();
     }
 
     function _assetsToShares(uint256 assets) internal view virtual returns (uint256 shares) {
-        return totalAssets() == 0 || totalSupply() == 0
+        return totalSupply() == 0
             ? assets * (10 ** decimals()) / (10 ** IERC20MetadataUpgradeable(asset()).decimals())
             : assets * totalSupply() / totalAssets();
     }
