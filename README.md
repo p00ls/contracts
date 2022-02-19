@@ -84,6 +84,7 @@ Note: the deployment workflow is still being worked on.
 | [P00lsCreatorRegistry](contracts/tokens/P00lsCreatorRegistry.sol) | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :heavy_check_mark: |
 | [P00lsTokenCreator](contracts/tokens/P00lsTokenCreator.sol)       | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :heavy_check_mark: |
 | [P00lsTokenXCreator](contracts/tokens/P00lsTokenXCreator.sol)     | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :heavy_check_mark: |
+| [P00lsTokenXCreatorV2](contracts/tokens/P00lsTokenXCreatorV2.sol) | Work in progress | -                                            | -          | :heavy_check_mark: |
 | [AMM Router](contracts/finance/amm/UniswapV2Router02.sol)         | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
 | [AMM Factory](contracts/finance/amm/UniswapV2Factory.sol)         | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
 | [AMM Pair](contracts/finance/amm/UniswapV2Pair.sol)               | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
