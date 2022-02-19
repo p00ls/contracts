@@ -9,13 +9,11 @@ import "./P00lsTokenBase.sol";
 import "./interfaces.sol";
 
 /// @custom:security-contact security@p00ls.com
-contract P00lsTokenXCreator is
-    P00lsTokenBase,
-    ERC4626Upgradeable,
-    IEscrowReceiver
+contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
 {
     using Checkpoints for Checkpoints.History;
 
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     Escrow              public immutable stakingEscrow;
     IP00lsTokenCreator  public           creatorToken;
     Checkpoints.History internal         conversion;
@@ -51,7 +49,7 @@ contract P00lsTokenXCreator is
         creatorToken = IP00lsTokenCreator(parent);
 
         // before escrow release, ratio is 1:1
-        conversion.push(assetsPerShare());
+        conversion.push(1 ether);
     }
 
     function owner()
@@ -63,26 +61,73 @@ contract P00lsTokenXCreator is
         return creatorToken.owner();
     }
 
-    function asset()
-        public
-        view
-        override
-        returns (address)
-    {
-        return address(creatorToken);
-    }
-
     /**
      * Deposit / withdraw
      */
     function onEscrowRelease(uint256)
         public
     {
-        uint256 value = assetsPerShare();
+        uint256 value = sharesToValue(1 ether);
         if (value != conversion.latest())
         {
             conversion.push(value);
         }
+    }
+
+    function deposit(uint256 value)
+        public
+    {
+        depositFor(value, msg.sender);
+    }
+
+    function withdraw(uint256 shares)
+        public
+    {
+        withdrawTo(shares, msg.sender);
+    }
+
+    function depositFor(uint256 value, address receiver)
+        public
+        accrue()
+    {
+        uint256 shares = valueToShares(value);
+
+        SafeERC20.safeTransferFrom(IERC20(creatorToken), msg.sender, address(this), value);
+        _mint(receiver, shares);
+
+        onEscrowRelease(0);
+    }
+
+    function withdrawTo(uint256 shares, address receiver)
+        public
+        accrue()
+    {
+        uint256 value  = sharesToValue(shares);
+
+        _burn(msg.sender, shares);
+        SafeERC20.safeTransfer(IERC20(creatorToken), receiver, value);
+
+        onEscrowRelease(0);
+    }
+
+    function valueToShares(uint256 value)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 supply  = totalSupply();
+        uint256 balance = IERC20(creatorToken).balanceOf(address(this));
+        return balance > 0 && supply > 0 ? FullMath.mulDiv(value, balance, supply) : value;
+    }
+
+    function sharesToValue(uint256 shares)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 supply  = totalSupply();
+        uint256 balance = IERC20(creatorToken).balanceOf(address(this));
+        return balance > 0 && supply > 0 ? FullMath.mulDiv(shares, supply, balance) : supply;
     }
 
     function pastSharesToValue(uint256 shares, uint256 blockNumber)
@@ -90,7 +135,7 @@ contract P00lsTokenXCreator is
         view
         returns (uint256)
     {
-        return FullMath.mulDiv(conversion.past(blockNumber), 10 ** decimals(), shares);
+        return FullMath.mulDiv(conversion.past(blockNumber), 1 ether, shares);
     }
 
     /**
@@ -117,55 +162,5 @@ contract P00lsTokenXCreator is
         override
     {
         revert("P00lsTokenXCreator: delegation is registered on the creatorToken");
-    }
-
-    /**
-     * ERC4626 specialisation
-     */
-    function totalAssets() public view virtual override returns (uint256) {
-        return super.totalAssets() + stakingEscrow.releasable(creatorToken);
-    }
-
-    function deposit(uint256 assets, address receiver) public virtual override accrue() returns (uint256) {
-        return super.deposit(assets, receiver);
-    }
-
-    function mint(uint256 shares, address receiver) public virtual override accrue() returns (uint256) {
-        return super.mint(shares, receiver);
-    }
-
-    function withdraw(uint256 assets, address receiver, address holder) public virtual override accrue() returns (uint256) {
-        return super.withdraw(assets, receiver, holder);
-    }
-
-    function redeem(uint256 shares, address receiver, address holder) public virtual override accrue() returns (uint256) {
-        return super.redeem(shares, receiver, holder);
-    }
-
-    /**
-     * Internal override resolution
-     */
-    function _mint(address account, uint256 amount)
-        internal
-        virtual
-        override(ERC20Upgradeable, P00lsTokenBase)
-    {
-        super._mint(account, amount);
-    }
-
-    function _burn(address account, uint256 amount)
-        internal
-        virtual
-        override(ERC20Upgradeable, P00lsTokenBase)
-    {
-        super._burn(account, amount);
-    }
-
-    function _afterTokenTransfer(address from, address to, uint256 amount)
-        internal
-        virtual
-        override(ERC20Upgradeable, P00lsTokenBase)
-    {
-        super._afterTokenTransfer(from, to, amount);
     }
 }

@@ -31,7 +31,7 @@ async function migrateAll(config, env) {
         .then(address => attach('P00lsTokenCreator', address));
 
     const getXCreatorToken = (creatorToken) => creatorToken.xCreatorToken()
-        .then(address => attach('P00lsTokenXCreator', address));
+        .then(address => attach('P00lsTokenXCreatorV2', address));
 
     const allocations = [
         { index: 0, account: signer.address,            amount: config.extra.DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_DEPLOYER        },

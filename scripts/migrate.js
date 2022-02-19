@@ -117,7 +117,7 @@ async function migrate(config = {}, env = {}) {
 
     const tokenXCreator = isEnabled('registry') && registry && await manager.migrate(
         'tokenXCreator',
-        getFactory('P00lsTokenXCreator', { signer }),
+        getFactory('P00lsTokenXCreatorV2', { signer }),
         [
             escrow.address,
         ],
