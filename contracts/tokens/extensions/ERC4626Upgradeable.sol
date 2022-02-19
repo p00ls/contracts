@@ -99,6 +99,9 @@ abstract contract ERC4626Upgradeable is IERC4626, ERC20Upgradeable {
             : shares * totalAssets() / totalSupply();
     }
 
+    // This is ok as long as `totalSupply() == 0` implies `totalAssets() == 0`. This is the case if
+    // the price of shares nevers goes down to 0. It can "simply" be enforced by never removing any
+    // assets without burning an equivalent number of shares.
     function _assetsToShares(uint256 assets) internal view virtual returns (uint256 shares) {
         return totalSupply() == 0
             ? assets * (10 ** decimals()) / (10 ** IERC20MetadataUpgradeable(asset()).decimals())
