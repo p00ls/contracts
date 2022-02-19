@@ -79,18 +79,18 @@ Note: the deployment workflow is still being worked on.
 
 # Status
 
-| Contract name                                                     | Status           | Audited     | Deployment | Upgradeable        |
-|-------------------------------------------------------------------|------------------|-------------|------------|--------------------|
-| [P00lsCreatorRegistry](contracts/tokens/P00lsCreatorRegistry.sol) | Finalized        | In progress | -          | :heavy_check_mark: |
-| [P00lsTokenCreator](contracts/tokens/P00lsTokenCreator.sol)       | Finalized        | In progress | -          | :heavy_check_mark: |
-| [P00lsTokenXCreator](contracts/tokens/P00lsTokenXCreator.sol)     | Finalized        | In progress | -          | :heavy_check_mark: |
-| [AMM Router](contracts/finance/amm/UniswapV2Router02.sol)         | Finalized        | In progress | -          | :x:                |
-| [AMM Factory](contracts/finance/amm/UniswapV2Factory.sol)         | Finalized        | In progress | -          | :x:                |
-| [AMM Pair](contracts/finance/amm/UniswapV2Pair.sol)               | Finalized        | In progress | -          | :x:                |
-| [AuctionFactory](contracts/finance/auction/AuctionFactory.sol)    | Finalized        | In progress | -          | :x:                |
-| [Auction](contracts/finance/auction/Auction.sol)                  | Finalized        | In progress | -          | :x:                |
-| [VestedAirdrops](contracts/finance/vesting/VestedAirdrops.sol)    | Finalized        | In progress | -          | :x:                |
-| [Escrow](contracts/finance/staking/Escrow.sol)                    | Finalized        | In progress | -          | :x:                |
-| [Locking](contracts/finance/locking/Locking.sol)                  | Work in progress | -           | -          | :x:                |
-| [DAO Governor](contracts/dao/P00lsDAO.sol)                        | Work in progress | -           | -          | :x:                |
-| [DAO Timelock](contracts/dao/P00lsTimelock.sol)                   | Work in progress | -           | -          | :x:                |
+| Contract name                                                     | Status           | Audited                                      | Deployment | Upgradeable        |
+|-------------------------------------------------------------------|------------------|----------------------------------------------|------------|--------------------|
+| [P00lsCreatorRegistry](contracts/tokens/P00lsCreatorRegistry.sol) | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :heavy_check_mark: |
+| [P00lsTokenCreator](contracts/tokens/P00lsTokenCreator.sol)       | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :heavy_check_mark: |
+| [P00lsTokenXCreator](contracts/tokens/P00lsTokenXCreator.sol)     | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :heavy_check_mark: |
+| [AMM Router](contracts/finance/amm/UniswapV2Router02.sol)         | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
+| [AMM Factory](contracts/finance/amm/UniswapV2Factory.sol)         | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
+| [AMM Pair](contracts/finance/amm/UniswapV2Pair.sol)               | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
+| [AuctionFactory](contracts/finance/auction/AuctionFactory.sol)    | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
+| [Auction](contracts/finance/auction/Auction.sol)                  | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
+| [VestedAirdrops](contracts/finance/vesting/VestedAirdrops.sol)    | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
+| [Escrow](contracts/finance/staking/Escrow.sol)                    | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
+| [Locking](contracts/finance/locking/Locking.sol)                  | Work in progress | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
+| [DAO Timelock](contracts/dao/P00lsTimelock.sol)                   | Work in progress | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
+| [DAO Governor](contracts/dao/P00lsDAO.sol)                        | Work in progress | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :heavy_check_mark: |
