@@ -15,4 +15,3 @@ describe('Upgrade consistency', function () {
         ));
     });
 });
-// P00lsTokenXCreatorV2

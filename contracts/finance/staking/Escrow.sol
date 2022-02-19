@@ -48,7 +48,7 @@ contract Escrow is AccessControl, Multicall {
         external
         onlyRole(ESCROW_MANAGER_ROLE)
     {
-        release(token); // this will reset if previous is over over
+        release(token); // this will reset if previous is schedule is over
 
         require(start > 0, "Invalid input: start should be non 0");
         require(stop >= start, "Invalid input: start must be before stop");
