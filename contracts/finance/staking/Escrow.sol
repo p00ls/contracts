@@ -48,6 +48,26 @@ contract Escrow is AccessControl, Multicall {
         external
         onlyRole(ESCROW_MANAGER_ROLE)
     {
+        _configure(token, start, stop, address(token.xCreatorToken()));
+    }
+
+    function configureWithBeneficary(IERC20 token, uint64 start, uint64 stop, address beneficiary)
+        external
+        onlyRole(ESCROW_MANAGER_ROLE)
+    {
+        try IP00lsTokenCreator(address(token)).xCreatorToken() returns (IP00lsTokenXCreator tokenXCreator) {
+            // if the token is an IP00lsTokenCreator, then the beneficiary must be the corresponding tokenXcreator
+            require(beneficiary == address(tokenXCreator));
+        } catch {
+            // it the token is not an IP00lsTokenCreator, its ok to have another beneficiary
+        }
+
+        _configure(token, start, stop, beneficiary);
+    }
+
+    function _configure(IERC20 token, uint64 start, uint64 stop, address beneficiary)
+        internal
+    {
         release(token); // this will reset if previous is schedule is over
 
         require(start > 0, "Invalid input: start should be non 0");
@@ -58,7 +78,7 @@ contract Escrow is AccessControl, Multicall {
 
         manifest.lastUpdate  = start;
         manifest.deadline    = stop;
-        manifest.beneficiary = address(token.xCreatorToken());
+        manifest.beneficiary = beneficiary;
 
         emit NewStaking(token, start, stop);
     }
