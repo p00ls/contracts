@@ -22,9 +22,10 @@ contract Escrow is AccessControl, Multicall {
     /*****************************************************************************************************************
      *                                                    Storage                                                    *
      *****************************************************************************************************************/
+    // fits into a single slot
     struct Details {
-        uint64  lastUpdate;
-        uint64  deadline;
+        uint48  lastUpdate;
+        uint48  deadline;
         address beneficiary;
     }
 
@@ -33,7 +34,7 @@ contract Escrow is AccessControl, Multicall {
     /*****************************************************************************************************************
      *                                                    Events                                                     *
      *****************************************************************************************************************/
-    event NewStaking(IERC20 indexed token, uint64 start, uint64 stop);
+    event NewStaking(IERC20 indexed token, uint48 start, uint48 stop);
 
     /*****************************************************************************************************************
      *                                                   Functions                                                   *
@@ -44,14 +45,14 @@ contract Escrow is AccessControl, Multicall {
         _setupRole(ESCROW_MANAGER_ROLE, _admin);
     }
 
-    function configure(IP00lsTokenCreator token, uint64 start, uint64 stop)
+    function configure(IP00lsTokenCreator token, uint48 start, uint48 stop)
         external
         onlyRole(ESCROW_MANAGER_ROLE)
     {
         _configure(token, start, stop, address(token.xCreatorToken()));
     }
 
-    function configureWithBeneficary(IERC20 token, uint64 start, uint64 stop, address beneficiary)
+    function configureWithBeneficary(IERC20 token, uint48 start, uint48 stop, address beneficiary)
         external
         onlyRole(ESCROW_MANAGER_ROLE)
     {
@@ -65,7 +66,7 @@ contract Escrow is AccessControl, Multicall {
         _configure(token, start, stop, beneficiary);
     }
 
-    function _configure(IERC20 token, uint64 start, uint64 stop, address beneficiary)
+    function _configure(IERC20 token, uint48 start, uint48 stop, address beneficiary)
         internal
     {
         release(token); // this will reset if previous is schedule is over
@@ -96,8 +97,8 @@ contract Escrow is AccessControl, Multicall {
         }
         else if (block.timestamp < manifest.deadline)
         {
-            uint64 step  = block.timestamp.toUint64() - manifest.lastUpdate;
-            uint64 total = manifest.deadline          - manifest.lastUpdate;
+            uint48 step  = uint48(block.timestamp) - manifest.lastUpdate;
+            uint48 total = manifest.deadline       - manifest.lastUpdate;
             return FullMath.mulDiv(step, total, token.balanceOf(address(this)));
         }
         else
@@ -115,7 +116,7 @@ contract Escrow is AccessControl, Multicall {
         uint256 toRelease = releasable(token);
         if (toRelease > 0)
         {
-            manifests[token].lastUpdate = block.timestamp.toUint64();
+            manifests[token].lastUpdate = uint48(block.timestamp);
 
             SafeERC20.safeTransfer(token, manifest.beneficiary, toRelease);
             if (Address.isContract(manifest.beneficiary))
