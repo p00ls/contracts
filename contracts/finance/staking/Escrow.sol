@@ -34,7 +34,7 @@ contract Escrow is AccessControl, Multicall {
     /*****************************************************************************************************************
      *                                                    Events                                                     *
      *****************************************************************************************************************/
-    event NewStaking(IERC20 indexed token, uint48 start, uint48 stop);
+    event NewStaking(IERC20 indexed token, address indexed beneficiary, uint48 start, uint48 stop);
 
     /*****************************************************************************************************************
      *                                                   Functions                                                   *
@@ -81,7 +81,7 @@ contract Escrow is AccessControl, Multicall {
         manifest.deadline    = stop;
         manifest.beneficiary = beneficiary;
 
-        emit NewStaking(token, start, stop);
+        emit NewStaking(token, beneficiary, start, stop);
     }
 
     function releasable(IERC20 token)
@@ -113,6 +113,7 @@ contract Escrow is AccessControl, Multicall {
     {
         Details memory manifest = manifests[token];
 
+        // release tokens
         uint256 toRelease = releasable(token);
         if (toRelease > 0)
         {
@@ -125,7 +126,9 @@ contract Escrow is AccessControl, Multicall {
                 catch {}
             }
         }
-        if (block.timestamp >= manifest.deadline)
+
+        // reset once schedule is complete
+        if (manifest.lastUpdate != 0 && manifest.deadline <= block.timestamp)
         {
             delete manifests[token];
         }
