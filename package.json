@@ -13,7 +13,7 @@
     "prepack": "scripts/prepack.sh",
     "compile": "hardhat compile",
     "coverage": "hardhat coverage",
-    "test": "hardhat test test/**/*.test.js",
+    "test": "hardhat test",
     "test:slither": "slither . --exclude-dependencies --detect reentrancy-eth,reentrancy-no-eth,reentrancy-unlimited-gas",
     "devnet:node": "hardhat node",
     "devnet:migrate": "hardhat run scripts/migrate.js --network localhost",
