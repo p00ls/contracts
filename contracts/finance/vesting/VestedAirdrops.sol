@@ -26,7 +26,7 @@ contract VestedAirdrops is AccessControl, Multicall {
     mapping(bytes32 => uint256) private _released;
 
     event Airdrop(bytes32 indexed airdrop, bool enabled);
-    event TokensReleased(bytes32 indexed airdrop, bytes32 indexed leaf, IERC20 token, address recipient, uint256 amount);
+    event TokensReleased(bytes32 indexed airdrop, bytes32 indexed leaf, IERC20 token, address recipient, uint256 releasedAmount, uint256 scheduleAmount);
 
     constructor(address admin)
     {
@@ -104,7 +104,7 @@ contract VestedAirdrops is AccessControl, Multicall {
             _released[leaf] = vested;
 
             // emit notification
-            emit TokensReleased(drop, leaf, schedule.token, schedule.recipient, releasable);
+            emit TokensReleased(drop, leaf, schedule.token, schedule.recipient, releasable, schedule.amount);
 
             // do release
             SafeERC20.safeTransfer(schedule.token, schedule.recipient, releasable);
