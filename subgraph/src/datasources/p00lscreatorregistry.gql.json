@@ -1,1 +1,13 @@
-[]
+[{
+    "name": "ERC20Contract",
+    "fields": [
+        { "name": "ownershipToken", "type": "ERC721Token"   },
+        { "name": "creatorToken",   "type": "ERC20Contract" },
+        { "name": "xCreatorToken",  "type": "ERC20Contract" }
+    ]
+},{
+    "name": "ERC721Contract",
+    "fields": [
+        { "name": "ownershipToken",  "type": "ERC721Token"   }
+    ]
+}]

@@ -12,6 +12,10 @@
       entities:
         - ERC1155Contract
       abis:
+        - name: IERC20
+          file: {root}/node_modules/@openzeppelin/contracts/build/contracts/IERC20Metadata.json
+        - name: IERC721
+          file: {root}/node_modules/@openzeppelin/contracts/build/contracts/IERC721Metadata.json
         - name: P00lsCreatorRegistry
           file: {root}/../artifacts/contracts/tokens/P00lsCreatorRegistry.sol/P00lsCreatorRegistry.json
         - name: P00lsTokenCreator

@@ -1,6 +1,27 @@
 import {
-	Address, log,
+	Address,
+	Entity,
 } from '@graphprotocol/graph-ts'
+
+
+import {
+	ERC721Contract,
+} from '@openzeppelin/subgraphs/generated/schema'
+
+import {
+	fetchERC20,
+} from '@openzeppelin/subgraphs/src/fetch/erc20'
+
+import {
+	fetchERC721,
+	fetchERC721Token,
+} from '@openzeppelin/subgraphs/src/fetch/erc721'
+
+
+import {
+	ERC20Contract  as P00lsTokenBase,
+	ERC721Contract as P00lsCreatorRegistry,
+} from '../../generated/schema'
 
 import {
 	Transfer as TransferEvent,
@@ -22,17 +43,43 @@ import {
 
 
 export function handleTransfer(event: TransferEvent): void {
+	let address: Address = Address.fromString('0x'.concat(event.params.tokenId.toHex().slice(2).padStart(40, '0')));
+
 	if (event.params.from == Address.zero()) {
-		let tokenCreator: Address = Address.fromString('0x'.concat(event.params.tokenId.toHex().slice(2).padStart(40, '0')));
-		if (tokenCreator == event.address) return;
-		let tokenXCreator: Address = P00lsTokenCreator.bind(tokenCreator).xCreatorToken();
+		let registry    = fetchERC721(event.address) as ERC721Contract
+		let erc721token = fetchERC721Token(registry, event.params.tokenId)
+		registry.save()
+		erc721token.save()
 
-		erc20Template.create(tokenCreator);
-		votingTemplate.create(tokenCreator);
-		erc1967upgradeTemplate.create(tokenCreator);
+		if (address == event.address) {
+			const creatorRegistry = P00lsCreatorRegistry.load(address.toHex()) as P00lsCreatorRegistry
+			creatorRegistry.ownershipToken = erc721token.id
+			creatorRegistry.save()
+		} else {
+			let creatorAddress:  Address = address
+			let xCreatorAddress: Address = P00lsTokenCreator.bind(creatorAddress).xCreatorToken()
 
-		erc20Template.create(tokenXCreator);
-		votingTemplate.create(tokenXCreator);
-		erc1967upgradeTemplate.create(tokenXCreator);
+			// fetch tokens
+			fetchERC20(creatorAddress).save()
+			fetchERC20(xCreatorAddress).save()
+
+			// register ownership token
+			const tokenCreator  = P00lsTokenBase.load(creatorAddress.toHex())  as P00lsTokenBase
+			const tokenXCreator = P00lsTokenBase.load(xCreatorAddress.toHex()) as P00lsTokenBase
+			tokenCreator.ownershipToken  = erc721token.id
+			tokenXCreator.ownershipToken = erc721token.id
+			tokenCreator.xCreatorToken   = tokenXCreator.id
+			tokenXCreator.creatorToken   = tokenCreator.id
+			tokenCreator.save()
+			tokenXCreator.save()
+
+			erc20Template.create(creatorAddress)
+			votingTemplate.create(creatorAddress)
+			erc1967upgradeTemplate.create(creatorAddress)
+
+			erc20Template.create(xCreatorAddress)
+			votingTemplate.create(xCreatorAddress)
+			erc1967upgradeTemplate.create(xCreatorAddress)
+		}
 	}
 }
