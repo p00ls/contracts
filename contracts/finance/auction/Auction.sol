@@ -32,8 +32,8 @@ contract Auction is ERC20PermitUpgradeable, OwnableUpgradeable, Multicall {
         external
         initializer()
     {
-        string memory _name   = string(abi.encodePacked("P00ls Auction Token - ", _token.name()));
-        string memory _symbol = string(abi.encodePacked("P00lsAuction-",         _token.symbol()));
+        string memory _name   = string.concat("P00ls Auction Token - ", _token.name());
+        string memory _symbol = string.concat("P00lsAuction-",         _token.symbol());
 
         __Ownable_init();
         __ERC20_init(_name, _symbol);
