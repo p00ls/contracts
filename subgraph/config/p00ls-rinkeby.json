@@ -2,30 +2,32 @@
   "output": "./generated/p00ls-rinkeby.",
   "chain": "rinkeby",
   "datasources": [{
+    "name": "P00lsCreatorRegistry",
     "address": "0x9e3328c806dAf277a0f7F74658cDf98cc0764F84",
     "startBlock": 10213129,
-    "name": "P00lsCreatorRegistry",
     "module": [
       "accesscontrol",
       "erc721",
       "erc1967upgrade",
       "voting",
       "p00lscreatorregistry"
-    ],
+    ]
+  },{
+    "name": "P00lsCreatorToken",
     "templates": [
       "erc20",
       "erc1967upgrade",
       "voting"
     ]
   },{
+    "name": "beaconCreator",
     "address": "0xdDDd5aB580ca9a8a762e47438F7b9143A7E5EC5a",
     "startBlock": 10213129,
-    "name": "beaconCreator",
     "module": [ "erc1967upgrade", "ownable" ]
   },{
+    "name": "beaconXCreator",
     "address": "0x2aA419FA1D9AAa99491b9020aE1456bBb744dF20",
     "startBlock": 10213129,
-    "name": "beaconXCreator",
     "module": [ "erc1967upgrade", "ownable" ]
   }]
 }
