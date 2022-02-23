@@ -1,6 +1,5 @@
 import {
 	Address,
-	Entity,
 } from '@graphprotocol/graph-ts'
 
 
