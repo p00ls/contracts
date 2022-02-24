@@ -160,7 +160,7 @@ describe('Auction', function () {
         ).then(address => utils.attach('UniswapV2Pair', address));
 
         await expect(tx)
-        .to.emit(this.auction, 'AuctionFinalized').withArgs(this.creatorToken.address, value, VALUE.div(2))
+        .to.emit(this.auction, 'AuctionFinalized').withArgs(this.creatorToken.address, this.auction_instance.address, value, VALUE.div(2))
         .to.emit(this.creatorToken, 'Approval').withArgs(this.auction.address, this.router.address, VALUE.div(2))
         .to.emit(this.creatorToken, 'Approval').withArgs(this.auction.address, this.router.address, 0)
         .to.emit(this.creatorToken, 'Transfer').withArgs(this.auction.address, pair.address, VALUE.div(2))

@@ -19,7 +19,7 @@ contract AuctionFactory is AccessControl, Multicall {
     uint8 private _openPayments;
 
     event AuctionCreated(address indexed token, address auction, uint256 tokensAuctioned, uint64 start, uint64 deadline);
-    event AuctionFinalized(address indexed token, uint256 valueRaised, uint256 tokensRemaining);
+    event AuctionFinalized(address indexed token, address auction, uint256 valueRaised, uint256 tokensRemaining);
 
     modifier withPayments() {
         _openPayments = 2;
@@ -91,7 +91,7 @@ contract AuctionFactory is AccessControl, Multicall {
             block.timestamp
         );
 
-        emit AuctionFinalized(address(token), value, balance);
+        emit AuctionFinalized(address(token), instance, value, balance);
     }
 
     function getAuctionInstance(IERC20Metadata token)

@@ -17,5 +17,5 @@
       eventHandlers:
         - event: AuctionCreated(indexed address,address,uint256,uint64,uint64)
           handler: handleAuctionCreated
-        - event: AuctionFinalized(indexed address,uint256,uint256)
+        - event: AuctionFinalized(indexed address,address,uint256,uint256)
           handler: handleAuctionFinalized

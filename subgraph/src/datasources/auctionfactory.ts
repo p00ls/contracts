@@ -11,7 +11,7 @@ import {
 	Auction,
 	AuctionCreated,
 	AuctionFinalized,
-	ERC20,
+	ERC20Contract,
 } from '../../generated/schema'
 
 import {
@@ -25,29 +25,27 @@ import {
 
 
 export function handleAuctionCreated(event: AuctionCreatedEvent): void {
-	let creator_token = fetchERC20(event.params.token);
+	let token         = fetchERC20(event.params.token);
 	let auction_token = fetchERC20(event.params.auction);
 
-	let auction = new Auction(creator_token.id)
+	let auction                  = new Auction(auction_token.id)
 	auction.asToken              = auction_token.id
-	auction.creator              = creator_token.id
+	auction.token                = token.id
 	auction.start                = event.params.start
 	auction.deadline             = event.params.deadline
-	auction.auctionedAmountExact = event.params.tokensAuctionned
-	auction.auctionedAmount      = decimals.toDecimals(event.params.tokensAuctionned, creator_token.decimals)
+	auction.auctionedAmountExact = event.params.tokensAuctioned
+	auction.auctionedAmount      = decimals.toDecimals(event.params.tokensAuctioned, token.decimals)
 	auction.save()
 
-	let creator_token_full = new ERC20(creator_token.id)
-	let auction_token_full = new ERC20(auction_token.id)
-	creator_token_full.auction   = auction.id
+	let auction_token_full       = new ERC20Contract(auction_token.id)
 	auction_token_full.asAuction = auction.id
-	creator_token_full.save()
 	auction_token_full.save()
 
 	let ev         = new AuctionCreated(events.id(event))
 	ev.emitter     = fetchAccount(event.address).id
 	ev.transaction = transactions.log(event).id
 	ev.timestamp   = event.block.timestamp
+	ev.token       = token.id
 	ev.auction     = auction.id
 	ev.save()
 
@@ -55,9 +53,10 @@ export function handleAuctionCreated(event: AuctionCreatedEvent): void {
 }
 
 export function handleAuctionFinalized(event: AuctionFinalizedEvent): void {
-	let creator_token = fetchERC20(event.params.token);
+	let token         = fetchERC20(event.params.token);
+	let auction_token = fetchERC20(event.params.auction);
 
-	let auction = new Auction(creator_token.id)
+	let auction              = new Auction(auction_token.id)
 	auction.raisedValueExact = event.params.valueRaised
 	auction.raisedValue      = decimals.toDecimals(event.params.valueRaised)
 	auction.save()
@@ -66,6 +65,7 @@ export function handleAuctionFinalized(event: AuctionFinalizedEvent): void {
 	ev.emitter     = fetchAccount(event.address).id
 	ev.transaction = transactions.log(event).id
 	ev.timestamp   = event.block.timestamp
+	ev.token       = token.id
 	ev.auction     = auction.id
 	ev.save()
 }
