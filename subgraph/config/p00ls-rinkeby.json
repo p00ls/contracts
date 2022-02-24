@@ -43,5 +43,16 @@
       "accesscontrol",
       "vesting"
     ]
+  },{
+    "name": "AuctionFactory",
+    "address": "0xae87CC77A8a4F8Bf3B46349524cE734Ae2F1CBfa",
+    "startBlock": 10213129,
+    "module": [
+      "accesscontrol",
+      "auctionfactory"
+    ],
+    "templates": [
+      "erc20"
+    ]
   }]
 }

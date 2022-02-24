@@ -1,0 +1,37 @@
+[{
+    "name": "ERC20",
+    "fields": [
+        { "name": "auction",              "type": "Auction"        },
+        { "name": "asAuction",            "type": "Auction"        }
+    ]
+},{
+    "name": "Auction",
+    "fields": [
+        { "name": "asToken",              "type": "ERC20Contract!" },
+        { "name": "creator",              "type": "ERC20Contract!" },
+        { "name": "start",                "type": "BigInt!"        },
+        { "name": "deadline",             "type": "BigInt!"        },
+        { "name": "auctionedAmount",      "type": "BigDecimal!"    },
+        { "name": "auctionedAmountExact", "type": "BigInt!"        },
+        { "name": "raisedValue",          "type": "BigDecimal"     },
+        { "name": "raisedValueExact",     "type": "BigInt"         }
+    ]
+},{
+    "name": "AuctionCreated",
+    "parent": "Event",
+    "fields": [
+        { "name": "emitter",              "type": "Account!"       },
+        { "name": "transaction",          "type": "Transaction!"   },
+        { "name": "timestamp",            "type": "BigInt!"        },
+        { "name": "auction",              "type": "Auction!"       }
+    ]
+},{
+    "name": "AuctionFinalized",
+    "parent": "Event",
+    "fields": [
+        { "name": "emitter",              "type": "Account!"       },
+        { "name": "transaction",          "type": "Transaction!"   },
+        { "name": "timestamp",            "type": "BigInt!"        },
+        { "name": "auction",              "type": "Auction!"       }
+    ]
+}]
