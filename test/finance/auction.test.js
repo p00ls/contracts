@@ -57,8 +57,18 @@ describe('Auction', function () {
       this.auction_instance = await this.auction.getAuctionInstance(this.creatorToken.address).then(address => utils.attach('Auction', address));
 
       await expect(txPromise)
-      .to.emit(this.auction, 'AuctionCreated').withArgs(this.creatorToken.address, this.auction_instance.address)
-      .to.emit(this.creatorToken, 'Transfer').withArgs(this.auction.address, this.auction_instance.address, VALUE.div(2));
+      .to.emit(this.auction, 'AuctionCreated').withArgs(
+        this.creatorToken.address,
+        this.auction_instance.address,
+        VALUE.div(2),
+        now,
+        now + 14 * 86400,
+      )
+      .to.emit(this.creatorToken, 'Transfer').withArgs(
+        this.auction.address,
+        this.auction_instance.address,
+        VALUE.div(2),
+      );
     });
 
     it('get instance', async function () {
@@ -150,6 +160,7 @@ describe('Auction', function () {
         ).then(address => utils.attach('UniswapV2Pair', address));
 
         await expect(tx)
+        .to.emit(this.auction, 'AuctionFinalized').withArgs(this.creatorToken.address, value, VALUE.div(2))
         .to.emit(this.creatorToken, 'Approval').withArgs(this.auction.address, this.router.address, VALUE.div(2))
         .to.emit(this.creatorToken, 'Approval').withArgs(this.auction.address, this.router.address, 0)
         .to.emit(this.creatorToken, 'Transfer').withArgs(this.auction.address, pair.address, VALUE.div(2))

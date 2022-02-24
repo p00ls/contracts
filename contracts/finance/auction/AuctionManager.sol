@@ -18,7 +18,8 @@ contract AuctionFactory is AccessControl, Multicall {
 
     uint8 private _openPayments;
 
-    event AuctionCreated(address indexed token, address auction);
+    event AuctionCreated(address indexed token, address auction, uint256 tokensAuctionned, uint64 start, uint64 deadline);
+    event AuctionFinalized(address indexed token, uint256 valueRaised, uint256 tokensRemaining);
 
     modifier withPayments() {
         _openPayments = 2;
@@ -56,7 +57,7 @@ contract AuctionFactory is AccessControl, Multicall {
         // Start auction
         Auction(payable(instance)).initialize(token, timestamp, timestamp + duration);
 
-        emit AuctionCreated(address(token), instance);
+        emit AuctionCreated(address(token), instance, balance / 2, timestamp, timestamp + duration);
 
         return instance;
     }
@@ -89,6 +90,8 @@ contract AuctionFactory is AccessControl, Multicall {
             IUniswapV2Factory(router.factory()).feeTo(),
             block.timestamp
         );
+
+        emit AuctionFinalized(address(token), value, balance);
     }
 
     function getAuctionInstance(IERC20Metadata token)
