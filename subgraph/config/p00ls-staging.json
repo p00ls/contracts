@@ -1,5 +1,5 @@
 {
-  "output": "./generated/p00ls-rinkeby.",
+  "output": "./generated/p00ls-staging.",
   "chain": "rinkeby",
   "datasources": [{
     "name": "P00lsCreatorRegistry",
@@ -37,8 +37,8 @@
     ]
   },{
     "name": "VestingAirdrops",
-    "address": "0x4345c279434fAa9Fa2Db09e9BF333D0C900ac77C",
-    "startBlock": 10213129,
+    "address": "0x60516eCCBa358A5F5Ded45c369081677028a6c8d",
+    "startBlock": 10223517,
     "module": [
       "accesscontrol",
       "vesting"

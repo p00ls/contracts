@@ -51,7 +51,7 @@ export function handleTransfer(event: TransferEvent): void {
 		erc721token.save()
 
 		if (address == event.address) {
-			const creatorRegistry = new P00lsCreatorRegistry(address.toHex())
+			const creatorRegistry = P00lsCreatorRegistry.load(address.toHex()) as P00lsCreatorRegistry
 			creatorRegistry.ownershipToken = erc721token.id
 			creatorRegistry.save()
 		} else {
@@ -59,12 +59,12 @@ export function handleTransfer(event: TransferEvent): void {
 			let xCreatorAddress: Address = P00lsTokenCreator.bind(creatorAddress).xCreatorToken()
 
 			// fetch tokens
-			fetchERC20(creatorAddress).save()
-			fetchERC20(xCreatorAddress).save()
+			fetchERC20(creatorAddress)
+			fetchERC20(xCreatorAddress)
 
 			// register ownership token
-			const tokenCreator  = new P00lsTokenBase(creatorAddress.toHex())
-			const tokenXCreator = new P00lsTokenBase(xCreatorAddress.toHex())
+			const tokenCreator  = P00lsTokenBase.load(creatorAddress.toHex())  as P00lsTokenBase
+			const tokenXCreator = P00lsTokenBase.load(xCreatorAddress.toHex()) as P00lsTokenBase
 			tokenCreator.ownershipToken  = erc721token.id
 			tokenXCreator.ownershipToken = erc721token.id
 			tokenCreator.xCreatorToken   = tokenXCreator.id

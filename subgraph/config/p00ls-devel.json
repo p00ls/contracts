@@ -1,0 +1,58 @@
+{
+  "output": "./generated/p00ls-devel.",
+  "chain": "rinkeby",
+  "datasources": [{
+    "name": "P00lsCreatorRegistry",
+    "address": "0xCFD7bB8Af69bd9f879b25EAf764878A168176188",
+    "startBlock": 9984607,
+    "module": [
+      "accesscontrol",
+      "erc721",
+      "erc1967upgrade",
+      "voting",
+      "p00lscreatorregistry"
+    ]
+  },{
+    "name": "P00lsCreatorToken",
+    "templates": [
+      "erc20",
+      "erc1967upgrade",
+      "voting"
+    ]
+  },{
+    "name": "BeaconCreator",
+    "address": "0xBeFB7D5C4D199b7D7f23cc1dCB3c458FcaD937e5",
+    "startBlock": 9984607,
+    "module": [
+      "erc1967upgrade",
+      "ownable"
+    ]
+  },{
+    "name": "BeaconXCreator",
+    "address": "0xd139f8C9cb3207EEB72EDB9d15ebB8D2001fb9D3",
+    "startBlock": 9984607,
+    "module": [
+      "erc1967upgrade",
+      "ownable"
+    ]
+  },{
+    "name": "VestingAirdrops",
+    "address": "0xa9dA184E149Ec495e6DF3Aed1D6d2ed1e75BCFB8",
+    "startBlock": 9984604,
+    "module": [
+      "accesscontrol",
+      "vesting"
+    ]
+  },{
+    "name": "AuctionFactory",
+    "address": "0x5376b90DD8B2451c697713A34d035046b3A75898",
+    "startBlock": 9984612,
+    "module": [
+      "accesscontrol",
+      "auctionfactory"
+    ],
+    "templates": [
+      "erc20"
+    ]
+  }]
+}
