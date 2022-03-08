@@ -8,6 +8,8 @@
 },{
     "name": "ERC721Contract",
     "fields": [
-        { "name": "ownershipToken",  "type": "ERC721Token"  }
+        { "name": "ownershipToken",  "type": "ERC721Token"  },
+        { "name": "creatorBeacon",   "type": "Account"      },
+        { "name": "creatorXBeacon",  "type": "Account"      }
     ]
 }]

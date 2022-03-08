@@ -7,12 +7,11 @@
   "scripts": {
     "prepublish": "rimraf artifacts build cache generated",
     "prepare": "mkdir -p generated artifacts && npm run prepare:subgraph",
-    "prepare:subgraph": "graph-compiler --config config/p00ls-rinkeby.json --include src/datasources --include node_modules/@openzeppelin/subgraphs/src/datasources --export-schema --export-subgraph",
+    "prepare:subgraph": "graph-compiler --config config/p00ls-staging.json --include src/datasources --include node_modules/@openzeppelin/subgraphs/src/datasources --export-schema --export-subgraph",
     "build": "npm run build:codegen && npm run build:compile",
-    "build:codegen": "graph codegen ${SUBGRAPH:-generated/p00ls-rinkeby.subgraph.yaml}",
-    "build:compile": "graph build ${SUBGRAPH:-generated/p00ls-rinkeby.subgraph.yaml}",
-    "deploy:studio": "yarn build && graph deploy --studio ${NAME:-p00ls-rinkeby} ${SUBGRAPH:-generated/p00ls-rinkeby.subgraph.yaml}",
-    "deploy:hosted": "yarn build && graph deploy --product hosted-service ${NAME:-amxx/p00ls-rinkeby} ${SUBGRAPH:-generated/p00ls-rinkeby.subgraph.yaml}"
+    "build:codegen": "graph codegen ${SUBGRAPH:-generated/p00ls-staging.subgraph.yaml}",
+    "build:compile": "graph build ${SUBGRAPH:-generated/p00ls-staging.subgraph.yaml}",
+    "deploy:hosted": "config/deploy.sh"
   },
   "devDependencies": {
     "@amxx/graphprotocol-utils": "^1.1.0-alpha.2",

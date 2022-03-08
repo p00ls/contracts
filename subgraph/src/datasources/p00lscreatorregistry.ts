@@ -8,6 +8,10 @@ import {
 } from '@openzeppelin/subgraphs/generated/schema'
 
 import {
+	fetchAccount,
+} from '@openzeppelin/subgraphs/src/fetch/account'
+
+import {
 	fetchERC20,
 } from '@openzeppelin/subgraphs/src/fetch/erc20'
 
@@ -23,6 +27,7 @@ import {
 } from '../../generated/schema'
 
 import {
+	P00lsCreatorRegistry as P00lsCreatorRegistryContract,
 	Transfer as TransferEvent,
 } from '../../generated/p00lscreatorregistry/P00lsCreatorRegistry'
 
@@ -37,6 +42,7 @@ import {
 import {
 	erc20          as erc20Template,
 	erc1967upgrade as erc1967upgradeTemplate,
+	ownable        as ownableTemplate,
 	voting         as votingTemplate,
 } from '../../generated/templates'
 
@@ -51,9 +57,22 @@ export function handleTransfer(event: TransferEvent): void {
 		erc721token.save()
 
 		if (address == event.address) {
+			const contract              = P00lsCreatorRegistryContract.bind(event.address)
+			const beaconCreatorAddress  = contract.beaconCreator()
+			const beaconXCreatorAddress = contract.beaconXCreator()
+
 			const creatorRegistry = P00lsCreatorRegistry.load(address.toHex()) as P00lsCreatorRegistry
 			creatorRegistry.ownershipToken = erc721token.id
+			creatorRegistry.creatorBeacon  = fetchAccount(beaconCreatorAddress).id
+			creatorRegistry.creatorXBeacon = fetchAccount(beaconXCreatorAddress).id
 			creatorRegistry.save()
+
+
+			ownableTemplate.create(beaconCreatorAddress)
+			ownableTemplate.create(beaconXCreatorAddress)
+			erc1967upgradeTemplate.create(beaconCreatorAddress)
+			erc1967upgradeTemplate.create(beaconXCreatorAddress)
+
 		} else {
 			let creatorAddress:  Address = address
 			let xCreatorAddress: Address = P00lsTokenCreator.bind(creatorAddress).xCreatorToken()

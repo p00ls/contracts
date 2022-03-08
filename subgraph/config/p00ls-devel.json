@@ -17,23 +17,8 @@
     "templates": [
       "erc20",
       "erc1967upgrade",
+      "ownable",
       "voting"
-    ]
-  },{
-    "name": "BeaconCreator",
-    "address": "0xBeFB7D5C4D199b7D7f23cc1dCB3c458FcaD937e5",
-    "startBlock": 9984607,
-    "module": [
-      "erc1967upgrade",
-      "ownable"
-    ]
-  },{
-    "name": "BeaconXCreator",
-    "address": "0xd139f8C9cb3207EEB72EDB9d15ebB8D2001fb9D3",
-    "startBlock": 9984607,
-    "module": [
-      "erc1967upgrade",
-      "ownable"
     ]
   },{
     "name": "VestingAirdrops",
