@@ -22,8 +22,8 @@
     ]
   },{
     "name": "VestingAirdrops",
-    "address": "0xa9dA184E149Ec495e6DF3Aed1D6d2ed1e75BCFB8",
-    "startBlock": 9984604,
+    "address": "0x04dA19394D5c7E65a5e80448991217e7b7b46e16",
+    "startBlock": 10298910,
     "module": [
       "accesscontrol",
       "vesting"
