@@ -12,10 +12,11 @@ async function migrate(config = {}, env = {}) {
     const manager  = new MigrationManager(provider);
     signer.address =await signer.getAddress();
 
+    console.log(`network: ${network.name} (${network.chainId})`);
+    console.log(`signer: ${signer.address}`);
+
     // Put known addresses into the cache
-    await manager.ready().then(() => Promise.all(
-        Object.entries(env[network.chainId] || {}).map(([ name, address ]) => manager.cache.set(name, address))
-    ));
+    await manager.ready().then(() => Promise.all(Object.entries(env[network.chainId] || {}).map(([ name, address ]) => manager.cache.set(name, address))));
 
     const opts = { noCache: config.noCache, noConfirm: config.noConfirm };
     const isEnabled = (...keys) => keys.every(key => !config.contracts[key]?.disabled);
@@ -186,20 +187,20 @@ async function migrate(config = {}, env = {}) {
         UPGRADER:         ethers.utils.id('UPGRADER_ROLE'),
     }).map(entry => Promise.all(entry))).then(Object.fromEntries);
 
-    await Promise.all([].concat(
-        factory && factory.feeTo().then(address => address == timelock.address || factory.setFeeTo(timelock.address)),
-        factory && factory.hasRole(roles.PAIR_CREATOR,  auction.address ).then(yes => yes || factory.grantRole   (roles.PAIR_CREATOR,  auction.address )),
-        factory && factory.hasRole(roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || factory.grantRole   (roles.DEFAULT_ADMIN, timelock.address)),
-        factory && factory.hasRole(roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && factory.renounceRole(roles.DEFAULT_ADMIN, signer.address  )),
-        registry && tokenCreator && registry.beaconCreator()
-            .then(address => attach('Beacon', address))
-            .then(beacon => beacon.implementation())
-            .then(implementation => implementation == tokenCreator.address || registry.upgradeCreatorToken(tokenCreator.address)),
-        registry && tokenXCreator && registry.beaconXCreator()
-            .then(address => attach('Beacon', address))
-            .then(beacon => beacon.implementation())
-            .then(implementation => implementation == tokenXCreator.address || registry.upgradeXCreatorToken(tokenXCreator.address)),
-    ));
+    isEnabled('factory', 'timelock') && await factory.feeTo().then(address => address == timelock.address || factory.setFeeTo(timelock.address).then(tx => tx.wait()));
+    isEnabled('factory', 'auction' ) && await factory.hasRole(roles.PAIR_CREATOR,  auction.address ).then(yes => yes || factory.grantRole   (roles.PAIR_CREATOR,  auction.address ).then(tx => tx.wait()));
+    isEnabled('factory', 'timelock') && await factory.hasRole(roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || factory.grantRole   (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
+    isEnabled('factory', 'timelock') && await factory.hasRole(roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && factory.renounceRole(roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
+
+    isEnabled('registry'           ) && await registry.beaconCreator()
+        .then(address => attach('Beacon', address))
+        .then(beacon => beacon.implementation())
+        .then(implementation => implementation == tokenCreator.address || registry.upgradeCreatorToken(tokenCreator.address).then(tx => tx.wait()));
+
+    isEnabled('registry'           ) && await registry.beaconXCreator()
+        .then(address => attach('Beacon', address))
+        .then(beacon => beacon.implementation())
+        .then(implementation => implementation == tokenXCreator.address || registry.upgradeXCreatorToken(tokenXCreator.address).then(tx => tx.wait()));
 
     weth      && DEBUG(`WETH:      ${weth.address     }`);
     multicall && DEBUG(`Multicall: ${multicall.address}`);
