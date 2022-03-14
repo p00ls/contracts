@@ -10,6 +10,7 @@ async function migrate(config = {}, env = {}) {
     const signer   = env.signer   || await ethers.getSigner();
     const network  = await ethers.provider.getNetwork();
     const manager  = new MigrationManager(provider);
+    signer.address =await signer.getAddress();
 
     // Put known addresses into the cache
     await manager.ready().then(() => Promise.all(
