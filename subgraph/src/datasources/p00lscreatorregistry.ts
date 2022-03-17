@@ -48,7 +48,7 @@ import {
 
 
 export function handleTransfer(event: TransferEvent): void {
-	let address: Address = Address.fromString('0x'.concat(event.params.tokenId.toHex().slice(2).padStart(40, '0')));
+	let address: Address = Address.fromString('0x'.concat(event.params.tokenId.toHex().slice(2).padStart(40, '0')))
 
 	if (event.params.from == Address.zero()) {
 		let registry    = fetchERC721(event.address) as ERC721Contract

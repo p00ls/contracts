@@ -7,16 +7,23 @@
         { "name": "auctionFinalized",     "type": "AuctionFinalized!", "derived": "token"   }
     ]
 },{
+    "name": "AuctionStatus",
+    "enums": [
+        "STARTED",
+        "FINALIZED"
+    ]
+},{
     "name": "Auction",
     "fields": [
         { "name": "asToken",              "type": "ERC20Contract!"                          },
         { "name": "token",                "type": "ERC20Contract!"                          },
+        { "name": "status",               "type": "AuctionStatus!"                          },
         { "name": "start",                "type": "BigInt!"                                 },
         { "name": "deadline",             "type": "BigInt!"                                 },
         { "name": "auctionedAmount",      "type": "BigDecimal!"                             },
         { "name": "auctionedAmountExact", "type": "BigInt!"                                 },
-        { "name": "raisedValue",          "type": "BigDecimal"                              },
-        { "name": "raisedValueExact",     "type": "BigInt"                                  },
+        { "name": "raisedValue",          "type": "BigDecimal!"                             },
+        { "name": "raisedValueExact",     "type": "BigInt!"                                 },
         { "name": "auctionCreated",       "type": "AuctionCreated!",   "derived": "auction" },
         { "name": "auctionFinalized",     "type": "AuctionFinalized!", "derived": "auction" }
     ]
@@ -24,20 +31,20 @@
     "name": "AuctionCreated",
     "parent": "Event",
     "fields": [
-        { "name": "emitter",              "type": "Account!"       },
-        { "name": "transaction",          "type": "Transaction!"   },
-        { "name": "timestamp",            "type": "BigInt!"        },
-        { "name": "auction",              "type": "Auction!"       },
-        { "name": "token",                "type": "ERC20Contract!" }
+        { "name": "emitter",              "type": "Account!"                                },
+        { "name": "transaction",          "type": "Transaction!"                            },
+        { "name": "timestamp",            "type": "BigInt!"                                 },
+        { "name": "auction",              "type": "Auction!"                                },
+        { "name": "token",                "type": "ERC20Contract!"                          }
     ]
 },{
     "name": "AuctionFinalized",
     "parent": "Event",
     "fields": [
-        { "name": "emitter",              "type": "Account!"       },
-        { "name": "transaction",          "type": "Transaction!"   },
-        { "name": "timestamp",            "type": "BigInt!"        },
-        { "name": "auction",              "type": "Auction!"       },
-        { "name": "token",                "type": "ERC20Contract!" }
+        { "name": "emitter",              "type": "Account!"                                },
+        { "name": "transaction",          "type": "Transaction!"                            },
+        { "name": "timestamp",            "type": "BigInt!"                                 },
+        { "name": "auction",              "type": "Auction!"                                },
+        { "name": "token",                "type": "ERC20Contract!"                          }
     ]
 }]

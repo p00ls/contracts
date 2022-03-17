@@ -24,7 +24,7 @@ import {
 
 
 function fetchAirdrop(airdrop: Bytes): VestingAirdrop {
-	return new VestingAirdrop(airdrop.toHex());
+	return new VestingAirdrop(airdrop.toHex())
 }
 
 function fetchSchedule(
@@ -68,7 +68,7 @@ export function handleAirdrop(event: AirdropEvent): void {
 export function handleTokensReleased(event: TokensReleasedEvent): void {
 	let token              = fetchERC20(event.params.token)
 	let airdrop            = fetchAirdrop(event.params.airdrop)
-	let schedule           = fetchSchedule(airdrop, event.params.leaf, token, event.params.recipient, event.params.scheduleAmount);
+	let schedule           = fetchSchedule(airdrop, event.params.leaf, token, event.params.recipient, event.params.scheduleAmount)
 	schedule.releasedExact = schedule.releasedExact.plus(event.params.releasedAmount)
 	schedule.released      = decimals.toDecimals(schedule.releasedExact, token.decimals)
 	airdrop.save
