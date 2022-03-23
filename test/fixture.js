@@ -7,7 +7,7 @@ const {
 
 const migrate = require('../scripts/migrateAll');
 const merkle  = require('../scripts/utils/merkle');
-const CONFIG  = require('./config');
+const CONFIG  = require('../scripts/config');
 
 function prepare() {
     before(async function () {

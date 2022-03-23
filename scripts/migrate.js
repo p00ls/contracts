@@ -12,8 +12,8 @@ async function migrate(config = {}, env = {}) {
     const manager  = new MigrationManager(provider);
     signer.address =await signer.getAddress();
 
-    console.log(`network: ${network.name} (${network.chainId})`);
-    console.log(`signer: ${signer.address}`);
+    DEBUG(`network: ${network.name} (${network.chainId})`);
+    DEBUG(`signer:  ${signer.address}`);
 
     // Put known addresses into the cache
     await manager.ready().then(() => Promise.all(Object.entries(env[network.chainId] || {}).map(([ name, address ]) => manager.cache.set(name, address))));
@@ -34,30 +34,6 @@ async function migrate(config = {}, env = {}) {
         'multicall',
         getFactory('UniswapInterfaceMulticall', { signer }),
         { ...opts },
-    );
-
-    /*******************************************************************************************************************
-     *                                                       DAO                                                       *
-     *******************************************************************************************************************/
-    const timelock = isEnabled('timelock') && await manager.migrate(
-        'timelock',
-        getFactory('P00lsTimelock', { signer }),
-        [
-            config.contracts.timelock.mindelay,
-            [],
-            [],
-        ],
-        { ...opts },
-    );
-
-    const dao = isEnabled('dao', 'token') && timelock && await manager.migrate(
-        'dao',
-        getFactory('P00lsDAO', { signer }),
-        [
-            config.contracts.token.address,
-            timelock.address,
-        ],
-        { ...opts,  kind: 'uups' },
     );
 
     /*******************************************************************************************************************
@@ -84,6 +60,7 @@ async function migrate(config = {}, env = {}) {
         { ...opts },
     );
 
+    // ------ Creator registry ---------------------------------------------------------------------------------------
     const registry = isEnabled('registry') && await manager.migrate(
         'registry',
         getFactory('P00lsCreatorRegistry', { signer }),
@@ -95,6 +72,7 @@ async function migrate(config = {}, env = {}) {
         { ...opts, kind: 'uups', unsafeAllow: 'delegatecall' },
     );
 
+    // ------ Token templates ----------------------------------------------------------------------------------------
     // Would be better but getting 'Deployment at address 0x0000000000000000000000000000000000000000 is not registered'
     // const tokenCreator = isEnabled('registry') && registry && await upgrades.prepareUpgrade(
     //     await registry.beaconCreator(),
@@ -126,6 +104,69 @@ async function migrate(config = {}, env = {}) {
         { ...opts, noConfirm: true },
     );
 
+    // ------ Setup beacons ------------------------------------------------------------------------------------------
+    isEnabled('registry'           ) && await registry.beaconCreator()
+        .then(address => attach('Beacon', address))
+        .then(beacon => beacon.implementation())
+        .then(implementation => implementation == tokenCreator.address || registry.upgradeCreatorToken(tokenCreator.address).then(tx => tx.wait()));
+
+    isEnabled('registry'           ) && await registry.beaconXCreator()
+        .then(address => attach('Beacon', address))
+        .then(beacon => beacon.implementation())
+        .then(implementation => implementation == tokenXCreator.address || registry.upgradeXCreatorToken(tokenXCreator.address).then(tx => tx.wait()));
+
+
+    // ------ Tooling ------------------------------------------------------------------------------------------------
+    const newCreatorToken = (admin, name, symbol, xname, xsymbol, root) => registry.createToken(admin, name, symbol, xname, xsymbol, root)
+        .then(tx => tx.wait())
+        .then(receipt => receipt.events.find(({ event }) => event === 'Transfer'))
+        .then(event => event.args.tokenId)
+        .then(tokenId => ethers.utils.getAddress(ethers.utils.hexlify(ethers.utils.zeroPad(tokenId, 20))))
+        .then(address => attach('P00lsTokenCreator', address));
+
+    const getXCreatorToken = (creatorToken) => creatorToken.xCreatorToken()
+        .then(address => attach('P00lsTokenXCreator', address));
+
+    // ------ Deploy p00ls token -------------------------------------------------------------------------------------
+    const token = isEnabled('token') && await manager.cache.get('token')
+        .then(address => !opts.noCache && address
+            ? attach('P00lsTokenCreator', address)
+            : newCreatorToken(
+                signer.address,
+                config.contracts.token.name,
+                config.contracts.token.symbol,
+                config.contracts.token.xname,
+                config.contracts.token.xsymbol,
+                config.contracts.token.merkleroot,
+            ).then(instance => manager.cache.set('token', instance.address).then(_ => instance))
+        );
+
+    const xToken = isEnabled('token') && await getXCreatorToken(token);
+
+    /*******************************************************************************************************************
+     *                                                       DAO                                                       *
+     *******************************************************************************************************************/
+     const timelock = isEnabled('timelock') && await manager.migrate(
+        'timelock',
+        getFactory('P00lsTimelock', { signer }),
+        [
+            config.contracts.timelock.mindelay,
+            [],
+            [],
+        ],
+        { ...opts },
+    );
+
+    const dao = isEnabled('dao', 'token') && timelock && await manager.migrate(
+        'dao',
+        getFactory('P00lsDAO', { signer }),
+        [
+            token.address,
+            timelock.address,
+        ],
+        { ...opts,  kind: 'uups' },
+    );
+
     /*******************************************************************************************************************
      *                                                       AMM                                                       *
      *******************************************************************************************************************/
@@ -148,12 +189,13 @@ async function migrate(config = {}, env = {}) {
         { ...opts, noConfirm: true },
     );
 
-    const auction = isEnabled('auction') && router && await manager.migrate(
+    const auction = isEnabled('auction', 'token') && router && await manager.migrate(
         'auction',
         getFactory('AuctionFactory', { signer }),
         [
             signer.address,
             router.address,
+            token.address,
         ],
         { ...opts },
     );
@@ -167,7 +209,7 @@ async function migrate(config = {}, env = {}) {
         [
             signer.address,
             router.address,
-            config.contracts.token.address,
+            token.address,
         ],
         { ...opts },
     );
@@ -187,20 +229,10 @@ async function migrate(config = {}, env = {}) {
         UPGRADER:         ethers.utils.id('UPGRADER_ROLE'),
     }).map(entry => Promise.all(entry))).then(Object.fromEntries);
 
-    isEnabled('factory', 'timelock') && await factory.feeTo().then(address => address == timelock.address || factory.setFeeTo(timelock.address).then(tx => tx.wait()));
-    isEnabled('factory', 'auction' ) && await factory.hasRole(roles.PAIR_CREATOR,  auction.address ).then(yes => yes || factory.grantRole   (roles.PAIR_CREATOR,  auction.address ).then(tx => tx.wait()));
-    isEnabled('factory', 'timelock') && await factory.hasRole(roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || factory.grantRole   (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
-    isEnabled('factory', 'timelock') && await factory.hasRole(roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && factory.renounceRole(roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
-
-    isEnabled('registry'           ) && await registry.beaconCreator()
-        .then(address => attach('Beacon', address))
-        .then(beacon => beacon.implementation())
-        .then(implementation => implementation == tokenCreator.address || registry.upgradeCreatorToken(tokenCreator.address).then(tx => tx.wait()));
-
-    isEnabled('registry'           ) && await registry.beaconXCreator()
-        .then(address => attach('Beacon', address))
-        .then(beacon => beacon.implementation())
-        .then(implementation => implementation == tokenXCreator.address || registry.upgradeXCreatorToken(tokenXCreator.address).then(tx => tx.wait()));
+    isEnabled('factory', 'timelock'        ) && await factory.feeTo().then(address => address == timelock.address || factory.setFeeTo(timelock.address).then(tx => tx.wait()));
+    isEnabled('factory', 'auction', 'token') && await factory.hasRole(roles.PAIR_CREATOR,  auction.address ).then(yes => yes || factory.grantRole   (roles.PAIR_CREATOR,  auction.address ).then(tx => tx.wait()));
+    isEnabled('factory', 'timelock'        ) && await factory.hasRole(roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || factory.grantRole   (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
+    isEnabled('factory', 'timelock'        ) && await factory.hasRole(roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && factory.renounceRole(roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
 
     weth      && DEBUG(`WETH:      ${weth.address     }`);
     multicall && DEBUG(`Multicall: ${multicall.address}`);
@@ -209,6 +241,8 @@ async function migrate(config = {}, env = {}) {
     vesting   && DEBUG(`Vesting:   ${vesting.address  }`);
     escrow    && DEBUG(`Escrow:    ${escrow.address   }`);
     registry  && DEBUG(`Registry:  ${registry.address }`);
+    token     && DEBUG(`Token:     ${token.address    }`);
+    xToken    && DEBUG(`xToken:    ${xToken.address   }`);
     factory   && DEBUG(`Factory:   ${factory.address  }`);
     router    && DEBUG(`Router:    ${router.address   }`);
     auction   && DEBUG(`Auction:   ${auction.address  }`);
@@ -225,10 +259,16 @@ async function migrate(config = {}, env = {}) {
             vesting,
             escrow,
             registry,
+            token,
+            xToken,
             factory,
             router,
             auction,
             locking,
+        },
+        workflows: {
+            newCreatorToken,
+            getXCreatorToken,
         },
     };
 }

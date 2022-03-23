@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import "@amxx/hre/contracts/ENSReverseRegistration.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Multicall.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
@@ -13,95 +15,90 @@ import "./Auction.sol";
 contract AuctionFactory is AccessControl, Multicall {
     bytes32 public constant AUCTION_MANAGER_ROLE = keccak256("AUCTION_MANAGER_ROLE");
 
-    address            public immutable template = address(new Auction());
     IUniswapV2Router02 public immutable router;
+    IERC20             public immutable p00ls;
+    address            public immutable template;
 
     uint8 private _openPayments;
 
-    event AuctionCreated(address indexed token, address auction, uint256 tokensAuctioned, uint64 start, uint64 deadline);
-    event AuctionFinalized(address indexed token, address auction, uint256 valueRaised, uint256 tokensRemaining);
+    event AuctionCreated(address indexed token, address indexed payment, address auction, uint256 tokensAuctioned, uint64 start, uint64 deadline);
+    event AuctionFinalized(address indexed token, address indexed payment, address auction, uint256 amountPayment, uint256 amountToken);
 
-    modifier withPayments() {
-        _openPayments = 2;
-        _;
-        _openPayments = 1;
-    }
-
-    constructor(address _admin, IUniswapV2Router02 _router)
+    constructor(address _admin, IUniswapV2Router02 _router, IERC20 _p00ls)
     {
         _setupRole(DEFAULT_ADMIN_ROLE,   _admin);
         _setupRole(AUCTION_MANAGER_ROLE, _admin);
-        router = _router;
+        router   = _router;
+        p00ls    = _p00ls;
+        template = address(new Auction(_router.WETH()));
     }
 
-    receive()
-        external
-        payable
-    {
-        require(_openPayments == 2);
-    }
-
-    function start(IERC20Metadata token, uint64 timestamp, uint64 duration)
+    function start(IERC20 token, uint64 timestamp, uint64 duration)
         external
         onlyRole(AUCTION_MANAGER_ROLE)
-        returns (address)
+        returns (Auction)
     {
         uint256 balance = token.balanceOf(address(this));
         require(balance > 0);
+        IERC20 payment = address(token) == address(p00ls)
+            ? IERC20(router.WETH())
+            : p00ls;
 
-        address instance = Clones.cloneDeterministic(template, bytes32(bytes20(address(token))));
+        Auction instance = Auction(payable(Clones.cloneDeterministic(template, bytes32(bytes20(address(token))))));
 
         // Send half of the token to the instance - keep the rest for the AMM
-        SafeERC20.safeTransfer(token, instance, balance / 2);
+        SafeERC20.safeTransfer(token, address(instance), balance / 2);
 
         // Start auction
-        Auction(payable(instance)).initialize(token, timestamp, timestamp + duration);
+        instance.initialize(token, payment, timestamp, timestamp + duration);
 
-        emit AuctionCreated(address(token), instance, balance / 2, timestamp, timestamp + duration);
+        emit AuctionCreated(address(token), address(payment), address(instance), balance / 2, timestamp, timestamp + duration);
 
         return instance;
     }
 
-    function finalize(IERC20Metadata token)
+    function finalize(IERC20 token)
         external
         onlyRole(AUCTION_MANAGER_ROLE)
-        withPayments()
     {
-        address instance = getAuctionInstance(token);
-        Auction(payable(instance)).finalize(payable(this));
+        Auction instance = getAuctionInstance(token);
+        instance.finalize(address(this));
 
-        uint256 balance = token.balanceOf(address(this));
-        uint256 value   = address(this).balance;
-        address weth    = router.WETH();
+        IERC20  payment = instance.payment();
         address factory = router.factory();
+        uint256 balancePayment = payment.balanceOf(address(this));
+        uint256 balanceToken   = token.balanceOf(address(this));
 
         // create AMM pair if needed
-        if (IUniswapV2Factory(factory).getPair(weth, address(token)) == address(0)) {
-            IUniswapV2Factory(factory).createPair(weth, address(token));
+        if (IUniswapV2Factory(factory).getPair(address(payment), address(token)) == address(0)) {
+            IUniswapV2Factory(factory).createPair(address(payment), address(token));
         }
 
         // provide liquidity
-        SafeERC20.safeApprove(token, address(router), balance);
-        router.addLiquidityETH{value: value}(
+        payment.approve(address(router), type(uint256).max);
+        token.approve(address(router), type(uint256).max);
+        router.addLiquidity(
+            address(payment),
             address(token),
-            balance,
+            balancePayment,
+            balanceToken,
             0,
             0,
             IUniswapV2Factory(router.factory()).feeTo(),
             block.timestamp
         );
 
-        emit AuctionFinalized(address(token), instance, value, balance);
+        emit AuctionFinalized(address(token), address(payment), address(instance), balancePayment, balanceToken);
     }
 
-    function getAuctionInstance(IERC20Metadata token)
+    function getAuctionInstance(IERC20 token)
         public
         view
-        returns (address)
+        returns (Auction)
     {
         address instance = Clones.predictDeterministicAddress(template, bytes32(bytes20(address(token))));
         require(Address.isContract(instance), "No auction for this token");
-        return instance;
+        return Auction(payable(instance));
     }
 
     function setName(address ensregistry, string calldata ensname)

@@ -4,41 +4,58 @@ pragma solidity ^0.8.0;
 import "@amxx/hre/contracts/FullMath.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
+import "@openzeppelin/contracts/interfaces/IERC1363Receiver.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Multicall.sol";
 import "@openzeppelin/contracts/utils/Timers.sol";
 // import "../../utils/Timers.sol";
+import "../../env/IWETH.sol";
 
-contract Auction is ERC20PermitUpgradeable, OwnableUpgradeable, Multicall {
+import "./AuctionFactory.sol";
+
+contract Auction is
+    IERC1363Receiver,
+    ERC20PermitUpgradeable,
+    OwnableUpgradeable,
+    Multicall
+{
     using Timers for uint64;
     using Timers for Timers.Timestamp;
 
-    address public immutable auctionManager;
-
+    AuctionFactory   public immutable auctionManager;
+    IWETH            public immutable weth;
+    IERC20           public payment;
     IERC20           public token;
     Timers.Timestamp public start;
     Timers.Timestamp public deadline;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor()
+    constructor(address _weth)
         initializer()
     {
-        auctionManager = msg.sender;
+        auctionManager = AuctionFactory(msg.sender);
+        weth           = IWETH(_weth);
     }
 
-    function initialize(IERC20Metadata _token, uint64 _start, uint64 _deadline)
+    function initialize(
+        IERC20 _token,
+        IERC20 _payment,
+        uint64 _start,
+        uint64 _deadline
+    )
         external
         initializer()
     {
-        string memory _name   = string.concat("P00ls Auction Token - ", _token.name());
-        string memory _symbol = string.concat("P00lsAuction-",         _token.symbol());
+        string memory _name   = string.concat("P00ls Auction Token - ", IERC20Metadata(address(_token)).name());
+        string memory _symbol = string.concat("P00lsAuction-",          IERC20Metadata(address(_token)).symbol());
 
         __Ownable_init();
         __ERC20_init(_name, _symbol);
         __ERC20Permit_init(_name);
 
+        payment  = _payment;
         token    = _token;
         // start    = _start.toTimestamp();
         // deadline = _deadline.toTimestamp();
@@ -50,15 +67,43 @@ contract Auction is ERC20PermitUpgradeable, OwnableUpgradeable, Multicall {
         external
         payable
     {
-        commit(msg.sender);
+        require(weth == payment);
+        weth.deposit{ value: msg.value }();
+        _commit(msg.sender, msg.value);
     }
 
-    function commit(address to)
+    function commit(address to, uint256 amount)
         public
         payable
     {
+        if (msg.value > 0)
+        {
+            require(weth == payment);
+            weth.deposit{ value: msg.value }();
+            _commit(to, msg.value);
+        }
+        else
+        {
+            SafeERC20.safeTransferFrom(payment, msg.sender, address(this), amount);
+            _commit(to, amount);
+        }
+    }
+
+    function onTransferReceived(address operator, address from, uint256 value, bytes calldata data)
+        external
+        override
+        returns (bytes4)
+    {
+        require(msg.sender == address(payment));
+        _commit(from, value);
+        return this.onTransferReceived.selector;
+    }
+
+    function _commit(address user, uint256 amount)
+        internal
+    {
         require(start.isExpired() && deadline.isPending(), "Auction: auction not active");
-        _mint(to, msg.value);
+        _mint(user, amount);
     }
 
     function leave(address payable to)
@@ -67,7 +112,7 @@ contract Auction is ERC20PermitUpgradeable, OwnableUpgradeable, Multicall {
         require(start.isExpired() && deadline.isPending(), "Auction: auction not active");
         uint256 value = balanceOf(msg.sender);
         _burn(msg.sender, value);
-        Address.sendValue(to, FullMath.mulDiv(80, 100, value)); // 20% penalty
+        SafeERC20.safeTransfer(payment, to, FullMath.mulDiv(80, 100, value)); // 20% penalty
     }
 
     function withdraw(address to)
@@ -80,12 +125,12 @@ contract Auction is ERC20PermitUpgradeable, OwnableUpgradeable, Multicall {
         SafeERC20.safeTransfer(token, to, amount);
     }
 
-    function finalize(address payable to)
+    function finalize(address to)
         public
         onlyOwner()
     {
         require(deadline.isExpired(), "Auction: auction not finished");
-        Address.sendValue(to, address(this).balance);
+        SafeERC20.safeTransfer(payment, to, payment.balanceOf(address(this)));
     }
 
     function ethToAuctionned(uint256 amount)

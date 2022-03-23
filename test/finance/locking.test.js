@@ -16,13 +16,14 @@ describe('Locking', function () {
   });
 
   beforeEach(async function () {
-    // allocate pool to the auction manager
-    this.token.transfer(this.auction.address, VALUE);
+    // allocate pool to the auction manager & give token to user
+    await this.token.transfer(this.auction.address, VALUE);
+    await this.token.transfer(this.accounts.user.address, VALUE);
 
     // createtor token with allocation to the auction manager
     this.allocations = [
       { index: 0, account: this.auction.address, amount: VALUE },
-      { index: 1, account: this.locking.address,     amount: VALUE },
+      { index: 1, account: this.locking.address, amount: VALUE },
       // { index: 0, account: this.accounts.admin.address, amount: CONFIG.TARGETSUPPLY },
     ],
     this.merkletree    = utils.merkle.createMerkleTree(this.allocations.map(utils.merkle.hashAllocation));
@@ -36,30 +37,22 @@ describe('Locking', function () {
 
     // initiate auction
     const { timestamp: now } = await ethers.provider.getBlock('latest');
-    this.auction_instances = await Promise.all(
-      [
-        this.token,
-        this.creatorToken,
-      ].map(({ address }) => this.auction.start(address, now, 14 * 86400)
-        .then(() => this.auction.getAuctionInstance(address))
-        .then(address => utils.attach('Auction', address))
-      )
-    );
+    this.auction_instance = await this.auction.start(this.creatorToken.address, now, 14 * 86400)
+      .then(() => this.auction.getAuctionInstance(this.creatorToken.address))
+      .then(address => utils.attach('Auction', address));
 
     // run auctions
-    await this.accounts.user.sendTransaction({ to: this.auction_instances[0].address, value: ethers.utils.parseEther('1') });
-    await this.accounts.user.sendTransaction({ to: this.auction_instances[1].address, value: ethers.utils.parseEther('1') });
+    await this.token.transfer(this.accounts.user.address, value);
+    await this.token.connect(this.accounts.user)['transferAndCall(address,uint256)'](this.auction_instance.address, value);
     await network.provider.send('evm_increaseTime', [ 14 * 86400 ]);
-    await this.auction.finalize(this.token.address);
     await this.auction.finalize(this.creatorToken.address);
 
     // withdraw funds
-    await this.auction_instances[0].connect(this.accounts.user).withdraw(this.accounts.user.address);
-    await this.auction_instances[1].connect(this.accounts.user).withdraw(this.accounts.user.address);
+    await this.auction_instance.connect(this.accounts.user).withdraw(this.accounts.user.address);
 
     // check balances
     expect(await this.token.balanceOf(this.auction.address)).to.be.equal('0');
-    expect(await this.token.balanceOf(this.accounts.user.address)).to.be.equal(VALUE.div(2));
+    expect(await this.token.balanceOf(this.accounts.user.address)).to.be.equal(VALUE);
     expect(await this.creatorToken.balanceOf(this.auction.address)).to.be.equal('0');
     expect(await this.creatorToken.balanceOf(this.accounts.user.address)).to.be.equal(VALUE.div(2));
   });
@@ -168,8 +161,8 @@ describe('Locking', function () {
       describe('after vault setup', function () {
         beforeEach(async function () {
           this.duration = 12 * 30 * 86400;
-          await this.locking.connect(this.accounts.user).vaultSetup(this.creatorToken.address, this.duration)
-          await this.locking.connect(this.accounts.other).vaultSetup(this.creatorToken.address, this.duration / 2)
+          await this.locking.connect(this.accounts.user).vaultSetup(this.creatorToken.address, this.duration);
+          await this.locking.connect(this.accounts.other).vaultSetup(this.creatorToken.address, this.duration / 2);
         })
 
         it('lock details', async function () {
@@ -442,12 +435,12 @@ describe('Locking', function () {
         const timestamp = await ethers.provider.getBlock(tx1.blockNumber).then(({ timestamp }) => timestamp);
         const start     = timestamp +          30 * 86400
         const maturity  = start     + months * 30 * 86400
-        expect(await lockDetails.start).to.be.equal(start);
-        expect(await lockDetails.reward).to.be.equal(VALUE);
-        expect(await vaultDetails.maturity).to.be.equal(maturity);
-        expect(await vaultDetails.value).to.be.equal(VALUE.div(100));
-        expect(await vaultDetails.extra).to.be.equal(0);
-        expect(await lockDetails.totalWeight).to.be.equal(vaultDetails.weight);
+        expect(lockDetails.start).to.be.equal(start);
+        expect(lockDetails.reward).to.be.equal(VALUE);
+        expect(vaultDetails.maturity).to.be.equal(maturity);
+        expect(vaultDetails.value).to.be.equal(VALUE.div(100));
+        expect(vaultDetails.extra).to.be.equal(0);
+        expect(lockDetails.totalWeight).to.be.equal(vaultDetails.weight);
 
         // console.log(months, vaultDetails.weight.toString())
       });
@@ -483,12 +476,12 @@ describe('Locking', function () {
         const timestamp = await ethers.provider.getBlock(tx1.blockNumber).then(({ timestamp }) => timestamp);
         const start     = timestamp +     30 * 86400
         const maturity  = start     + 3 * 30 * 86400
-        expect(await lockDetails.start).to.be.equal(start);
-        expect(await lockDetails.reward).to.be.equal(VALUE);
-        expect(await vaultDetails.maturity).to.be.equal(maturity);
-        expect(await vaultDetails.value).to.be.equal(VALUE.div(100));
-        expect(await vaultDetails.extra).to.be.equal(VALUE.div(100).mul(factor));
-        expect(await lockDetails.totalWeight).to.be.equal(vaultDetails.weight);
+        expect(lockDetails.start).to.be.equal(start);
+        expect(lockDetails.reward).to.be.equal(VALUE);
+        expect(vaultDetails.maturity).to.be.equal(maturity);
+        expect(vaultDetails.value).to.be.equal(VALUE.div(100));
+        expect(vaultDetails.extra).to.be.equal(VALUE.div(100).mul(factor));
+        expect(lockDetails.totalWeight).to.be.equal(vaultDetails.weight);
 
         // console.log(factor, vaultDetails.weight.toString())
       });
