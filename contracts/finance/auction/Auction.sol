@@ -15,6 +15,7 @@ import "../../env/IWETH.sol";
 
 import "./AuctionFactory.sol";
 
+/// @custom:security-contact security@p00ls.com
 contract Auction is
     IERC1363Receiver,
     ERC20PermitUpgradeable,

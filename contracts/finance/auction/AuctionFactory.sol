@@ -12,6 +12,7 @@ import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 import "./Auction.sol";
 
+/// @custom:security-contact security@p00ls.com
 contract AuctionFactory is AccessControl, Multicall {
     bytes32 public constant AUCTION_MANAGER_ROLE = keccak256("AUCTION_MANAGER_ROLE");
 

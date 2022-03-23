@@ -15,6 +15,7 @@ import "../amm/libraries/UniswapV2Math.sol";
 import "../../tokens/extensions/IERC1363.sol";
 // import "../../utils/Timers.sol";
 
+/// @custom:security-contact security@p00ls.com
 contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender {
     using Distributions for Distributions.Uint256;
     using Splitters     for Splitters.Splitter;

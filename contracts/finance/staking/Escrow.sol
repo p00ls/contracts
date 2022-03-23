@@ -14,6 +14,7 @@ interface IEscrowReceiver {
     function onEscrowRelease(uint256) external;
 }
 
+/// @custom:security-contact security@p00ls.com
 contract Escrow is AccessControl, Multicall {
     using SafeCast for uint256;
 
