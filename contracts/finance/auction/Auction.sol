@@ -118,7 +118,7 @@ contract Auction is
     {
         require(deadline.isExpired(), "Auction: auction not finished");
         uint256 value = balanceOf(msg.sender);
-        uint256 amount = ethToAuctionned(value); // must be computed BEFORE the _burn operation
+        uint256 amount = paymentToToken(value); // must be computed BEFORE the _burn operation
         _burn(msg.sender, value);
         SafeERC20.safeTransfer(token, to, amount);
     }
@@ -131,7 +131,7 @@ contract Auction is
         SafeERC20.safeTransfer(payment, to, payment.balanceOf(address(this)));
     }
 
-    function ethToAuctionned(uint256 amount)
+    function paymentToToken(uint256 amount)
        public
        view
        returns (uint256)
@@ -139,7 +139,7 @@ contract Auction is
         return FullMath.mulDiv(amount, totalSupply(), token.balanceOf(address(this)));
     }
 
-    function auctionnedToEth(uint256 amount)
+    function tokenToPayment(uint256 amount)
         public
         view
         returns (uint256)

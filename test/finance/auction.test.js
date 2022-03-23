@@ -140,7 +140,7 @@ describe('Auction', function () {
         });
 
         it('can withdraw', async function () {
-          expect(await this.auction_instance.ethToAuctionned(value)).to.be.equal(VALUE.div(2));
+          expect(await this.auction_instance.paymentToToken(value)).to.be.equal(VALUE.div(2));
 
           expect(await this.auction_instance.connect(this.accounts.user).withdraw(this.accounts.other.address))
           .to.emit(this.auction_instance, 'Transfer').withArgs(this.accounts.user.address, ethers.constants.AddressZero, value)
@@ -300,7 +300,7 @@ describe('Auction', function () {
         });
 
         it('can withdraw', async function () {
-          expect(await this.auction_instance.ethToAuctionned(value)).to.be.equal(VALUE.div(2));
+          expect(await this.auction_instance.paymentToToken(value)).to.be.equal(VALUE.div(2));
 
           expect(await this.auction_instance.connect(this.accounts.user).withdraw(this.accounts.other.address))
           .to.emit(this.auction_instance, 'Transfer').withArgs(this.accounts.user.address, ethers.constants.AddressZero, value)
