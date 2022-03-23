@@ -12,6 +12,10 @@ import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 import "./Auction.sol";
 
+/**
+ * @dev WARNING: the P00ls auction must be finalized before the other auctions. Otherwize, the p00ls tokens reserved
+ * for providing liquidity in the ETH <> P00ls pair would be drained in the P00ls <> Creactor pair.
+ */
 /// @custom:security-contact security@p00ls.com
 contract AuctionFactory is AccessControl, Multicall {
     bytes32 public constant AUCTION_MANAGER_ROLE = keccak256("AUCTION_MANAGER_ROLE");
