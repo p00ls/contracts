@@ -101,9 +101,9 @@ describe('Locking', function () {
 
     describe('after lock setup', function () {
       beforeEach(async function () {
-        const tx         = await this.locking.connect(this.accounts.admin).lockSetup(this.creatorToken.address);
-        this.start       = await ethers.provider.getBlock(tx.blockNumber).then(({timestamp }) => timestamp);
-        this.DELAY       = await this.locking.DELAY();
+        const tx          = await this.locking.connect(this.accounts.admin).lockSetup(this.creatorToken.address);
+        this.start        = await ethers.provider.getBlock(tx.blockNumber).then(({timestamp }) => timestamp);
+        this.DELAY        = await this.locking.DELAY();
         this.MIN_DURATION = await this.locking.MIN_DURATION();
         this.MAX_DURATION = await this.locking.MAX_DURATION();
       })

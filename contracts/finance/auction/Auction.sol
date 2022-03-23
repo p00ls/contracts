@@ -67,9 +67,7 @@ contract Auction is
         external
         payable
     {
-        require(weth == payment);
-        weth.deposit{ value: msg.value }();
-        _commit(msg.sender, msg.value);
+        commit(msg.sender, 0);
     }
 
     function commit(address to, uint256 amount)

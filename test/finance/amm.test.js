@@ -110,7 +110,5 @@ describe('AMM', function () {
       expect(await unipair.balanceOf(this.timelock.address)).to.be.gt(0);
       expect(await unipair.balanceOf(this.accounts.user.address)).to.be.equal(0);
     });
-
-
   });
 });
