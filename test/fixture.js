@@ -1,3 +1,5 @@
+const hre = require('hardhat');
+
 const {
     attach,
     deploy,

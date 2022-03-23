@@ -27,8 +27,16 @@ async function migrateAll(config, env) {
         env,
     );
 
+    // claim all allocations
     await Promise.all(allocations.map(allocation => migration.contracts.token.claim(allocation.index, allocation.account, allocation.amount, merkletree.getHexProof(merkle.hashAllocation(allocation)))));
-    await migration.contracts.registry.setBaseURI(config.contracts.registry.baseuri);
+
+    // create a fake signer for the timelock (for easier testing)
+    await hre.network.provider.request({ method: 'hardhat_impersonateAccount', params: [ migration.contracts.timelock.address ] });
+    accounts.superAdmin = await ethers.getSigner(migration.contracts.timelock.address);
+    await accounts[0].sendTransaction({ to: accounts.superAdmin.address, value: ethers.utils.parseEther('1') });
+
+    // set uri using the super admin
+    await migration.contracts.registry.connect(accounts.superAdmin).setBaseURI(config.contracts.registry.baseuri);
 
     return Object.assign(migration, { accounts });
 }

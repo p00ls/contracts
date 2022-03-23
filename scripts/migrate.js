@@ -21,6 +21,11 @@ async function migrate(config = {}, env = {}) {
     const opts = { noCache: config.noCache, noConfirm: config.noConfirm };
     const isEnabled = (...keys) => keys.every(key => !config.contracts[key]?.disabled);
 
+    // encode dependency
+    config.contracts['auction'] = isEnabled('auction', 'token');
+    config.contracts['dao'    ] = isEnabled('dao',     'token');
+    config.contracts['locking'] = isEnabled('locking', 'token');
+
     /*******************************************************************************************************************
      *                                                   Environment                                                   *
      *******************************************************************************************************************/
@@ -105,12 +110,12 @@ async function migrate(config = {}, env = {}) {
     );
 
     // ------ Setup beacons ------------------------------------------------------------------------------------------
-    isEnabled('registry'           ) && await registry.beaconCreator()
+    isEnabled('registry') && await registry.beaconCreator()
         .then(address => attach('Beacon', address))
         .then(beacon => beacon.implementation())
         .then(implementation => implementation == tokenCreator.address || registry.upgradeCreatorToken(tokenCreator.address).then(tx => tx.wait()));
 
-    isEnabled('registry'           ) && await registry.beaconXCreator()
+    isEnabled('registry') && await registry.beaconXCreator()
         .then(address => attach('Beacon', address))
         .then(beacon => beacon.implementation())
         .then(implementation => implementation == tokenXCreator.address || registry.upgradeXCreatorToken(tokenXCreator.address).then(tx => tx.wait()));
@@ -157,7 +162,7 @@ async function migrate(config = {}, env = {}) {
         { ...opts },
     );
 
-    const dao = isEnabled('dao', 'token') && timelock && await manager.migrate(
+    const dao = isEnabled('dao') && timelock && await manager.migrate(
         'dao',
         getFactory('P00lsDAO', { signer }),
         [
@@ -189,7 +194,7 @@ async function migrate(config = {}, env = {}) {
         { ...opts, noConfirm: true },
     );
 
-    const auction = isEnabled('auction', 'token') && router && await manager.migrate(
+    const auction = isEnabled('auction') && router && await manager.migrate(
         'auction',
         getFactory('AuctionFactory', { signer }),
         [
@@ -203,7 +208,7 @@ async function migrate(config = {}, env = {}) {
     /*******************************************************************************************************************
      *                                                     Locking                                                     *
      *******************************************************************************************************************/
-    const locking = isEnabled('locking', 'token') && router && await manager.migrate(
+    const locking = isEnabled('locking') && router && await manager.migrate(
         'locking',
         getFactory('Locking', { signer }),
         [
@@ -224,15 +229,30 @@ async function migrate(config = {}, env = {}) {
         AUCTION_MANAGER:  ethers.utils.id('AUCTION_MANAGER_ROLE'),
         ESCROW_MANAGER:   ethers.utils.id('ESCROW_MANAGER_ROLE'),
         LOCKING_MANAGER:  ethers.utils.id('LOCKING_MANAGER_ROLE'),
-        METADATA_MANAGER: ethers.utils.id('METADATA_MANAGER_ROLE'),
         REGISTRY_MANAGER: ethers.utils.id('REGISTRY_MANAGER_ROLE'),
         UPGRADER:         ethers.utils.id('UPGRADER_ROLE'),
     }).map(entry => Promise.all(entry))).then(Object.fromEntries);
 
-    isEnabled('factory', 'timelock'        ) && await factory.feeTo().then(address => address == timelock.address || factory.setFeeTo(timelock.address).then(tx => tx.wait()));
-    isEnabled('factory', 'auction', 'token') && await factory.hasRole(roles.PAIR_CREATOR,  auction.address ).then(yes => yes || factory.grantRole   (roles.PAIR_CREATOR,  auction.address ).then(tx => tx.wait()));
-    isEnabled('factory', 'timelock'        ) && await factory.hasRole(roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || factory.grantRole   (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
-    isEnabled('factory', 'timelock'        ) && await factory.hasRole(roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && factory.renounceRole(roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
+    // Transfer ownership of the registry
+    isEnabled('timelock', 'registry'          ) && await registry.ownerOf(registry.address).then(owner => owner == timelock.address || registry.transferFrom(owner, timelock.address, registry.address));
+    isEnabled('timelock', 'registry'          ) && await factory.hasRole(roles.UPGRADER,      signer.address  ).then(yes => yes && factory.renounceRole(roles.UPGRADER, signer.address).then(tx => tx.wait()));
+    // Set fees and factory roles
+    isEnabled('timelock', 'factory'           ) && await factory.feeTo().then(address => address == timelock.address || factory.setFeeTo(timelock.address).then(tx => tx.wait()));
+    isEnabled('timelock', 'factory', 'auction') && await factory.hasRole(roles.PAIR_CREATOR,  auction.address ).then(yes => yes || factory.grantRole   (roles.PAIR_CREATOR,  auction.address ).then(tx => tx.wait()));
+    isEnabled('timelock', 'factory'           ) && await factory.hasRole(roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || factory.grantRole   (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
+    isEnabled('timelock', 'factory'           ) && await factory.hasRole(roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && factory.renounceRole(roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
+    // Transfer control of the vesting factory
+    isEnabled('timelock', 'vesting'           ) && await vesting.hasRole(roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || vesting.grantRole   (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
+    isEnabled('timelock', 'vesting'           ) && await vesting.hasRole(roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && vesting.renounceRole(roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
+    // Transfer control of the auction factory
+    isEnabled('timelock', 'auction'           ) && await auction.hasRole(roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || auction.grantRole   (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
+    isEnabled('timelock', 'auction'           ) && await auction.hasRole(roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && auction.renounceRole(roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
+    // Transfer control of the escrow
+    isEnabled('timelock', 'escrow'            ) && await escrow.hasRole (roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || escrow.grantRole    (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
+    isEnabled('timelock', 'escrow'            ) && await escrow.hasRole (roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && escrow.renounceRole (roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
+    // Transfer control of the locking
+    isEnabled('timelock', 'locking'           ) && await locking.hasRole(roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || locking.grantRole   (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
+    isEnabled('timelock', 'locking'           ) && await locking.hasRole(roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && locking.renounceRole(roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
 
     weth      && DEBUG(`WETH:      ${weth.address     }`);
     multicall && DEBUG(`Multicall: ${multicall.address}`);
