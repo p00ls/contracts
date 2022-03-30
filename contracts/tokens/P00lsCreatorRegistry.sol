@@ -99,7 +99,7 @@ contract P00lsCreatorRegistry is
     }
 
     /**
-     *Default admin is overriden to use the NFT mechanism
+     * Default admin is overriden to use the NFT mechanism
      */
     function hasRole(bytes32 role, address account)
         public
