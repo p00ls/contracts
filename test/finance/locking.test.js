@@ -20,7 +20,7 @@ describe('Locking', function () {
     await this.token.transfer(this.auction.address, VALUE);
     await this.token.transfer(this.accounts.user.address, VALUE);
 
-    // createtor token with allocation to the auction manager
+    // creator token with allocation to the auction manager
     this.allocations = [
       { index: 0, account: this.auction.address, amount: VALUE },
       { index: 1, account: this.locking.address, amount: VALUE },
