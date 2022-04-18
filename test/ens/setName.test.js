@@ -27,15 +27,15 @@ describe('ENS', function () {
   });
 
   describe('setName', function () {
-    for (const name of [
-      'registry',
-      'token',
-      'xToken',
-      'vesting',
-      'escrow',
-      'auction',
-      'locking',
-    ]) {
+    for (const [ name, user ] of Object.entries({
+      'registry': 'superAdmin',
+      'token':    'admin',
+      'xToken':   'admin',
+      'vesting':  'superAdmin',
+      'escrow':   'superAdmin',
+      'auction':  'superAdmin',
+      'locking':  'superAdmin',
+    })) {
 
       it(`setName for ${name}`, async function () {
         // create subdomain
@@ -54,7 +54,7 @@ describe('ENS', function () {
         )).to.be.not.reverted;
 
         // setname
-        await expect(this.contracts[name].setName(
+        await expect(this.contracts[name].connect(this.accounts[user]).setName(
           this.ens.registry.address,
           `${name}.p00ls.eth`,
         )).to.be.not.reverted;

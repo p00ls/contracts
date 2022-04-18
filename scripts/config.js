@@ -3,11 +3,11 @@ const ethers = require("ethers");
 module.exports = {
   contracts: {
     token: {
-      disabled: true, // this will also disable the DAO and Locking being deployed
       name: "P00ls token",
       symbol: "$00",
       xname: "P00ls X token",
-      xsymbol: "x$00"
+      xsymbol: "x$00",
+      merkleroot: ethers.constants.HashZero,
     },
     timelock: {
       mindelay: 86400 * 7,
