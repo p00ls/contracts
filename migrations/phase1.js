@@ -1,7 +1,7 @@
 const { upgrades                             } = require('hardhat');
 const { MigrationManager, getFactory, attach } = require('@amxx/hre/scripts');
-const DEBUG = require('debug')('p00ls');
-const merkle  = require('../scripts/utils/merkle');
+const DEBUG  = require('debug')('p00ls');
+const merkle = require('../scripts/utils/merkle');
 
 const roles = {
     DEFAULT_ADMIN:    ethers.constants.HashZero,
@@ -119,8 +119,8 @@ async function migrate(config = {}, env = {}) {
 
     // ------ Deploy p00ls token -------------------------------------------------------------------------------------
     const allocations = [
-        { index: 0, account: config.admin,    amount: 1 },
-        { index: 1, account: vesting.address, amount: 1 },
+        { index: 0, account: config.admin,    amount: ethers.utils.parseEther("850000000") },
+        { index: 1, account: vesting.address, amount: ethers.utils.parseEther("150000000") },
     ];
 
     const merkletree = merkle.createMerkleTree(allocations.map(merkle.hashAllocation));
