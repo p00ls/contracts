@@ -8,7 +8,11 @@ generated/
 
 coverage.json
 
+.openzeppelin/rinkeby.json
+.openzeppelin/unknown-1337.json
+
 .*
 !.env.example
 !.github
-!.openzeppelin/goerli.json
+!.openzeppelin
+!.cache-1.json
