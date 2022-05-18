@@ -1,0 +1,22 @@
+  - kind: ethereum/contract
+    name: {id}
+    network: {chain}
+    source:
+      address: "{address}"
+      abi: VestedAirdrops
+      startBlock: {startBlock}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - VestingAirdrop
+        - VestingSchedule
+      abis:
+        - name: VestedAirdrops
+          file: {root}/../artifacts/contracts/finance/vesting/VestedAirdrops.sol/VestedAirdrops.json
+      eventHandlers:
+        - event: Airdrop(indexed bytes32,bool)
+          handler: handleAirdrop
+        - event: TokensReleased(indexed bytes32,indexed bytes32,address,address,uint256,uint256)
+          handler: handleTokensReleased

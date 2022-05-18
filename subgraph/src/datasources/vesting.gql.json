@@ -1,0 +1,43 @@
+[{
+    "name": "VestingAirdrop",
+    "fields": [
+        { "name": "enabled",       "type": "Boolean!"                                      },
+        { "name": "schedules",     "type": "VestingSchedule!",       "derived": "airdrop"  },
+        { "name": "enableEvent",   "type": "VestingAirdropEnabled!", "derived": "airdrop"  }
+    ]
+},{
+    "name": "VestingSchedule",
+    "fields": [
+        { "name": "airdrop",       "type": "VestingAirdrop!"                               },
+        { "name": "token",         "type": "ERC20Contract!"                                },
+        { "name": "recipient",     "type": "Account!"                                      },
+        { "name": "amount",        "type": "BigDecimal!"                                   },
+        { "name": "amountExact",   "type": "BigInt!"                                       },
+        { "name": "released",      "type": "BigDecimal!"                                   },
+        { "name": "releasedExact", "type": "BigInt!"                                       },
+        { "name": "releaseEvent",  "type": "TokensReleased!",        "derived": "schedule" }
+    ]
+},{
+    "name": "VestingAirdropEnabled",
+    "parent": "Event",
+    "immutable": true,
+    "fields": [
+        { "name": "emitter",       "type": "Account!"                                      },
+        { "name": "transaction",   "type": "Transaction!"                                  },
+        { "name": "timestamp",     "type": "BigInt!"                                       },
+        { "name": "airdrop",       "type": "VestingAirdrop!"                               },
+        { "name": "enabled",       "type": "Boolean!"                                      }
+    ]
+},{
+    "name": "TokensReleased",
+    "parent": "Event",
+    "immutable": true,
+    "fields": [
+        { "name": "emitter",     "type": "Account!"                                        },
+        { "name": "transaction", "type": "Transaction!"                                    },
+        { "name": "timestamp",   "type": "BigInt!"                                         },
+        { "name": "schedule",    "type": "VestingSchedule!"                                },
+        { "name": "value",       "type": "BigDecimal!"                                     },
+        { "name": "valueExact",  "type": "BigInt!"                                         }
+    ]
+}]

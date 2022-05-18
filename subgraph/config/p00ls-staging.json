@@ -1,0 +1,43 @@
+{
+  "output": "./generated/p00ls-staging.",
+  "chain": "rinkeby",
+  "datasources": [{
+    "name": "P00lsCreatorRegistry",
+    "address": "0xd4Ad682C9B716Aef9407Aa1C994a59F45ec4d228",
+    "startBlock": 10328465,
+    "module": [
+      "accesscontrol",
+      "erc721",
+      "erc1967upgrade",
+      "voting",
+      "p00lscreatorregistry"
+    ]
+  },{
+    "name": "P00lsCreatorToken",
+    "templates": [
+      "erc20",
+      "erc1967upgrade",
+      "ownable",
+      "voting"
+    ]
+  },{
+    "name": "VestingAirdrops",
+    "address": "0x44671D9672E512fac8d4952B7F1027aC0c6b6cf4",
+    "startBlock": 10328462,
+    "module": [
+      "accesscontrol",
+      "vesting"
+    ]
+  },{
+    "name": "AuctionFactory",
+    "address": "0x842e0FBe7bd30B13763348f8C61e1a68132149aC",
+    "startBlock": 10328471,
+    "module": [
+      "accesscontrol",
+      "auctionfactory"
+    ],
+    "templates": [
+      "erc20"
+    ]
+  }]
+}
