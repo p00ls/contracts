@@ -1,0 +1,32 @@
+{
+  "output": "./generated/p00ls.",
+  "chain": "mainnet",
+  "datasources": [{
+    "name": "P00lsCreatorRegistry",
+    "address": "0x7335dB10622eeCdEFfAdAee7F2454e37aedf7002",
+    "startBlock": 14629261,
+    "module": [
+      "accesscontrol",
+      "erc721",
+      "erc1967upgrade",
+      "voting",
+      "p00lscreatorregistry"
+    ]
+  },{
+    "name": "P00lsCreatorToken",
+    "templates": [
+      "erc20",
+      "erc1967upgrade",
+      "ownable",
+      "voting"
+    ]
+  },{
+    "name": "VestingAirdrops",
+    "address": "0x9fD7B5BE060bD5961fB645B6A5F93c1C05f55AFa",
+    "startBlock": 14629252,
+    "module": [
+      "accesscontrol",
+      "vesting"
+    ]
+  }]
+}
