@@ -31,12 +31,14 @@ import {
 
 export function handleAuctionCreated(event: AuctionCreatedEvent): void {
 	let token         = fetchERC20(event.params.token)
+	let payment       = fetchERC20(event.params.payment)
 	let auction_token = fetchERC20(event.params.auction)
 
 	let auction                  = new Auction(auction_token.id)
 	auction.asToken              = auction_token.id
 	auction.status               = "STARTED"
 	auction.token                = token.id
+	auction.token                = payment.id
 	auction.start                = event.params.start
 	auction.deadline             = event.params.deadline
 	auction.auctionedAmountExact = event.params.tokensAuctioned
@@ -67,7 +69,7 @@ export function handleAuctionFinalized(event: AuctionFinalizedEvent): void {
 
 	let auction              = Auction.load(auction_token.id) as Auction
 	auction.status           = "FINALIZED"
-	auction.raisedValueExact = auction.raisedValueExact.plus(event.params.valueRaised)
+	auction.raisedValueExact = auction.raisedValueExact.plus(event.params.amountPayment)
 	auction.raisedValue      = decimals.toDecimals(auction.raisedValueExact)
 	auction.save()
 

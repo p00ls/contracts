@@ -17,7 +17,7 @@
         - name: AuctionFactory
           file: {root}/../artifacts/contracts/finance/auction/AuctionFactory.sol/AuctionFactory.json
       eventHandlers:
-        - event: AuctionCreated(indexed address,address,uint256,uint64,uint64)
+        - event: AuctionCreated(indexed address,indexed address,address,uint256,uint64,uint64)
           handler: handleAuctionCreated
-        - event: AuctionFinalized(indexed address,address,uint256,uint256)
+        - event: AuctionFinalized(indexed address,indexed address,address,uint256,uint256)
           handler: handleAuctionFinalized

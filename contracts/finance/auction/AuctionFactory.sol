@@ -43,7 +43,7 @@ contract AuctionFactory is AccessControl, Multicall {
         onlyRole(AUCTION_MANAGER_ROLE)
         returns (Auction)
     {
-        uint256 balance = token.balanceOf(address(this));
+        uint256 balance = token.balanceOf(address(this)) / 2;
         require(balance > 0);
         IERC20 payment = address(token) == address(p00ls)
             ? IERC20(router.WETH())
@@ -52,12 +52,12 @@ contract AuctionFactory is AccessControl, Multicall {
         Auction instance = Auction(payable(Clones.cloneDeterministic(template, bytes32(bytes20(address(token))))));
 
         // Send half of the token to the instance - keep the rest for the AMM
-        SafeERC20.safeTransfer(token, address(instance), balance / 2);
+        SafeERC20.safeTransfer(token, address(instance), balance);
 
         // Start auction
         instance.initialize(token, payment, timestamp, timestamp + duration);
 
-        emit AuctionCreated(address(token), address(payment), address(instance), balance / 2, timestamp, timestamp + duration);
+        emit AuctionCreated(address(token), address(payment), address(instance), balance, timestamp, timestamp + duration);
 
         return instance;
     }

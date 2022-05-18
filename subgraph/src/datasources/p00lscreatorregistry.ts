@@ -61,7 +61,7 @@ export function handleTransfer(event: TransferEvent): void {
 			const beaconCreatorAddress  = contract.beaconCreator()
 			const beaconXCreatorAddress = contract.beaconXCreator()
 
-			const creatorRegistry = P00lsCreatorRegistry.load(address.toHex()) as P00lsCreatorRegistry
+			const creatorRegistry = P00lsCreatorRegistry.load(address) as P00lsCreatorRegistry
 			creatorRegistry.ownershipToken = erc721token.id
 			creatorRegistry.creatorBeacon  = fetchAccount(beaconCreatorAddress).id
 			creatorRegistry.creatorXBeacon = fetchAccount(beaconXCreatorAddress).id
@@ -82,8 +82,8 @@ export function handleTransfer(event: TransferEvent): void {
 			fetchERC20(xCreatorAddress)
 
 			// register ownership token
-			const tokenCreator  = P00lsTokenBase.load(creatorAddress.toHex())  as P00lsTokenBase
-			const tokenXCreator = P00lsTokenBase.load(xCreatorAddress.toHex()) as P00lsTokenBase
+			const tokenCreator  = P00lsTokenBase.load(creatorAddress)  as P00lsTokenBase
+			const tokenXCreator = P00lsTokenBase.load(xCreatorAddress) as P00lsTokenBase
 			tokenCreator.ownershipToken  = erc721token.id
 			tokenXCreator.ownershipToken = erc721token.id
 			tokenCreator.xCreatorToken   = tokenXCreator.id
