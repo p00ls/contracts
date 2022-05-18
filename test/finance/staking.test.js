@@ -50,7 +50,7 @@ describe('Staking', function () {
 
         await expect(this.escrow.connect(this.accounts.admin).configure(this.creatorToken.address, this.start, this.stop))
         .to.emit(this.escrow, 'NewStaking')
-        .withArgs(this.creatorToken.address, this.start, this.stop);
+        .withArgs(this.creatorToken.address, this.xCreatorToken.address, this.start, this.stop);
       });
 
       it('staking details', async function () {

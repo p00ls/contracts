@@ -16,8 +16,8 @@ describe('$Crea Token', function () {
   });
 
   it('check', async function () {
-    expect(await this.registry.owner()).to.be.equal(this.accounts.admin.address);
-    expect(await this.registry.ownerOf(this.registry.address)).to.be.equal(this.accounts.admin.address);
+    expect(await this.registry.owner()).to.be.equal(this.timelock.address);
+    expect(await this.registry.ownerOf(this.registry.address)).to.be.equal(this.timelock.address);
   });
 
   describe('with collection', function () {
@@ -54,21 +54,21 @@ describe('$Crea Token', function () {
         expect(await this.registry.symbol())
           .to.be.equal(CONFIG.contracts.registry.symbol);
         expect(await this.registry.owner())
-          .to.be.equal(this.accounts.admin.address);
+          .to.be.equal(this.timelock.address);
 
         expect(await this.registry.ownerOf(this.registry.address))
-          .to.be.equal(this.accounts.admin.address);
+          .to.be.equal(this.timelock.address);
         expect(await this.registry.tokenURI(this.registry.address))
           .to.be.equal(`${CONFIG.contracts.registry.baseuri}${ethers.BigNumber.from(this.registry.address).toString()}`);
         expect(await this.registry.admin())
-          .to.be.equal(this.accounts.admin.address);
+          .to.be.equal(this.timelock.address);
 
         expect(await this.registry.ownerOf(this.creatorToken.address))
           .to.be.equal(this.accounts.artist.address);
         expect(await this.registry.tokenURI(this.creatorToken.address))
           .to.be.equal(`${CONFIG.contracts.registry.baseuri}${ethers.BigNumber.from(this.creatorToken.address).toString()}`);
         expect(await this.creatorToken.admin())
-          .to.be.equal(this.accounts.admin.address);
+          .to.be.equal(this.timelock.address);
       });
 
       it('Creator token', async function () {
@@ -93,7 +93,7 @@ describe('$Crea Token', function () {
     describe('Metadata', function () {
       describe('registry', function () {
         it('Authorized', async function () {
-          await expect(this.registry.connect(this.accounts.admin).setBaseURI('http://some-base-uri/'))
+          await expect(this.registry.connect(this.accounts.superAdmin).setBaseURI('http://some-base-uri/'))
             .to.be.not.reverted;
 
           expect(await this.registry.tokenURI(this.creatorToken.address))
@@ -116,7 +116,7 @@ describe('$Crea Token', function () {
         });
 
         it('Protected', async function () {
-          await expect(this.creatorToken.connect(this.accounts.admin).setTokenURI('http://not-a-valid-uri/'))
+          await expect(this.creatorToken.connect(this.accounts.superAdmin).setTokenURI('http://not-a-valid-uri/'))
             .to.be.reverted;
         });
       });
@@ -131,7 +131,7 @@ describe('$Crea Token', function () {
         });
 
         it('Protected', async function () {
-          await expect(this.xCreatorToken.connect(this.accounts.admin).setTokenURI('http://not-a-valid-uri/'))
+          await expect(this.xCreatorToken.connect(this.accounts.superAdmin).setTokenURI('http://not-a-valid-uri/'))
             .to.be.reverted;
         });
       });
@@ -145,8 +145,8 @@ describe('$Crea Token', function () {
         });
 
         it('Authorized', async function () {
-          await expect(this.registry.connect(this.accounts.admin).transferOwnership(this.accounts.other.address))
-          .to.emit(this.registry, 'Transfer').withArgs(this.accounts.admin.address, this.accounts.other.address, this.registry.address);
+          await expect(this.registry.connect(this.accounts.superAdmin).transferOwnership(this.accounts.other.address))
+          .to.emit(this.registry, 'Transfer').withArgs(this.accounts.superAdmin.address, this.accounts.other.address, this.registry.address);
         });
       });
 

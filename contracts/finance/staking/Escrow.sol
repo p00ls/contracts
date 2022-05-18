@@ -14,6 +14,7 @@ interface IEscrowReceiver {
     function onEscrowRelease(uint256) external;
 }
 
+/// @custom:security-contact security@p00ls.com
 contract Escrow is AccessControl, Multicall {
     using SafeCast for uint256;
 
@@ -22,9 +23,10 @@ contract Escrow is AccessControl, Multicall {
     /*****************************************************************************************************************
      *                                                    Storage                                                    *
      *****************************************************************************************************************/
+    // fits into a single slot
     struct Details {
-        uint64  lastUpdate;
-        uint64  deadline;
+        uint48  lastUpdate;
+        uint48  deadline;
         address beneficiary;
     }
 
@@ -33,7 +35,7 @@ contract Escrow is AccessControl, Multicall {
     /*****************************************************************************************************************
      *                                                    Events                                                     *
      *****************************************************************************************************************/
-    event NewStaking(IERC20 indexed token, uint64 start, uint64 stop);
+    event NewStaking(IERC20 indexed token, address indexed beneficiary, uint48 start, uint48 stop);
 
     /*****************************************************************************************************************
      *                                                   Functions                                                   *
@@ -44,27 +46,48 @@ contract Escrow is AccessControl, Multicall {
         _setupRole(ESCROW_MANAGER_ROLE, _admin);
     }
 
-    function configure(IP00lsTokenCreator token, uint64 start, uint64 stop)
+    function configure(IP00lsTokenCreator token, uint48 start, uint48 stop)
         external
         onlyRole(ESCROW_MANAGER_ROLE)
     {
-        require(start > 0, "Invalid input: start should be non 0");
-        require(stop > start, "Invalid input: start must be before stop");
-
-        Details storage manifest = manifests[token];
-        require(
-            manifest.beneficiary == address(0) || token.balanceOf(address(this)) == 0,
-            "Release already active"
-        );
-        manifest.lastUpdate  = start;
-        manifest.deadline    = stop;
-        manifest.beneficiary = address(token.xCreatorToken());
-
-        emit NewStaking(token, start, stop);
+        _configure(token, start, stop, address(token.xCreatorToken()));
     }
 
-    function release(IERC20 token)
+    function configureWithBeneficary(IERC20 token, uint48 start, uint48 stop, address beneficiary)
         external
+        onlyRole(ESCROW_MANAGER_ROLE)
+    {
+        try IP00lsTokenCreator(address(token)).xCreatorToken() returns (IP00lsTokenXCreator tokenXCreator) {
+            // if the token is an IP00lsTokenCreator, then the beneficiary must be the corresponding tokenXcreator
+            require(beneficiary == address(tokenXCreator));
+        } catch {
+            // it the token is not an IP00lsTokenCreator, its ok to have another beneficiary
+        }
+
+        _configure(token, start, stop, beneficiary);
+    }
+
+    function _configure(IERC20 token, uint48 start, uint48 stop, address beneficiary)
+        internal
+    {
+        release(token); // this will reset if previous is schedule is over
+
+        require(start > 0, "Invalid input: start should be non 0");
+        require(stop >= start, "Invalid input: start must be before stop");
+
+        Details storage manifest = manifests[token];
+        require(manifest.lastUpdate == 0, "Release already active");
+
+        manifest.lastUpdate  = start;
+        manifest.deadline    = stop;
+        manifest.beneficiary = beneficiary;
+
+        emit NewStaking(token, beneficiary, start, stop);
+    }
+
+    function releasable(IERC20 token)
+        public
+        view
         returns (uint256)
     {
         Details memory manifest = manifests[token];
@@ -73,31 +96,45 @@ contract Escrow is AccessControl, Multicall {
         {
             return 0;
         }
-
-        uint256 balance = token.balanceOf(address(this));
-
-        if (block.timestamp < manifest.deadline)
+        else if (block.timestamp < manifest.deadline)
         {
-            uint64  step         = block.timestamp.toUint64() - manifest.lastUpdate;
-            uint64  total        = manifest.deadline          - manifest.lastUpdate;
-            balance              = FullMath.mulDiv(step, total, balance);
-            manifest.lastUpdate  = block.timestamp.toUint64();
+            uint48 step  = uint48(block.timestamp) - manifest.lastUpdate;
+            uint48 total = manifest.deadline       - manifest.lastUpdate;
+            return FullMath.mulDiv(step, total, token.balanceOf(address(this)));
         }
         else
         {
-            manifest.lastUpdate = 0;
+            return token.balanceOf(address(this));
         }
+    }
 
-        if (balance > 0)
+    function release(IERC20 token)
+        public
+        returns (uint256)
+    {
+        Details memory manifest = manifests[token];
+
+        // release tokens
+        uint256 toRelease = releasable(token);
+        if (toRelease > 0)
         {
-            SafeERC20.safeTransfer(token, manifest.beneficiary, balance);
-            if (Address.isContract(manifest.beneficiary)) {
-                try IEscrowReceiver(manifest.beneficiary).onEscrowRelease(balance) {}
+            manifests[token].lastUpdate = uint48(block.timestamp);
+
+            SafeERC20.safeTransfer(token, manifest.beneficiary, toRelease);
+            if (Address.isContract(manifest.beneficiary))
+            {
+                try IEscrowReceiver(manifest.beneficiary).onEscrowRelease(toRelease) {}
                 catch {}
             }
         }
 
-        return balance;
+        // reset once schedule is complete
+        if (manifest.lastUpdate != 0 && manifest.deadline <= block.timestamp)
+        {
+            delete manifests[token];
+        }
+
+        return toRelease;
     }
 
     function setName(address ensregistry, string calldata ensname)

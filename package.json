@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@amxx/hre": "^0.0.6",
+    "@openzeppelin/hardhat-upgrades": "^1.17.0",
     "copyfiles": "^2.4.1",
     "debug": "^2.6.9",
     "hardhat": "^2.7.1",

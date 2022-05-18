@@ -9,8 +9,9 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/Multicall.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
+/// @custom:security-contact security@p00ls.com
 contract VestedAirdrops is AccessControl, Multicall {
-    bytes32 public constant VESTING_MANAGER = keccak256("VESTING_MANAGER_ROLE");
+    bytes32 public constant VESTING_MANAGER_ROLE = keccak256("VESTING_MANAGER_ROLE");
 
     struct Schedule {
         uint64  index; // salt
@@ -30,13 +31,13 @@ contract VestedAirdrops is AccessControl, Multicall {
 
     constructor(address admin)
     {
-        _setupRole(DEFAULT_ADMIN_ROLE, admin);
-        _setupRole(VESTING_MANAGER,    admin);
+        _setupRole(DEFAULT_ADMIN_ROLE,   admin);
+        _setupRole(VESTING_MANAGER_ROLE, admin);
     }
 
     function enableAirdrop(bytes32 root, bool enable)
         external
-        onlyRole(VESTING_MANAGER)
+        onlyRole(VESTING_MANAGER_ROLE)
     {
         _airdrops[root] = enable;
         emit Airdrop(root, enable);

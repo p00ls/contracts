@@ -15,6 +15,7 @@ import "../amm/libraries/UniswapV2Math.sol";
 import "../../tokens/extensions/IERC1363.sol";
 // import "../../utils/Timers.sol";
 
+/// @custom:security-contact security@p00ls.com
 contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender {
     using Distributions for Distributions.Uint256;
     using Splitters     for Splitters.Splitter;
@@ -141,7 +142,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
         // lock.delay = uint64(block.timestamp + DELAY).toTimestamp();
         lock.delay.setDeadline(uint64(block.timestamp + DELAY));
         lock.splitter.reward(token.balanceOf(address(this)));
-        lock.rate = router.getAmountsOut(1e18, _poolsToToken(token))[2]; // this is subject to pricefeed manipulation if executed in refreshWeight
+        lock.rate = router.getAmountsOut(1e18, _poolsToToken(token))[1]; // this is subject to pricefeed manipulation if executed in refreshWeight
 
         emit LockSetup(token);
     }
@@ -306,10 +307,9 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
         view
         returns (address[] memory path)
     {
-        path = new address[](3);
+        path = new address[](2);
         path[0] = address(token);
-        path[1] = router.WETH();
-        path[2] = address(pools);
+        path[1] = address(pools);
     }
 
     function _poolsToToken(IERC20 token)
@@ -317,9 +317,8 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
         view
         returns (address[] memory path)
     {
-        path = new address[](3);
+        path = new address[](2);
         path[0] = address(pools);
-        path[1] = router.WETH();
-        path[2] = address(token);
+        path[1] = address(token);
     }
 }
