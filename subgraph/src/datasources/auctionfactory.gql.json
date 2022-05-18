@@ -1,6 +1,7 @@
 [{
     "name": "ERC20Contract",
     "fields": [
+        { "name": "id",                   "type": "Bytes!"                                  },
         { "name": "asAuction",            "type": "Auction"                                 },
         { "name": "auction",              "type": "Auction!",          "derived": "token"   },
         { "name": "auctionCreated",       "type": "AuctionCreated!",   "derived": "token"   },
@@ -15,6 +16,7 @@
 },{
     "name": "Auction",
     "fields": [
+        { "name": "id",                   "type": "Bytes!"                                  },
         { "name": "asToken",              "type": "ERC20Contract!"                          },
         { "name": "token",                "type": "ERC20Contract!"                          },
         { "name": "status",               "type": "AuctionStatus!"                          },
@@ -30,6 +32,7 @@
 },{
     "name": "AuctionCreated",
     "parent": "Event",
+    "immutable": true,
     "fields": [
         { "name": "emitter",              "type": "Account!"                                },
         { "name": "transaction",          "type": "Transaction!"                            },
@@ -40,6 +43,7 @@
 },{
     "name": "AuctionFinalized",
     "parent": "Event",
+    "immutable": true,
     "fields": [
         { "name": "emitter",              "type": "Account!"                                },
         { "name": "transaction",          "type": "Transaction!"                            },

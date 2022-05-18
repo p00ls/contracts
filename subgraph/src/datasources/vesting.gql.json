@@ -20,6 +20,7 @@
 },{
     "name": "VestingAirdropEnabled",
     "parent": "Event",
+    "immutable": true,
     "fields": [
         { "name": "emitter",       "type": "Account!"                                      },
         { "name": "transaction",   "type": "Transaction!"                                  },
@@ -30,6 +31,7 @@
 },{
     "name": "TokensReleased",
     "parent": "Event",
+    "immutable": true,
     "fields": [
         { "name": "emitter",     "type": "Account!"                                        },
         { "name": "transaction", "type": "Transaction!"                                    },
