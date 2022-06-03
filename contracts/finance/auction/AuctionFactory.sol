@@ -21,6 +21,7 @@ contract AuctionFactory is AccessControl, Multicall {
     bytes32 public constant AUCTION_MANAGER_ROLE = keccak256("AUCTION_MANAGER_ROLE");
 
     IUniswapV2Router02 public immutable router;
+    IUniswapV2Factory  public immutable factory;
     IERC20             public immutable p00ls;
     address            public immutable template;
 
@@ -34,6 +35,7 @@ contract AuctionFactory is AccessControl, Multicall {
         _setupRole(DEFAULT_ADMIN_ROLE,   _admin);
         _setupRole(AUCTION_MANAGER_ROLE, _admin);
         router   = _router;
+        factory  = IUniswapV2Factory(_router.factory());
         p00ls    = _p00ls;
         template = address(new Auction(_router.WETH()));
     }
@@ -70,7 +72,6 @@ contract AuctionFactory is AccessControl, Multicall {
         instance.finalize(address(this));
 
         IERC20  payment = instance.payment();
-        address factory = router.factory();
         uint256 balancePayment = payment.balanceOf(address(this));
         uint256 balanceToken   = token.balanceOf(address(this));
 
@@ -89,7 +90,7 @@ contract AuctionFactory is AccessControl, Multicall {
             balanceToken,
             0,
             0,
-            IUniswapV2Factory(router.factory()).feeTo(),
+            factory.feeTo(),
             block.timestamp
         );
 

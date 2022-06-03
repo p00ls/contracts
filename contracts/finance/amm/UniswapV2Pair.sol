@@ -86,7 +86,11 @@ contract UniswapV2Pair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
                 uint rootKLast = UniswapV2Math.sqrt(_kLast);
                 if (rootK > rootKLast) {
                     uint numerator = totalSupply() * (rootK - rootKLast);
-                    uint denominator = rootK * 5 + rootKLast;
+                    // FORKED: vanilla is `rootK * 5 + rootKLast;`
+                    // In this version:
+                    // - 50% of the fees go to the liquidity provider (liquidity increass)
+                    // - 50% of the fees go to `feeTo`
+                    uint denominator = rootK + rootKLast;
                     uint liquidity = numerator / denominator;
                     if (liquidity > 0) _mint(feeTo, liquidity);
                 }
