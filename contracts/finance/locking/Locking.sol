@@ -29,7 +29,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     uint256 private constant EXTRA_FACTOR_BASE    = 1e18; // sqrt(1e36) = 1e18 → double for 1 extra
 
     UniswapV2Router02 public immutable router;
-    IERC20            public immutable pools;
+    IERC20            public immutable p00ls;
 
     /*****************************************************************************************************************
      *                                                    Storage                                                    *
@@ -93,12 +93,12 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     /*****************************************************************************************************************
      *                                                   Functions                                                   *
      *****************************************************************************************************************/
-    constructor(address _admin, UniswapV2Router02 _router, IERC20 _pools)
+    constructor(address _admin, UniswapV2Router02 _router, IERC20 _p00ls)
     {
         _setupRole(DEFAULT_ADMIN_ROLE,   _admin);
         _setupRole(LOCKING_MANAGER_ROLE, _admin);
         router   = _router;
-        pools    = _pools;
+        p00ls    = _p00ls;
     }
 
     function lockDetails(IERC20 token)
@@ -142,7 +142,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
         // lock.delay = uint64(block.timestamp + DELAY).toTimestamp();
         lock.delay.setDeadline(uint64(block.timestamp + DELAY));
         lock.splitter.reward(token.balanceOf(address(this)));
-        lock.rate = router.getAmountsOut(1e18, _poolsToToken(token))[1]; // this is subject to pricefeed manipulation if executed in refreshWeight
+        lock.rate = router.getAmountsOut(1e18, _p00lsToToken(token))[1]; // this is subject to pricefeed manipulation if executed in refreshWeight
 
         emit LockSetup(token);
     }
@@ -175,7 +175,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
 
         if (msg.sender == address(token)) {
             _deposit(token, from, value, 0, to, true);
-        } else if (msg.sender == address(pools)) {
+        } else if (msg.sender == address(p00ls)) {
             _deposit(token, from, 0, value, to, true);
         } else {
             revert('invalid data');
@@ -193,7 +193,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
 
         if (msg.sender == address(token)) {
             _deposit(token, from, value, 0, to, false);
-        } else if (msg.sender == address(pools)) {
+        } else if (msg.sender == address(p00ls)) {
             _deposit(token, from, 0, value, to, false);
         } else {
             revert('invalid data');
@@ -240,7 +240,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
         }
 
         if (extra > 0) {
-            if (!erc1363received) SafeERC20.safeTransferFrom(pools, from, address(this), extra);
+            if (!erc1363received) SafeERC20.safeTransferFrom(p00ls, from, address(this), extra);
             vault.extra += extra;
         }
 
@@ -265,7 +265,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
 
         uint256 reward = lock.splitter.release(from);
         SafeERC20.safeTransfer(token, to, vault.value + reward);
-        SafeERC20.safeTransfer(pools, to, vault.extra);
+        SafeERC20.safeTransfer(p00ls, to, vault.extra);
 
         delete lock.vaults[from];
 
@@ -309,16 +309,16 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     {
         path = new address[](2);
         path[0] = address(token);
-        path[1] = address(pools);
+        path[1] = address(p00ls);
     }
 
-    function _poolsToToken(IERC20 token)
+    function _p00lsToToken(IERC20 token)
         internal
         view
         returns (address[] memory path)
     {
         path = new address[](2);
-        path[0] = address(pools);
+        path[0] = address(p00ls);
         path[1] = address(token);
     }
 }

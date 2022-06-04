@@ -14,7 +14,7 @@ import "../amm/libraries/UniswapV2Library.sol";
 import "../../env/IWETH.sol";
 
 /**
- * @dev Liquidates and redistributes AMM fees for the p00ls <> eth and pools <> creatorToken pairs.
+ * @dev Liquidates and redistributes AMM fees for the p00ls <> eth and p00ls <> creatorToken pairs.
  * On liquidation, the raised amounts to the recipient, which is expected to be a ERC4626 like vault or an ERC20
  * supporting payment splitter. It could also be a governance contract.
  *
