@@ -207,13 +207,14 @@ async function migrate(config = {}, env = {}) {
         { ...opts },
     );
 
-    const auction = isEnabled('auction') && router && await manager.migrate(
+    const auction = isEnabled('auction') && router && token && timelock && await manager.migrate(
         'auction',
         getFactory('AuctionFactory', { signer }),
         [
             signer.address,
             router.address,
             token.address,
+            timelock.address,
         ],
         { ...opts },
     );

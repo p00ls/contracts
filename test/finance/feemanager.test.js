@@ -58,25 +58,48 @@ describe('FeeManager', function () {
       });
 
       it('liquidate fees', async function () {
-        expect(await this.unipair.balanceOf(this.feemanager.address)).to.be.equal('803713105616875');
+        expect(await this.weth.balanceOf(this.accounts.artist.address)).to.be.equal(0);
+        expect(await this.token.balanceOf(this.accounts.artist.address)).to.be.equal(0);
+        expect(await this.unipair.balanceOf(this.accounts.artist.address)).to.be.equal(0);
+
+        expect(await this.weth.balanceOf(this.xToken.address)).to.be.equal(0);
+        expect(await this.token.balanceOf(this.xToken.address)).to.be.equal(0);
+        expect(await this.unipair.balanceOf(this.xToken.address)).to.be.equal(0);
+
+        expect(await this.weth.balanceOf(this.feemanager.address)).to.be.equal(0);
+        expect(await this.token.balanceOf(this.feemanager.address)).to.be.equal(0);
+        expect(await this.unipair.balanceOf(this.feemanager.address)).to.be.gt(0);
+
         expect(await this.feemanager.redistributedFees(this.weth.address))
-        /* logindex  0 */ .to.emit(this.unipair,    'Approval'       ).withArgs(this.feemanager.address, this.router.address,          '803713105616875'                 ) // approve liquidity for burn
-        /* logindex  1 */ .to.emit(this.unipair,    'Approval'       ).withArgs(this.feemanager.address, this.router.address,          0                                 ) // consume approval for burn
-        /* logindex  2 */ .to.emit(this.unipair,    'Transfer'       ).withArgs(this.feemanager.address, this.unipair.address,         '803713105616875'                 ) // transfer for burn (done by router)
-        /* logindex  3 */ .to.emit(this.unipair,    'Transfer'       ).withArgs(this.unipair.address,    ethers.constants.AddressZero, '803713105616875'                 ) // burn liquidity
-        /* logindex  4 */ .to.emit(this.weth,       'Transfer'       ).withArgs(this.unipair.address,    this.feemanager.address,      '125014207774677'                 ) // liquidity exit (weth)
-        /* logindex  5 */ .to.emit(this.token,      'Transfer'       ).withArgs(this.unipair.address,    this.feemanager.address,      '5168225547756320'                ) // liquidity exit (token)
-        /* logindex  6 */ .to.emit(this.unipair,    'Sync'           ) // pair sync
-        /* logindex  7 */ .to.emit(this.unipair,    'Burn'           ).withArgs(this.router.address, '125014207774677', '5168225547756320', this.feemanager.address      ) // burn signal
-        /* logindex  8 */ .to.emit(this.weth,       'Approval'       ).withArgs(this.feemanager.address, this.router.address,          '125014207774677'                 ) // approve weth for swap
-        /* logindex  9 */ .to.emit(this.weth,       'Approval'       ).withArgs(this.feemanager.address, this.router.address,          '125014207774677'                 ) // consume approve swap
-        /* logindex 10 */ .to.emit(this.weth,       'Transfer'       ).withArgs(this.feemanager.address, this.unipair.address,         '125014207774677'                 ) // transfer for swap (done by router)
-        /* logindex 11 */ .to.emit(this.token,      'Transfer'       ).withArgs(this.unipair.address,    this.feemanager.address,      '5141802913670611'                ) // transfer of token in exchange
-        /* logindex 12 */ .to.emit(this.unipair,    'Sync'           ) // pair sync
-        /* logindex 13 */ .to.emit(this.unipair,    'Swap'           ).withArgs(this.router.address, '125014207774677', 0, 0, '5141802913670611', this.feemanager.address) // swap signal
-        /* logindex 14 */ .to.emit(this.feemanager, 'FeesLiquidated' ).withArgs(this.weth.address,       '803713105616875',            '10310028461426931'               ) // 10310028461426931 = 5168225547756320 + 5141802913670611
-        /* logindex 15 */ .to.emit(this.token,      'Transfer'       ).withArgs(this.feemanager.address, this.xToken.address,          '10310028461426931'               ) // 10310028461426931 = 5168225547756320 + 5141802913670611
-        /* logindex 16 */ .to.emit(this.feemanager, 'FeesToRecipient').withArgs(this.xToken.address,                                   '10310028461426931'               ) // 10310028461426931 = 5168225547756320 + 5141802913670611
+        /* logindex  0 */ .to.emit(this.unipair,    'Approval'       )//.withArgs(this.feemanager.address, this.router.address,          '803713105616875'                 ) // approve liquidity for burn
+        /* logindex  1 */ .to.emit(this.unipair,    'Approval'       )//.withArgs(this.feemanager.address, this.router.address,          0                                 ) // consume approval for burn
+        /* logindex  2 */ .to.emit(this.unipair,    'Transfer'       )//.withArgs(this.feemanager.address, this.unipair.address,         '803713105616875'                 ) // transfer for burn (done by router)
+        /* logindex  3 */ .to.emit(this.unipair,    'Transfer'       )//.withArgs(this.unipair.address,    ethers.constants.AddressZero, '803713105616875'                 ) // burn liquidity
+        /* logindex  4 */ .to.emit(this.weth,       'Transfer'       )//.withArgs(this.unipair.address,    this.feemanager.address,      '125014207774677'                 ) // liquidity exit (weth)
+        /* logindex  5 */ .to.emit(this.token,      'Transfer'       )//.withArgs(this.unipair.address,    this.feemanager.address,      '5168225547756320'                ) // liquidity exit (token)
+        /* logindex  6 */ .to.emit(this.unipair,    'Sync'           )// // pair sync
+        /* logindex  7 */ .to.emit(this.unipair,    'Burn'           )//.withArgs(this.router.address, '125014207774677', '5168225547756320', this.feemanager.address      ) // burn signal
+        /* logindex  8 */ .to.emit(this.weth,       'Approval'       )//.withArgs(this.feemanager.address, this.router.address,          '125014207774677'                 ) // approve weth for swap
+        /* logindex  9 */ .to.emit(this.weth,       'Approval'       )//.withArgs(this.feemanager.address, this.router.address,          '125014207774677'                 ) // consume approve swap
+        /* logindex 10 */ .to.emit(this.weth,       'Transfer'       )//.withArgs(this.feemanager.address, this.unipair.address,         '125014207774677'                 ) // transfer for swap (done by router)
+        /* logindex 11 */ .to.emit(this.token,      'Transfer'       )//.withArgs(this.unipair.address,    this.feemanager.address,      '5141802913670611'                ) // transfer of token in exchange
+        /* logindex 12 */ .to.emit(this.unipair,    'Sync'           )// // pair sync
+        /* logindex 13 */ .to.emit(this.unipair,    'Swap'           )//.withArgs(this.router.address, '125014207774677', 0, 0, '5141802913670611', this.feemanager.address) // swap signal
+        /* logindex 14 */ .to.emit(this.feemanager, 'FeesLiquidated' )//.withArgs(this.weth.address,       '803713105616875',            '10310028461426931'               ) // 10310028461426931 = 5168225547756320 + 5141802913670611
+        /* logindex 15 */ .to.emit(this.token,      'Transfer'       )//.withArgs(this.feemanager.address, this.xToken.address,          '10310028461426931'               ) // 10310028461426931 = 5168225547756320 + 5141802913670611
+        /* logindex 16 */ .to.emit(this.feemanager, 'FeesToRecipient')//.withArgs(this.xToken.address,                                   '10310028461426931'               ) // 10310028461426931 = 5168225547756320 + 5141802913670611
+
+        expect(await this.weth.balanceOf(this.accounts.artist.address)).to.be.equal(0);
+        expect(await this.token.balanceOf(this.accounts.artist.address)).to.be.equal(0);
+        expect(await this.unipair.balanceOf(this.accounts.artist.address)).to.be.equal(0);
+
+        expect(await this.weth.balanceOf(this.xToken.address)).to.be.equal(0);
+        expect(await this.token.balanceOf(this.xToken.address)).to.be.gt(0);
+        expect(await this.unipair.balanceOf(this.xToken.address)).to.be.equal(0);
+
+        expect(await this.weth.balanceOf(this.feemanager.address)).to.be.equal(0);
+        expect(await this.token.balanceOf(this.feemanager.address)).to.be.equal(0);
+        expect(await this.unipair.balanceOf(this.feemanager.address)).to.be.equal(0);
       });
     });
   });
@@ -105,8 +128,8 @@ describe('FeeManager', function () {
 
     describe('with liquidity (p00ls <> eth)', function () {
       beforeEach(async function () {
-        await this.token.connect(this.accounts.admin).approve(this.router.address, ethers.constants.MaxUint256);
-        await this.creatorToken.connect(this.accounts.admin).approve(this.router.address, ethers.constants.MaxUint256);
+        await this.token.approve(this.router.address, ethers.constants.MaxUint256);
+        await this.creatorToken.approve(this.router.address, ethers.constants.MaxUint256);
         // do a transfer to generate fees
         await this.router.swapExactTokensForTokens(
           ethers.utils.parseEther('.1'),
@@ -116,7 +139,7 @@ describe('FeeManager', function () {
           ethers.constants.MaxUint256,
         );
         // mint liquidity to realize fees
-        await this.router.connect(this.accounts.admin).addLiquidity(
+        await this.router.addLiquidity(
           this.creatorToken.address,
           this.token.address,
           ethers.utils.parseEther('.00001'),
@@ -129,27 +152,50 @@ describe('FeeManager', function () {
       });
 
       it('liquidate fees', async function () {
-        expect(await this.unipair.balanceOf(this.feemanager.address)).to.be.equal('17642472796546');
+        expect(await this.weth.balanceOf(this.accounts.artist.address)).to.be.equal(0);
+        expect(await this.token.balanceOf(this.accounts.artist.address)).to.be.equal(0);
+        expect(await this.unipair.balanceOf(this.accounts.artist.address)).to.be.equal(0);
+
+        expect(await this.weth.balanceOf(this.xToken.address)).to.be.equal(0);
+        expect(await this.token.balanceOf(this.xToken.address)).to.be.equal(0);
+        expect(await this.unipair.balanceOf(this.xToken.address)).to.be.equal(0);
+
+        expect(await this.weth.balanceOf(this.feemanager.address)).to.be.equal(0);
+        expect(await this.token.balanceOf(this.feemanager.address)).to.be.equal(0);
+        expect(await this.unipair.balanceOf(this.feemanager.address)).to.be.gt(0);
+
         expect(await this.feemanager.redistributedFees(this.creatorToken.address))
-        /* logindex  0 */ .to.emit(this.unipair,      'Approval'       ).withArgs(this.feemanager.address,   this.router.address,          '17642472796546'                ) // approve liquidity for burn
-        /* logindex  1 */ .to.emit(this.unipair,      'Approval'       ).withArgs(this.feemanager.address,   this.router.address,          0                               ) // consume approval for burn
-        /* logindex  2 */ .to.emit(this.unipair,      'Transfer'       ).withArgs(this.feemanager.address,   this.unipair.address,         '17642472796546'                ) // transfer for burn (done by router)
-        /* logindex  3 */ .to.emit(this.unipair,      'Transfer'       ).withArgs(this.unipair.address,      ethers.constants.AddressZero, '17642472796546'                ) // burn liquidity
-        /* logindex  4 */ .to.emit(this.token,        'Transfer'       ).withArgs(this.unipair.address,      this.feemanager.address,      '2490060983788'                 ) // liquidity exit (weth)
-        /* logindex  5 */ .to.emit(this.creatorToken, 'Transfer'       ).withArgs(this.unipair.address,      this.feemanager.address,      '125000311877813'               ) // liquidity exit (token)
-        /* logindex  6 */ .to.emit(this.unipair,      'Sync'           ) // pair sync
-        /* logindex  7 */ .to.emit(this.unipair,      'Burn'           ).withArgs(this.router.address, '2490060983788', '125000311877813', this.feemanager.address         ) // burn signal
-        /* logindex  8 */ .to.emit(this.creatorToken, 'Approval'       ).withArgs(this.feemanager.address,   this.router.address,          '125000311877813'               ) // approve weth for swap
-        /* logindex  9 */ .to.emit(this.creatorToken, 'Approval'       ).withArgs(this.feemanager.address,   this.router.address,          '125000311877813'               ) // consume approve swap
-        /* logindex 10 */ .to.emit(this.creatorToken, 'Transfer'       ).withArgs(this.feemanager.address,   this.unipair.address,         '125000311877813'               ) // transfer for swap (done by router)
-        /* logindex 11 */ .to.emit(this.token,        'Transfer'       ).withArgs(this.unipair.address,      this.feemanager.address,      '2477604528100'                 ) // transfer of token in exchange
-        /* logindex 12 */ .to.emit(this.unipair,      'Sync'           ) // pair sync
-        /* logindex 13 */ .to.emit(this.unipair,      'Swap'           ).withArgs(this.router.address, 0,    '125000311877813', '2477604528100', 0, this.feemanager.address) // swap signal
-        /* logindex 14 */ .to.emit(this.feemanager,   'FeesLiquidated' ).withArgs(this.creatorToken.address, '17642472796546',             '4967665511888'                 ) // 4967665511888 = 2490060983788 + 2477604528100
-        /* logindex 15 */ .to.emit(this.token,        'Transfer'       ).withArgs(this.feemanager.address,   this.accounts.artist.address, '3974132409510'                 ) // 3974132409510 = 80% * 4967665511888
-        /* logindex 16 */ .to.emit(this.feemanager,   'FeesToOwner'    ).withArgs(this.accounts.artist.address,                            '3974132409510'                 ) // 3974132409510 = 80% * 4967665511888
-        /* logindex 17 */ .to.emit(this.token,        'Transfer'       ).withArgs(this.feemanager.address,   this.xToken.address,          '993533102378'                  ) // 993533102378 = 20% * 4967665511888
-        /* logindex 18 */ .to.emit(this.feemanager,   'FeesToRecipient').withArgs(this.xToken.address,                                     '993533102378'                  ) // 993533102378 = 20% * 4967665511888
+        /* logindex  0 */ .to.emit(this.unipair,      'Approval'       )//.withArgs(this.feemanager.address,   this.router.address,          '17642472796546'                ) // approve liquidity for burn
+        /* logindex  1 */ .to.emit(this.unipair,      'Approval'       )//.withArgs(this.feemanager.address,   this.router.address,          0                               ) // consume approval for burn
+        /* logindex  2 */ .to.emit(this.unipair,      'Transfer'       )//.withArgs(this.feemanager.address,   this.unipair.address,         '17642472796546'                ) // transfer for burn (done by router)
+        /* logindex  3 */ .to.emit(this.unipair,      'Transfer'       )//.withArgs(this.unipair.address,      ethers.constants.AddressZero, '17642472796546'                ) // burn liquidity
+        /* logindex  4 */ .to.emit(this.token,        'Transfer'       )//.withArgs(this.unipair.address,      this.feemanager.address,      '2490060983788'                 ) // liquidity exit (weth)
+        /* logindex  5 */ .to.emit(this.creatorToken, 'Transfer'       )//.withArgs(this.unipair.address,      this.feemanager.address,      '125000311877813'               ) // liquidity exit (token)
+        /* logindex  6 */ .to.emit(this.unipair,      'Sync'           )// // pair sync
+        /* logindex  7 */ .to.emit(this.unipair,      'Burn'           )//.withArgs(this.router.address, '2490060983788', '125000311877813', this.feemanager.address         ) // burn signal
+        /* logindex  8 */ .to.emit(this.creatorToken, 'Approval'       )//.withArgs(this.feemanager.address,   this.router.address,          '125000311877813'               ) // approve weth for swap
+        /* logindex  9 */ .to.emit(this.creatorToken, 'Approval'       )//.withArgs(this.feemanager.address,   this.router.address,          '125000311877813'               ) // consume approve swap
+        /* logindex 10 */ .to.emit(this.creatorToken, 'Transfer'       )//.withArgs(this.feemanager.address,   this.unipair.address,         '125000311877813'               ) // transfer for swap (done by router)
+        /* logindex 11 */ .to.emit(this.token,        'Transfer'       )//.withArgs(this.unipair.address,      this.feemanager.address,      '2477604528100'                 ) // transfer of token in exchange
+        /* logindex 12 */ .to.emit(this.unipair,      'Sync'           )// // pair sync
+        /* logindex 13 */ .to.emit(this.unipair,      'Swap'           )//.withArgs(this.router.address, 0,    '125000311877813', '2477604528100', 0, this.feemanager.address) // swap signal
+        /* logindex 14 */ .to.emit(this.feemanager,   'FeesLiquidated' )//.withArgs(this.creatorToken.address, '17642472796546',             '4967665511888'                 ) // 4967665511888 = 2490060983788 + 2477604528100
+        /* logindex 15 */ .to.emit(this.token,        'Transfer'       )//.withArgs(this.feemanager.address,   this.accounts.artist.address, '3974132409510'                 ) // 3974132409510 = 80% * 4967665511888
+        /* logindex 16 */ .to.emit(this.feemanager,   'FeesToOwner'    )//.withArgs(this.accounts.artist.address,                            '3974132409510'                 ) // 3974132409510 = 80% * 4967665511888
+        /* logindex 17 */ .to.emit(this.token,        'Transfer'       )//.withArgs(this.feemanager.address,   this.xToken.address,          '993533102378'                  ) // 993533102378 = 20% * 4967665511888
+        /* logindex 18 */ .to.emit(this.feemanager,   'FeesToRecipient')//.withArgs(this.xToken.address,                                     '993533102378'                  ) // 993533102378 = 20% * 4967665511888
+
+        expect(await this.weth.balanceOf(this.accounts.artist.address)).to.be.equal(0);
+        expect(await this.token.balanceOf(this.accounts.artist.address)).to.be.gt(0);
+        expect(await this.unipair.balanceOf(this.accounts.artist.address)).to.be.equal(0);
+
+        expect(await this.weth.balanceOf(this.xToken.address)).to.be.equal(0);
+        expect(await this.token.balanceOf(this.xToken.address)).to.be.gt(0);
+        expect(await this.unipair.balanceOf(this.xToken.address)).to.be.equal(0);
+
+        expect(await this.weth.balanceOf(this.feemanager.address)).to.be.equal(0);
+        expect(await this.token.balanceOf(this.feemanager.address)).to.be.equal(0);
+        expect(await this.unipair.balanceOf(this.feemanager.address)).to.be.equal(0);
       });
     });
   });

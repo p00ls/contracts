@@ -11,7 +11,6 @@ import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 import "./Auction.sol";
-import "../../utils/RegistryOwnable.sol";
 
 /**
  * @dev WARNING: the P00ls auction must be finalized before the other auctions. Otherwize, the p00ls tokens reserved
@@ -21,24 +20,27 @@ import "../../utils/RegistryOwnable.sol";
 contract AuctionFactory is AccessControl, Multicall {
     bytes32 public constant AUCTION_MANAGER_ROLE = keccak256("AUCTION_MANAGER_ROLE");
 
+    address            public immutable template;
     IUniswapV2Router02 public immutable router;
     IUniswapV2Factory  public immutable factory;
     IERC20             public immutable p00ls;
-    address            public immutable template;
+    address            public           lpreceiver;
 
     uint8 private _openPayments;
 
     event AuctionCreated(address indexed token, address indexed payment, address auction, uint256 tokensAuctioned, uint64 start, uint64 deadline);
     event AuctionFinalized(address indexed token, address indexed payment, address auction, uint256 amountPayment, uint256 amountToken);
+    event LPReceiverUpdate(address lpreceiver);
 
-    constructor(address _admin, IUniswapV2Router02 _router, IERC20 _p00ls)
+    constructor(address _admin, IUniswapV2Router02 _router, IERC20 _p00ls, address _lpreceiver)
     {
         _setupRole(DEFAULT_ADMIN_ROLE,   _admin);
         _setupRole(AUCTION_MANAGER_ROLE, _admin);
-        router   = _router;
-        factory  = IUniswapV2Factory(_router.factory());
-        p00ls    = _p00ls;
-        template = address(new Auction(_router.WETH()));
+        template   = address(new Auction(_router.WETH()));
+        router     = _router;
+        factory    = IUniswapV2Factory(_router.factory());
+        p00ls      = _p00ls;
+        lpreceiver = _lpreceiver;
     }
 
     function start(IERC20 token, uint64 timestamp, uint64 duration)
@@ -91,7 +93,7 @@ contract AuctionFactory is AccessControl, Multicall {
             balanceToken,
             0,
             0,
-            RegistryOwnable(address(p00ls)).admin(),
+            lpreceiver,
             block.timestamp
         );
 
@@ -106,6 +108,14 @@ contract AuctionFactory is AccessControl, Multicall {
         address instance = Clones.predictDeterministicAddress(template, bytes32(bytes20(address(token))));
         require(Address.isContract(instance), "No auction for this token");
         return Auction(payable(instance));
+    }
+
+    function setLPReceiver(address newLPReceiver)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        emit LPReceiverUpdate(newLPReceiver);
+        lpreceiver = newLPReceiver;
     }
 
     function setName(address ensregistry, string calldata ensname)
