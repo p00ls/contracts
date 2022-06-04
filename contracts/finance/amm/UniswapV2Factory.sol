@@ -32,8 +32,7 @@ contract UniswapV2Factory is AccessControl {
     }
 
     function getPair(address tokenA, address tokenB) public view returns (address) {
-        address predicted = UniswapV2Library.pairFor(address(this), tokenA, tokenB);
-        return Address.isContract(predicted) ? predicted : address(0);
+        return UniswapV2Library.pairFor(address(this), tokenA, tokenB);
     }
 
     function createPair(address tokenA, address tokenB) external onlyRoleOrOpenRole(PAIR_CREATOR_ROLE) returns (address pair) {

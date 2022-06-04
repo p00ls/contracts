@@ -139,10 +139,14 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     {
         Lock storage lock = _locks[token];
 
+        address[] memory path = new address[](2);
+        path[0] = address(p00ls);
+        path[1] = address(token);
+
         // lock.delay = uint64(block.timestamp + DELAY).toTimestamp();
         lock.delay.setDeadline(uint64(block.timestamp + DELAY));
         lock.splitter.reward(token.balanceOf(address(this)));
-        lock.rate = router.getAmountsOut(1e18, _p00lsToToken(token))[1]; // this is subject to pricefeed manipulation if executed in refreshWeight
+        lock.rate = router.getAmountsOut(1e18, path)[1]; // this is subject to pricefeed manipulation if executed in refreshWeight
 
         emit LockSetup(token);
     }
@@ -297,28 +301,5 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         ENSReverseRegistration.setName(ensregistry, ensname);
-    }
-
-    /*****************************************************************************************************************
-     *                                                Internal tools                                                 *
-     *****************************************************************************************************************/
-    function _tokenToPools(IERC20 token)
-        internal
-        view
-        returns (address[] memory path)
-    {
-        path = new address[](2);
-        path[0] = address(token);
-        path[1] = address(p00ls);
-    }
-
-    function _p00lsToToken(IERC20 token)
-        internal
-        view
-        returns (address[] memory path)
-    {
-        path = new address[](2);
-        path[0] = address(p00ls);
-        path[1] = address(token);
     }
 }
