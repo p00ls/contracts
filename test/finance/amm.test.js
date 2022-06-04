@@ -56,7 +56,7 @@ describe('AMM', function () {
       expect(await this.weth.balanceOf(unipair.address)).to.be.equal(value);
 
       expect(await unipair.balanceOf("0x000000000000000000000000000000000000dEaD")).to.be.gt(0);
-      expect(await unipair.balanceOf(this.feemanager.address)).to.be.gt(0);
+      expect(await unipair.balanceOf(this.timelock.address)).to.be.gt(0);
       expect(await unipair.balanceOf(this.accounts.user.address)).to.be.equal(0);
     });
   });
@@ -107,7 +107,7 @@ describe('AMM', function () {
       expect(await this.token.balanceOf(unipair.address)).to.be.equal(value);
 
       expect(await unipair.balanceOf("0x000000000000000000000000000000000000dEaD")).to.be.gt(0);
-      expect(await unipair.balanceOf(this.feemanager.address)).to.be.gt(0);
+      expect(await unipair.balanceOf(this.timelock.address)).to.be.gt(0);
       expect(await unipair.balanceOf(this.accounts.user.address)).to.be.equal(0);
     });
   });

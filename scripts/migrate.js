@@ -155,7 +155,7 @@ async function migrate(config = {}, env = {}) {
         'timelock',
         getFactory('P00lsTimelock', { signer }),
         [
-            config.contracts.timelock.mindelay,
+            config.contracts.governance.timelockMinDelay,
             [],
             [],
         ],

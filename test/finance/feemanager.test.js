@@ -66,13 +66,13 @@ describe('FeeManager', function () {
         /* logindex  3 */ .to.emit(this.unipair,    'Transfer'       ).withArgs(this.unipair.address,    ethers.constants.AddressZero, '803713105616875'                 ) // burn liquidity
         /* logindex  4 */ .to.emit(this.weth,       'Transfer'       ).withArgs(this.unipair.address,    this.feemanager.address,      '125014207774677'                 ) // liquidity exit (weth)
         /* logindex  5 */ .to.emit(this.token,      'Transfer'       ).withArgs(this.unipair.address,    this.feemanager.address,      '5168225547756320'                ) // liquidity exit (token)
-        /* logindex  6 */ .to.emit(this.unipair,    'Sync'           ).withArgs(                         '1099875227682225300',         '45470057781728280000'           ) // pair sync
+        /* logindex  6 */ .to.emit(this.unipair,    'Sync'           ) // pair sync
         /* logindex  7 */ .to.emit(this.unipair,    'Burn'           ).withArgs(this.router.address, '125014207774677', '5168225547756320', this.feemanager.address      ) // burn signal
         /* logindex  8 */ .to.emit(this.weth,       'Approval'       ).withArgs(this.feemanager.address, this.router.address,          '125014207774677'                 ) // approve weth for swap
         /* logindex  9 */ .to.emit(this.weth,       'Approval'       ).withArgs(this.feemanager.address, this.router.address,          '125014207774677'                 ) // consume approve swap
         /* logindex 10 */ .to.emit(this.weth,       'Transfer'       ).withArgs(this.feemanager.address, this.unipair.address,         '125014207774677'                 ) // transfer for swap (done by router)
         /* logindex 11 */ .to.emit(this.token,      'Transfer'       ).withArgs(this.unipair.address,    this.feemanager.address,      '5141802913670611'                ) // transfer of token in exchange
-        /* logindex 12 */ .to.emit(this.unipair,    'Sync'           ).withArgs(                         '1100000241890000000',        '45464915978814610000'            ) // pair sync
+        /* logindex 12 */ .to.emit(this.unipair,    'Sync'           ) // pair sync
         /* logindex 13 */ .to.emit(this.unipair,    'Swap'           ).withArgs(this.router.address, '125014207774677', 0, 0, '5141802913670611', this.feemanager.address) // swap signal
         /* logindex 14 */ .to.emit(this.feemanager, 'FeesLiquidated' ).withArgs(this.weth.address,       '803713105616875',            '10310028461426931'               ) // 10310028461426931 = 5168225547756320 + 5141802913670611
         /* logindex 15 */ .to.emit(this.token,      'Transfer'       ).withArgs(this.feemanager.address, this.xToken.address,          '10310028461426931'               ) // 10310028461426931 = 5168225547756320 + 5141802913670611
@@ -81,7 +81,7 @@ describe('FeeManager', function () {
     });
   });
 
-  describe.only('with pair (p00ls <> creator)', function () {
+  describe('with pair (p00ls <> creator)', function () {
     beforeEach(async function () {
       this.allocations = [{ index: 0, account: this.auction.address, amount: VALUE }, { index: 1, account: this.accounts.admin.address, amount: VALUE }];
       this.merkletree = utils.merkle.createMerkleTree(this.allocations.map(utils.merkle.hashAllocation));
@@ -137,13 +137,13 @@ describe('FeeManager', function () {
         /* logindex  3 */ .to.emit(this.unipair,      'Transfer'       ).withArgs(this.unipair.address,      ethers.constants.AddressZero, '17642472796546'                ) // burn liquidity
         /* logindex  4 */ .to.emit(this.token,        'Transfer'       ).withArgs(this.unipair.address,      this.feemanager.address,      '2490060983788'                 ) // liquidity exit (weth)
         /* logindex  5 */ .to.emit(this.creatorToken, 'Transfer'       ).withArgs(this.unipair.address,      this.feemanager.address,      '125000311877813'               ) // liquidity exit (token)
-        /* logindex  6 */ .to.emit(this.unipair,      'Sync'           ).withArgs(                           '0x0dd9a6517e28f2de',         '0x02b7468bf77654ef4b'          ) // pair sync
+        /* logindex  6 */ .to.emit(this.unipair,      'Sync'           ) // pair sync
         /* logindex  7 */ .to.emit(this.unipair,      'Burn'           ).withArgs(this.router.address, '2490060983788', '125000311877813', this.feemanager.address         ) // burn signal
         /* logindex  8 */ .to.emit(this.creatorToken, 'Approval'       ).withArgs(this.feemanager.address,   this.router.address,          '125000311877813'               ) // approve weth for swap
         /* logindex  9 */ .to.emit(this.creatorToken, 'Approval'       ).withArgs(this.feemanager.address,   this.router.address,          '125000311877813'               ) // consume approve swap
         /* logindex 10 */ .to.emit(this.creatorToken, 'Transfer'       ).withArgs(this.feemanager.address,   this.unipair.address,         '125000311877813'               ) // transfer for swap (done by router)
         /* logindex 11 */ .to.emit(this.token,        'Transfer'       ).withArgs(this.unipair.address,      this.feemanager.address,      '2477604528100'                 ) // transfer of token in exchange
-        /* logindex 12 */ .to.emit(this.unipair,      'Sync'           ).withArgs(                           '0x0dd9a410a16c12fa',         '0x02b746fda75d84a000'          ) // pair sync
+        /* logindex 12 */ .to.emit(this.unipair,      'Sync'           ) // pair sync
         /* logindex 13 */ .to.emit(this.unipair,      'Swap'           ).withArgs(this.router.address, 0,    '125000311877813', '2477604528100', 0, this.feemanager.address) // swap signal
         /* logindex 14 */ .to.emit(this.feemanager,   'FeesLiquidated' ).withArgs(this.creatorToken.address, '17642472796546',             '4967665511888'                 ) // 4967665511888 = 2490060983788 + 2477604528100
         /* logindex 15 */ .to.emit(this.token,        'Transfer'       ).withArgs(this.feemanager.address,   this.accounts.artist.address, '3974132409510'                 ) // 3974132409510 = 80% * 4967665511888

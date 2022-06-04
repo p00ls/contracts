@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "@amxx/hre/contracts/ENSReverseRegistration.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -12,6 +11,7 @@ import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 import "./Auction.sol";
+import "../../utils/RegistryOwnable.sol";
 
 /**
  * @dev WARNING: the P00ls auction must be finalized before the other auctions. Otherwize, the p00ls tokens reserved
@@ -77,8 +77,8 @@ contract AuctionFactory is AccessControl, Multicall {
         uint256 balanceToken   = token.balanceOf(address(this));
 
         // create AMM pair if needed
-        if (IUniswapV2Factory(factory).getPair(address(payment), address(token)) == address(0)) {
-            IUniswapV2Factory(factory).createPair(address(payment), address(token));
+        if (factory.getPair(address(payment), address(token)) == address(0)) {
+            factory.createPair(address(payment), address(token));
         }
 
         // provide liquidity
@@ -91,7 +91,7 @@ contract AuctionFactory is AccessControl, Multicall {
             balanceToken,
             0,
             0,
-            Ownable(address(p00ls)).owner(),
+            RegistryOwnable(address(p00ls)).admin(),
             block.timestamp
         );
 
