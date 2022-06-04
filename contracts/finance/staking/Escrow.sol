@@ -2,12 +2,12 @@
 pragma solidity ^0.8.0;
 
 import "@amxx/hre/contracts/ENSReverseRegistration.sol";
+import "@amxx/hre/contracts/FullMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "@openzeppelin/contracts/utils/Multicall.sol";
-import "@amxx/hre/contracts/FullMath.sol";
 import "../../tokens/interfaces.sol";
 
 interface IEscrowReceiver {
@@ -100,7 +100,7 @@ contract Escrow is AccessControl, Multicall {
         {
             uint48 step  = uint48(block.timestamp) - manifest.lastUpdate;
             uint48 total = manifest.deadline       - manifest.lastUpdate;
-            return FullMath.mulDiv(step, total, token.balanceOf(address(this)));
+            return FullMath.mulDiv(token.balanceOf(address(this)), step, total);
         }
         else
         {

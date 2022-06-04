@@ -116,7 +116,7 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
     {
         uint256 supply  = totalSupply();
         uint256 balance = IERC20(creatorToken).balanceOf(address(this));
-        return balance > 0 && supply > 0 ? FullMath.mulDiv(value, balance, supply) : value;
+        return balance > 0 && supply > 0 ? FullMath.mulDiv(value, supply, balance) : value;
     }
 
     function sharesToValue(uint256 shares)
@@ -126,7 +126,7 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
     {
         uint256 supply  = totalSupply();
         uint256 balance = IERC20(creatorToken).balanceOf(address(this));
-        return balance > 0 && supply > 0 ? FullMath.mulDiv(shares, supply, balance) : supply;
+        return balance > 0 && supply > 0 ? FullMath.mulDiv(shares, balance, supply) : supply;
     }
 
     function pastSharesToValue(uint256 shares, uint256 blockNumber)
@@ -134,7 +134,7 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
         view
         returns (uint256)
     {
-        return FullMath.mulDiv(conversion.past(blockNumber), 1 ether, shares);
+        return FullMath.mulDiv(shares, conversion.past(blockNumber), 1 ether);
     }
 
     /**
