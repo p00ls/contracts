@@ -334,16 +334,18 @@ describe('Locking', function () {
           });
 
           it('can deposit more extra', async function () {
-            const oldWeight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address).then(({ weight }) => weight);
-            const tx        = await this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, 0, value.div(2));
-            const newWeight = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address).then(({ weight }) => weight);
+            const oldDetails = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address);
+            const tx         = await this.locking.connect(this.accounts.user).deposit(this.creatorToken.address, 0, value.div(2));
+            const newDetails = await this.locking.vaultDetails(this.creatorToken.address, this.accounts.user.address);
 
             await expect(tx)
             .to.emit(this.token, 'Transfer').withArgs(this.accounts.user.address, this.locking.address, value.div(2))
-            .to.emit(this.locking, 'Deposit').withArgs(this.creatorToken.address, this.accounts.user.address, 0, value.div(2), newWeight)
+            .to.emit(this.locking, 'Deposit').withArgs(this.creatorToken.address, this.accounts.user.address, 0, value.div(2), newDetails.weight)
             .to.not.emit(this.creatorToken, 'Transfer');
 
-            expect(newWeight).to.be.gt(oldWeight);
+            expect(newDetails.maturity).to.be.eq(oldDetails.maturity);
+            expect(newDetails.value).to.be.eq(oldDetails.value);
+            expect(newDetails.extra).to.be.eq(oldDetails.extra.add(value.div(2)));
           });
 
           it('cannot withdraw', async function () {

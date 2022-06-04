@@ -2,14 +2,14 @@
 pragma solidity ^0.8.0;
 
 import "@amxx/hre/contracts/ENSReverseRegistration.sol";
+import "@amxx/hre/contracts/FullMath.sol";
+import "@amxx/hre/contracts/Splitters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/Timers.sol";
 import "@openzeppelin/contracts/utils/Multicall.sol";
-import "@amxx/hre/contracts/Splitters.sol";
-import "@amxx/hre/contracts/FullMath.sol";
 import "../amm/UniswapV2Router02.sol";
 import "../amm/libraries/UniswapV2Math.sol";
 import "../../tokens/extensions/IERC1363.sol";
@@ -280,15 +280,15 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
         uint256 rate        = _locks[token].rate;
         uint256 factor      = duration * UniswapV2Math.sqrt(duration);
         uint256 extrafactor = value == 0 ? 0 : UniswapV2Math.sqrt(FullMath.mulDiv(
+            1e54,
             rate * extra, // rate is * 1e18
-            value,
-            1e54
+            value
         )); // = 1e18 * sqrt(extravalue / value)
 
         return FullMath.mulDiv(
-            value * factor,                   // base weight
-            EXTRA_FACTOR_BASE,                // renormalization
-            EXTRA_FACTOR_BASE + extrafactor   // extra factor
+            value * factor,                  // base weight
+            EXTRA_FACTOR_BASE + extrafactor, // extra factor
+            EXTRA_FACTOR_BASE                // renormalization
         );
     }
 

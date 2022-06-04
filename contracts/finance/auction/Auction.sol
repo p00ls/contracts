@@ -111,7 +111,7 @@ contract Auction is
         require(start.isExpired() && deadline.isPending(), "Auction: auction not active");
         uint256 value = balanceOf(msg.sender);
         _burn(msg.sender, value);
-        SafeERC20.safeTransfer(payment, to, FullMath.mulDiv(80, 100, value)); // 20% penalty
+        SafeERC20.safeTransfer(payment, to, FullMath.mulDiv(value, 80, 100)); // 20% penalty
     }
 
     function withdraw(address to)
@@ -137,7 +137,7 @@ contract Auction is
        view
        returns (uint256)
     {
-        return FullMath.mulDiv(amount, totalSupply(), token.balanceOf(address(this)));
+        return FullMath.mulDiv(amount, token.balanceOf(address(this)), totalSupply());
     }
 
     function tokenToPayment(uint256 amount)
@@ -145,6 +145,6 @@ contract Auction is
         view
         returns (uint256)
     {
-        return FullMath.mulDiv(amount, token.balanceOf(address(this)), totalSupply());
+        return FullMath.mulDiv(amount, totalSupply(), token.balanceOf(address(this)));
     }
 }
