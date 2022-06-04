@@ -13,8 +13,20 @@ import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "../amm/libraries/UniswapV2Library.sol";
 import "../../env/IWETH.sol";
 
+/**
+ * @dev Liquidates and redistributes AMM fees for the p00ls <> eth and pools <> creatorToken pairs.
+ * On liquidation, the raised amounts to the recipient, which is expected to be a ERC4626 like vault or an ERC20
+ * supporting payment splitter. It could also be a governance contract.
+ *
+ * - In the case of p00ls <> eth, all the liquidated values goes to the recipient.
+ * - In the case of p00ls <> creatorToken, half of the liquidated values goes to the token owner, and the rest goes to
+ *   the recipient.
+ *
+ * @notice Setting the recipient to address(0) will temporarily disable any fee redistribution. This can be reverted
+ * by updating the recipient to a non zero address.
+ */
 /// @custom:security-contact security@p00ls.com
-contract FeeRedistributor is AccessControl, Multicall {
+contract FeeManager is AccessControl, Multicall {
     bytes32 public constant REDISTRIBUTION_MANAGER_ROLE = keccak256("REDISTRIBUTION_MANAGER_ROLE");
 
     IUniswapV2Router02 public immutable router;
@@ -22,12 +34,15 @@ contract FeeRedistributor is AccessControl, Multicall {
     IWETH              public immutable WETH;
     IERC20             public immutable p00ls;
     address            public           recipient;
+    uint256            public           fee;
 
     event FeesToOwner(address indexed owner, uint256 amount);
     event FeesToRecipient(address indexed recipient, uint256 amount);
     event FeesLiquidated(address indexed token, uint256 liquidity, uint256 amount);
+    event RecipientUpdated(address recipient);
+    event FeeUpdated(uint256 fee);
 
-    constructor(address _admin, IUniswapV2Router02 _router, IERC20 _p00ls, address _recipient)
+    constructor(address _admin, IUniswapV2Router02 _router, IERC20 _p00ls, address _recipient, uint256 _fee)
     {
         _setupRole(DEFAULT_ADMIN_ROLE,          _admin);
         _setupRole(REDISTRIBUTION_MANAGER_ROLE, _admin);
@@ -36,6 +51,8 @@ contract FeeRedistributor is AccessControl, Multicall {
         WETH      = IWETH(_router.WETH());
         p00ls     = _p00ls;
         recipient = _recipient; // by default this should be the xP00ls
+        fee       = _fee;
+        emit RecipientUpdated(_recipient);
     }
 
     // token is crea or weth
@@ -48,8 +65,9 @@ contract FeeRedistributor is AccessControl, Multicall {
         // WETH has no owner, creator tokens do.
         try Ownable(address(token)).owner() returns (address owner) {
             if (owner != address(0)) { // just to be safe
-                SafeERC20.safeTransfer(p00ls, owner, profit / 2);
-                emit FeesToOwner(owner, profit / 2);
+                uint256 ownerShare = profit * fee / 1e18;
+                SafeERC20.safeTransfer(p00ls, owner, ownerShare);
+                emit FeesToOwner(owner, ownerShare);
             }
         } catch {}
 
@@ -74,11 +92,27 @@ contract FeeRedistributor is AccessControl, Multicall {
         path[0] = address(token);
         path[1] = address(p00ls);
         uint256[] memory amounts = router.swapExactTokensForTokens(amountToken, 0, path, address(this), block.timestamp);
-        amountP00ls += amounts[0];
+        amountP00ls += amounts[1];
 
         emit FeesLiquidated(address(token), liquidity, amountP00ls);
 
         return amountP00ls;
+    }
+
+    function setRecipient(address newRecipient)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        emit RecipientUpdated(newRecipient);
+        recipient = newRecipient;
+    }
+
+    function setFee(uint256 newFee)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        emit FeeUpdated(newFee);
+        fee = newFee;
     }
 
     function setName(address ensregistry, string calldata ensname)

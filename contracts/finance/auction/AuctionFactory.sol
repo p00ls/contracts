@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@amxx/hre/contracts/ENSReverseRegistration.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -90,7 +91,7 @@ contract AuctionFactory is AccessControl, Multicall {
             balanceToken,
             0,
             0,
-            factory.feeTo(),
+            Ownable(address(p00ls)).owner(),
             block.timestamp
         );
 

@@ -151,7 +151,7 @@ async function migrate(config = {}, env = {}) {
     /*******************************************************************************************************************
      *                                                       DAO                                                       *
      *******************************************************************************************************************/
-     const timelock = isEnabled('timelock') && await manager.migrate(
+     const timelock = isEnabled('governance') && await manager.migrate(
         'timelock',
         getFactory('P00lsTimelock', { signer }),
         [
@@ -162,7 +162,7 @@ async function migrate(config = {}, env = {}) {
         { ...opts },
     );
 
-    const dao = isEnabled('dao') && timelock && await manager.migrate(
+    const dao = isEnabled('governance') && timelock && await manager.migrate(
         'dao',
         getFactory('P00lsDAO', { signer }),
         [
@@ -192,6 +192,19 @@ async function migrate(config = {}, env = {}) {
             weth.address,
         ],
         { ...opts, noConfirm: true },
+    );
+
+    const feemanager = isEnabled('amm') && router && token && xToken && await manager.migrate(
+        'feemanager',
+        getFactory('FeeManager', { signer }),
+        [
+            signer.address,
+            router.address,
+            token.address,
+            xToken.address,
+            ethers.utils.parseEther('.8'),
+        ],
+        { ...opts },
     );
 
     const auction = isEnabled('auction') && router && await manager.migrate(
@@ -234,40 +247,41 @@ async function migrate(config = {}, env = {}) {
     }).map(entry => Promise.all(entry))).then(Object.fromEntries);
 
     // Transfer ownership of the registry
-    isEnabled('timelock', 'registry'          ) && await registry.hasRole(roles.UPGRADER,      timelock.address).then(yes => yes || registry.grantRole   (roles.UPGRADER,      timelock.address).then(tx => tx.wait()));
-    isEnabled('timelock', 'registry'          ) && await registry.hasRole(roles.UPGRADER,      signer.address  ).then(yes => yes && registry.renounceRole(roles.UPGRADER,      signer.address  ).then(tx => tx.wait()));
-    isEnabled('timelock', 'registry'          ) && await registry.ownerOf(registry.address).then(owner => owner == timelock.address || registry.transferFrom(owner, timelock.address, registry.address));
+    isEnabled('governance', 'registry'          ) && await registry.hasRole(roles.UPGRADER,      timelock.address).then(yes => yes || registry.grantRole   (roles.UPGRADER,      timelock.address).then(tx => tx.wait()));
+    isEnabled('governance', 'registry'          ) && await registry.hasRole(roles.UPGRADER,      signer.address  ).then(yes => yes && registry.renounceRole(roles.UPGRADER,      signer.address  ).then(tx => tx.wait()));
+    isEnabled('governance', 'registry'          ) && await registry.ownerOf(registry.address).then(owner => owner == timelock.address || registry.transferFrom(owner, timelock.address, registry.address));
     // Set fees and factory roles
-    isEnabled('timelock', 'factory'           ) && await factory.feeTo().then(address => address == timelock.address || factory.setFeeTo(timelock.address).then(tx => tx.wait()));
-    isEnabled('timelock', 'factory', 'auction') && await factory.hasRole (roles.PAIR_CREATOR,  auction.address ).then(yes => yes || factory.grantRole    (roles.PAIR_CREATOR,  auction.address ).then(tx => tx.wait()));
-    isEnabled('timelock', 'factory'           ) && await factory.hasRole (roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || factory.grantRole    (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
-    isEnabled('timelock', 'factory'           ) && await factory.hasRole (roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && factory.renounceRole (roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
+    isEnabled('governance', 'amm'               ) && await factory.feeTo().then(address => address == feemanager.address || factory.setFeeTo(feemanager.address).then(tx => tx.wait()));
+    isEnabled('governance', 'amm', 'auction'    ) && await factory.hasRole (roles.PAIR_CREATOR,  auction.address ).then(yes => yes || factory.grantRole    (roles.PAIR_CREATOR,  auction.address ).then(tx => tx.wait()));
+    isEnabled('governance', 'amm'               ) && await factory.hasRole (roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || factory.grantRole    (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
+    isEnabled('governance', 'amm'               ) && await factory.hasRole (roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && factory.renounceRole (roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
     // Transfer control of the vesting factory
-    isEnabled('timelock', 'vesting'           ) && await vesting.hasRole (roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || vesting.grantRole    (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
-    isEnabled('timelock', 'vesting'           ) && await vesting.hasRole (roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && vesting.renounceRole (roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
+    isEnabled('governance', 'vesting'           ) && await vesting.hasRole (roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || vesting.grantRole    (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
+    isEnabled('governance', 'vesting'           ) && await vesting.hasRole (roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && vesting.renounceRole (roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
     // Transfer control of the auction factory
-    isEnabled('timelock', 'auction'           ) && await auction.hasRole (roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || auction.grantRole    (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
-    isEnabled('timelock', 'auction'           ) && await auction.hasRole (roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && auction.renounceRole (roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
+    isEnabled('governance', 'auction'           ) && await auction.hasRole (roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || auction.grantRole    (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
+    isEnabled('governance', 'auction'           ) && await auction.hasRole (roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && auction.renounceRole (roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
     // Transfer control of the escrow
-    isEnabled('timelock', 'escrow'            ) && await escrow.hasRole  (roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || escrow.grantRole     (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
-    isEnabled('timelock', 'escrow'            ) && await escrow.hasRole  (roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && escrow.renounceRole  (roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
+    isEnabled('governance', 'escrow'            ) && await escrow.hasRole  (roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || escrow.grantRole     (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
+    isEnabled('governance', 'escrow'            ) && await escrow.hasRole  (roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && escrow.renounceRole  (roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
     // Transfer control of the locking
-    isEnabled('timelock', 'locking'           ) && await locking.hasRole (roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || locking.grantRole    (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
-    isEnabled('timelock', 'locking'           ) && await locking.hasRole (roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && locking.renounceRole (roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
+    isEnabled('governance', 'locking'           ) && await locking.hasRole (roles.DEFAULT_ADMIN, timelock.address).then(yes => yes || locking.grantRole    (roles.DEFAULT_ADMIN, timelock.address).then(tx => tx.wait()));
+    isEnabled('governance', 'locking'           ) && await locking.hasRole (roles.DEFAULT_ADMIN, signer.address  ).then(yes => yes && locking.renounceRole (roles.DEFAULT_ADMIN, signer.address  ).then(tx => tx.wait()));
 
-    weth      && DEBUG(`WETH:      ${weth.address     }`);
-    multicall && DEBUG(`Multicall: ${multicall.address}`);
-    timelock  && DEBUG(`Timelock:  ${timelock.address }`);
-    dao       && DEBUG(`Dao:       ${dao.address      }`);
-    vesting   && DEBUG(`Vesting:   ${vesting.address  }`);
-    escrow    && DEBUG(`Escrow:    ${escrow.address   }`);
-    registry  && DEBUG(`Registry:  ${registry.address }`);
-    token     && DEBUG(`Token:     ${token.address    }`);
-    xToken    && DEBUG(`xToken:    ${xToken.address   }`);
-    factory   && DEBUG(`Factory:   ${factory.address  }`);
-    router    && DEBUG(`Router:    ${router.address   }`);
-    auction   && DEBUG(`Auction:   ${auction.address  }`);
-    locking   && DEBUG(`Locking:   ${locking.address  }`);
+    weth       && DEBUG(`WETH:       ${weth.address      }`);
+    multicall  && DEBUG(`Multicall:  ${multicall.address }`);
+    timelock   && DEBUG(`Timelock:   ${timelock.address  }`);
+    dao        && DEBUG(`Dao:        ${dao.address       }`);
+    vesting    && DEBUG(`Vesting:    ${vesting.address   }`);
+    escrow     && DEBUG(`Escrow:     ${escrow.address    }`);
+    registry   && DEBUG(`Registry:   ${registry.address  }`);
+    token      && DEBUG(`Token:      ${token.address     }`);
+    xToken     && DEBUG(`xToken:     ${xToken.address    }`);
+    factory    && DEBUG(`Factory:    ${factory.address   }`);
+    router     && DEBUG(`Router:     ${router.address    }`);
+    feemanager && DEBUG(`FeeManager: ${feemanager.address}`);
+    auction    && DEBUG(`Auction:    ${auction.address   }`);
+    locking    && DEBUG(`Locking:    ${locking.address   }`);
 
     return {
         config,
@@ -284,6 +298,7 @@ async function migrate(config = {}, env = {}) {
             xToken,
             factory,
             router,
+            feemanager,
             auction,
             locking,
         },
