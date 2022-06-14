@@ -27,11 +27,6 @@ contract P00lsTokenXCreatorV2 is IEscrowReceiver, P00lsTokenBase, ERC4626Upgrade
         _;
     }
 
-    modifier accrue() {
-        stakingEscrow.release(IERC20(asset()));
-        _;
-    }
-
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address escrow)
         initializer()
@@ -110,6 +105,59 @@ contract P00lsTokenXCreatorV2 is IEscrowReceiver, P00lsTokenBase, ERC4626Upgrade
         override
     {
         revert("P00lsTokenXCreator: delegation is registered on the creatorToken");
+    }
+
+    /**
+     * ERC4626 customization
+     */
+    function totalAssets()
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
+        return super.totalAssets() + stakingEscrow.releasable(IERC20(asset()));
+    }
+
+    function deposit(uint256 _assets, address _receiver)
+        public
+        virtual
+        override
+        returns (uint256)
+    {
+        stakingEscrow.release(IERC20(asset()));
+        return super.deposit(_assets, _receiver);
+    }
+
+    function mint(uint256 _shares, address _receiver)
+        public
+        virtual
+        override
+        returns (uint256)
+    {
+        stakingEscrow.release(IERC20(asset()));
+        return super.mint(_shares, _receiver);
+    }
+
+    function withdraw(uint256 _assets, address _receiver, address _owner)
+        public
+        virtual
+        override
+        returns (uint256)
+    {
+        stakingEscrow.release(IERC20(asset()));
+        return super.withdraw(_assets, _receiver, _owner);
+    }
+
+    function redeem(uint256 _shares, address _receiver, address _owner)
+        public
+        virtual
+        override
+        returns (uint256)
+    {
+        stakingEscrow.release(IERC20(asset()));
+        return super.redeem(_shares, _receiver, _owner);
     }
 
     /**
