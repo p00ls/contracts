@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/interfaces/IERC20.sol";
 import "@openzeppelin/contracts/interfaces/draft-IERC2612.sol";
+import "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import "@openzeppelin/contracts/governance/utils/IVotes.sol";
 import "./extensions/IERC1046.sol";
 import "./extensions/IERC1363.sol";
@@ -24,15 +25,9 @@ interface IP00lsTokenCreator is IP00lsTokenBase {
 }
 
 /// @custom:security-contact security@p00ls.com
-interface IP00lsTokenXCreator is IP00lsTokenBase {
+interface IP00lsTokenXCreator is IP00lsTokenBase, IERC4626 {
     function creatorToken() external view returns (IP00lsTokenCreator);
     function escrow() external view returns (address);
-    function deposit(uint256) external;
-    function withdraw(uint256) external;
-    function depositFor(uint256, address) external;
-    function withdrawTo(uint256, address) external;
-    function valueToShares(uint256) external view returns (uint256);
-    function sharesToValue(uint256) external view returns (uint256);
-    function pastSharesToValue(uint256 shares, uint256 blockNumber) external view returns (uint256);
+    function convertToAssetsAtBlock(uint256 shares, uint256 blockNumber) external view returns (uint256);
     function __delegate(address, address) external;
 }

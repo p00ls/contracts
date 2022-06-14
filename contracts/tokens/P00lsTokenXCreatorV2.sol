@@ -4,17 +4,17 @@ pragma solidity ^0.8.0;
 import "@amxx/hre/contracts/tokens/utils/Checkpoints.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../finance/staking/Escrow.sol";
+import "./extensions/ERC4626Upgradeable.sol";
 import "./P00lsTokenBase.sol";
 import "./interfaces.sol";
 
 /// @custom:security-contact security@p00ls.com
-contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
+contract P00lsTokenXCreatorV2 is IEscrowReceiver, P00lsTokenBase, ERC4626Upgradeable
 {
     using Checkpoints for Checkpoints.History;
 
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     Escrow              public immutable stakingEscrow;
-    IP00lsTokenCreator  public           creatorToken;
     Checkpoints.History internal         conversion;
 
     modifier onlyOwner() {
@@ -23,12 +23,12 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
     }
 
     modifier onlyParent() {
-        require(address(creatorToken) == msg.sender, "P00lsTokenXCreator: creator token restricted");
+        require(asset() == msg.sender, "P00lsTokenXCreator: creator token restricted");
         _;
     }
 
     modifier accrue() {
-        stakingEscrow.release(creatorToken);
+        stakingEscrow.release(IERC20(asset()));
         _;
     }
 
@@ -45,10 +45,18 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
     {
         __ERC20_init(name, symbol);
         __ERC20Permit_init(name);
-        creatorToken = IP00lsTokenCreator(parent);
+        __ERC4626_init(IERC20MetadataUpgradeable(parent));
 
         // before escrow release, ratio is 1:1
         conversion.push(1 ether);
+    }
+
+    function creatorToken()
+        public
+        view
+        returns (IP00lsTokenCreator)
+    {
+        return IP00lsTokenCreator(asset());
     }
 
     function owner()
@@ -57,79 +65,20 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
         override
         returns (address)
     {
-        return creatorToken.owner();
+        return creatorToken().owner();
     }
 
-    /**
-     * Deposit / withdraw
-     */
     function onEscrowRelease(uint256)
         public
     {
-        uint256 value = sharesToValue(1 ether);
+        uint256 value = convertToAssets(1 ether);
         if (value != conversion.latest())
         {
             conversion.push(value);
         }
     }
 
-    function deposit(uint256 value)
-        public
-    {
-        depositFor(value, msg.sender);
-    }
-
-    function withdraw(uint256 shares)
-        public
-    {
-        withdrawTo(shares, msg.sender);
-    }
-
-    function depositFor(uint256 value, address receiver)
-        public
-        accrue()
-    {
-        uint256 shares = valueToShares(value);
-
-        SafeERC20.safeTransferFrom(IERC20(creatorToken), msg.sender, address(this), value);
-        _mint(receiver, shares);
-
-        onEscrowRelease(0);
-    }
-
-    function withdrawTo(uint256 shares, address receiver)
-        public
-        accrue()
-    {
-        uint256 value  = sharesToValue(shares);
-
-        _burn(msg.sender, shares);
-        SafeERC20.safeTransfer(IERC20(creatorToken), receiver, value);
-
-        onEscrowRelease(0);
-    }
-
-    function valueToShares(uint256 value)
-        public
-        view
-        returns (uint256)
-    {
-        uint256 supply  = totalSupply();
-        uint256 balance = IERC20(creatorToken).balanceOf(address(this));
-        return balance > 0 && supply > 0 ? Math.mulDiv(value, supply, balance) : value;
-    }
-
-    function sharesToValue(uint256 shares)
-        public
-        view
-        returns (uint256)
-    {
-        uint256 supply  = totalSupply();
-        uint256 balance = IERC20(creatorToken).balanceOf(address(this));
-        return balance > 0 && supply > 0 ? Math.mulDiv(shares, balance, supply) : supply;
-    }
-
-    function pastSharesToValue(uint256 shares, uint256 blockNumber)
+    function convertToAssetsAtBlock(uint256 shares, uint256 blockNumber)
         public
         view
         returns (uint256)
@@ -161,5 +110,29 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
         override
     {
         revert("P00lsTokenXCreator: delegation is registered on the creatorToken");
+    }
+
+    /**
+     * Internal override resolution
+     */
+    function _mint(address account, uint256 amount)
+        internal
+        virtual override(P00lsTokenBase, ERC20Upgradeable)
+    {
+        super._mint(account, amount);
+    }
+
+    function _burn(address account, uint256 amount)
+        internal
+        virtual override(P00lsTokenBase, ERC20Upgradeable)
+    {
+        super._burn(account, amount);
+    }
+
+    function _afterTokenTransfer(address from, address to, uint256 amount)
+        internal
+        virtual override(P00lsTokenBase, ERC20Upgradeable)
+    {
+        super._afterTokenTransfer(from, to, amount);
     }
 }
