@@ -3,15 +3,17 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/governance/utils/IVotes.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
+import "@openzeppelin/contracts/utils/Multicall.sol";
 import "@openzeppelin/contracts-upgradeable/finance/VestingWalletUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import "../../utils/RegistryOwnable.sol";
 
 /// @custom:security-contact security@p00ls.com
 contract VestingTemplate is
     RegistryOwnable,
     VestingWalletUpgradeable,
-    MulticallUpgradeable
+    Multicall
 {
     constructor(address ownershipRegistry_) initializer()
     RegistryOwnable(ownershipRegistry_)
@@ -41,10 +43,6 @@ contract VestingTemplate is
         token.delegate(delegatee);
     }
 }
-
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
-import "@openzeppelin/contracts/utils/Multicall.sol";
 
 /// @custom:security-contact security@p00ls.com
 contract VestingFactory is
