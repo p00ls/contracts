@@ -28,10 +28,10 @@
     "url": "https://github.com/p00ls/contracts/issues"
   },
   "dependencies": {
-    "@amxx/hre": "^0.0.7",
+    "@amxx/hre": "^0.1.0-rc.0",
     "@ensdomains/ens-contracts": "^0.0.8",
-    "@openzeppelin/contracts": "^4.6.0",
-    "@openzeppelin/contracts-upgradeable": "^4.6.0",
+    "@openzeppelin/contracts": "^4.7.0-rc.0",
+    "@openzeppelin/contracts-upgradeable": "^4.7.0-rc.0",
     "@uniswap/v2-core": "^1.0.1",
     "@uniswap/v2-periphery": "*"
   },

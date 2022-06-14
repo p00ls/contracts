@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "@amxx/hre/contracts/ENSReverseRegistration.sol";
-import "@amxx/hre/contracts/FullMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
@@ -100,7 +99,7 @@ contract Escrow is AccessControl, Multicall {
         {
             uint48 step  = uint48(block.timestamp) - manifest.lastUpdate;
             uint48 total = manifest.deadline       - manifest.lastUpdate;
-            return FullMath.mulDiv(token.balanceOf(address(this)), step, total);
+            return Math.mulDiv(token.balanceOf(address(this)), step, total);
         }
         else
         {

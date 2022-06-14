@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@amxx/hre/contracts/FullMath.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
 import "@openzeppelin/contracts/interfaces/IERC1363Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/Multicall.sol";
 import "@openzeppelin/contracts/utils/Timers.sol";
 // import "../../utils/Timers.sol";
@@ -111,7 +111,7 @@ contract Auction is
         require(start.isExpired() && deadline.isPending(), "Auction: auction not active");
         uint256 value = balanceOf(msg.sender);
         _burn(msg.sender, value);
-        SafeERC20.safeTransfer(payment, to, FullMath.mulDiv(value, 80, 100)); // 20% penalty
+        SafeERC20.safeTransfer(payment, to, Math.mulDiv(value, 80, 100)); // 20% penalty
     }
 
     function withdraw(address to)
@@ -137,7 +137,7 @@ contract Auction is
        view
        returns (uint256)
     {
-        return FullMath.mulDiv(amount, token.balanceOf(address(this)), totalSupply());
+        return Math.mulDiv(amount, token.balanceOf(address(this)), totalSupply());
     }
 
     function tokenToPayment(uint256 amount)
@@ -145,6 +145,6 @@ contract Auction is
         view
         returns (uint256)
     {
-        return FullMath.mulDiv(amount, totalSupply(), token.balanceOf(address(this)));
+        return Math.mulDiv(amount, totalSupply(), token.balanceOf(address(this)));
     }
 }
