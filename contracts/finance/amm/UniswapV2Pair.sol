@@ -86,7 +86,11 @@ contract UniswapV2Pair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
                 uint rootKLast = UniswapV2Math.sqrt(_kLast);
                 if (rootK > rootKLast) {
                     uint numerator = totalSupply() * (rootK - rootKLast);
-                    uint denominator = rootK * 5 + rootKLast;
+                    // FORKED: vanilla is `rootK * 5 + rootKLast;`
+                    // In this version:
+                    // - 50% of the fees go to the liquidity provider (liquidity increass)
+                    // - 50% of the fees go to `feeTo`
+                    uint denominator = rootK + rootKLast;
                     uint liquidity = numerator / denominator;
                     if (liquidity > 0) _mint(feeTo, liquidity);
                 }
@@ -167,8 +171,8 @@ contract UniswapV2Pair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
         uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
         require(amount0In > 0 || amount1In > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
         { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
-        uint balance0Adjusted = (balance0 * 1000) - (amount0In * 3);
-        uint balance1Adjusted = (balance1 * 1000) - (amount1In * 3);
+        uint balance0Adjusted = (balance0 * 1000) - (amount0In * 5); // FORKED: take .5% instead of .3%
+        uint balance1Adjusted = (balance1 * 1000) - (amount1In * 5); // FORKED: take .5% instead of .3%
         require(balance0Adjusted * balance1Adjusted >= uint(_reserve0) * uint(_reserve1) * 1000**2, 'UniswapV2: K');
         }
 

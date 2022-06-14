@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.5.0;
 
+import "@openzeppelin/contracts/proxy/Clones.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 import '../UniswapV2Factory.sol';
 
@@ -15,11 +17,12 @@ library UniswapV2Library {
     // calculates the CREATE2 address for a pair without making any external calls
     function pairFor(address factory, address tokenA, address tokenB) internal view returns (address pair) {
         (address token0, address token1) = sortTokens(tokenA, tokenB);
-        pair = Clones.predictDeterministicAddress(
+        address predicted = Clones.predictDeterministicAddress(
             UniswapV2Factory(factory).template(),
             keccak256(abi.encodePacked(token0, token1)),
             factory
         );
+        return Address.isContract(predicted) ? predicted : address(0);
     }
 
     // fetches and sorts the reserves for a pair
@@ -40,7 +43,7 @@ library UniswapV2Library {
     function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) internal pure returns (uint amountOut) {
         require(amountIn > 0, 'UniswapV2Library: INSUFFICIENT_INPUT_AMOUNT');
         require(reserveIn > 0 && reserveOut > 0, 'UniswapV2Library: INSUFFICIENT_LIQUIDITY');
-        uint amountInWithFee = amountIn * 997;
+        uint amountInWithFee = amountIn * 995; // FORKED: take .5% instead of .3%
         uint numerator = amountInWithFee * reserveOut;
         uint denominator = reserveIn * 1000 + amountInWithFee;
         amountOut = numerator / denominator;
@@ -51,7 +54,7 @@ library UniswapV2Library {
         require(amountOut > 0, 'UniswapV2Library: INSUFFICIENT_OUTPUT_AMOUNT');
         require(reserveIn > 0 && reserveOut > 0, 'UniswapV2Library: INSUFFICIENT_LIQUIDITY');
         uint numerator = reserveIn * amountOut * 1000;
-        uint denominator = (reserveOut - amountOut) * 997;
+        uint denominator = (reserveOut - amountOut) * 995; // FORKED: take .5% instead of .3%
         amountIn = (numerator / denominator) + 1;
     }
 

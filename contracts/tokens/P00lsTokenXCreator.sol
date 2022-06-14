@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@amxx/hre/contracts/Checkpoints.sol";
-import "@amxx/hre/contracts/FullMath.sol";
+import "@amxx/hre/contracts/tokens/utils/Checkpoints.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../finance/staking/Escrow.sol";
 import "./P00lsTokenBase.sol";
@@ -116,7 +115,7 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
     {
         uint256 supply  = totalSupply();
         uint256 balance = IERC20(creatorToken).balanceOf(address(this));
-        return balance > 0 && supply > 0 ? FullMath.mulDiv(value, supply, balance) : value;
+        return balance > 0 && supply > 0 ? Math.mulDiv(value, supply, balance) : value;
     }
 
     function sharesToValue(uint256 shares)
@@ -126,7 +125,7 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
     {
         uint256 supply  = totalSupply();
         uint256 balance = IERC20(creatorToken).balanceOf(address(this));
-        return balance > 0 && supply > 0 ? FullMath.mulDiv(shares, balance, supply) : supply;
+        return balance > 0 && supply > 0 ? Math.mulDiv(shares, balance, supply) : supply;
     }
 
     function pastSharesToValue(uint256 shares, uint256 blockNumber)
@@ -134,7 +133,7 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
         view
         returns (uint256)
     {
-        return FullMath.mulDiv(shares, conversion.past(blockNumber), 1 ether);
+        return Math.mulDiv(shares, conversion.past(blockNumber), 1 ether);
     }
 
     /**

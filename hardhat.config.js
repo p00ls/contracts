@@ -1,5 +1,4 @@
 require('dotenv/config');
-
 const argv = require('yargs/yargs')(process.argv.slice(2))
   .env('')
   .options({
@@ -7,10 +6,11 @@ const argv = require('yargs/yargs')(process.argv.slice(2))
     coverage:      { type: 'boolean',                                          default: false          },
     report:        { type: 'boolean',                                          default: false          },
     // compilations
-    compiler:      { type: 'string',                                           default: '0.8.13'       },
+    compiler:      { type: 'string',                                           default: '0.8.14'       },
     hardfork:      { type: 'string',                                           default: 'arrowGlacier' },
     mode:          { type: 'string', choices: [ 'production', 'development' ], default: 'production'   },
     runs:          { type: 'number',                                           default: 200            },
+    enableIr:      { type: 'boolean',                                          default: false          },
     revertStrings: { type: 'string', choices: [ 'default', 'strip'          ], default: 'default'      },
     // chain
     fork:          { type: 'string',                                                                   },
@@ -19,6 +19,8 @@ const argv = require('yargs/yargs')(process.argv.slice(2))
     // APIs
     coinmarketcap: { type: 'string'                                                                    },
     etherscan:     { type: 'string'                                                                    },
+    // extra
+    verbose:       { type: 'boolean',                                          default: false          },
   })
   .argv;
 
@@ -29,13 +31,14 @@ require('solidity-coverage');
 
 argv.etherscan && require('@nomiclabs/hardhat-etherscan');
 argv.report    && require('hardhat-gas-reporter');
+argv.verbose   && console.table([ 'coverage', 'report', 'compiler', 'hardfork', 'mode', 'runs', 'enableIr', 'revertStrings', 'fork', 'chainId', 'slow', 'coinmarketcap', 'etherscan' ].map(key => ({ key, value: argv[key] })));
 
 const settings = {
   optimizer: {
     enabled: argv.mode === 'production' || argv.report,
     runs: argv.runs,
   },
-	// viaIR: argv.mode === 'production' || argv.report,
+	viaIR: argv.enableIr,
   debug: {
     revertStrings: argv.revertStrings,
   },

@@ -38,8 +38,8 @@ contract P00lsDAO is
         _quorum = 1;
     }
 
-    function getVotes(address account, uint256 blockNumber)
-        public
+    function _getVotes(address account, uint256 blockNumber, bytes memory /* params */)
+        internal
         view
         override
         returns (uint256)

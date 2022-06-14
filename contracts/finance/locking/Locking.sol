@@ -2,8 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@amxx/hre/contracts/ENSReverseRegistration.sol";
-import "@amxx/hre/contracts/FullMath.sol";
-import "@amxx/hre/contracts/Splitters.sol";
+import "@amxx/hre/contracts/tokens/utils/Splitters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -29,7 +28,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     uint256 private constant EXTRA_FACTOR_BASE    = 1e18; // sqrt(1e36) = 1e18 → double for 1 extra
 
     UniswapV2Router02 public immutable router;
-    IERC20            public immutable pools;
+    IERC20            public immutable p00ls;
 
     /*****************************************************************************************************************
      *                                                    Storage                                                    *
@@ -93,12 +92,12 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     /*****************************************************************************************************************
      *                                                   Functions                                                   *
      *****************************************************************************************************************/
-    constructor(address _admin, UniswapV2Router02 _router, IERC20 _pools)
+    constructor(address _admin, UniswapV2Router02 _router, IERC20 _p00ls)
     {
         _setupRole(DEFAULT_ADMIN_ROLE,   _admin);
         _setupRole(LOCKING_MANAGER_ROLE, _admin);
         router   = _router;
-        pools    = _pools;
+        p00ls    = _p00ls;
     }
 
     function lockDetails(IERC20 token)
@@ -139,10 +138,14 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     {
         Lock storage lock = _locks[token];
 
+        address[] memory path = new address[](2);
+        path[0] = address(p00ls);
+        path[1] = address(token);
+
         // lock.delay = uint64(block.timestamp + DELAY).toTimestamp();
         lock.delay.setDeadline(uint64(block.timestamp + DELAY));
         lock.splitter.reward(token.balanceOf(address(this)));
-        lock.rate = router.getAmountsOut(1e18, _poolsToToken(token))[1]; // this is subject to pricefeed manipulation if executed in refreshWeight
+        lock.rate = router.getAmountsOut(1e18, path)[1]; // this is subject to pricefeed manipulation if executed in refreshWeight
 
         emit LockSetup(token);
     }
@@ -175,7 +178,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
 
         if (msg.sender == address(token)) {
             _deposit(token, from, value, 0, to, true);
-        } else if (msg.sender == address(pools)) {
+        } else if (msg.sender == address(p00ls)) {
             _deposit(token, from, 0, value, to, true);
         } else {
             revert('invalid data');
@@ -193,7 +196,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
 
         if (msg.sender == address(token)) {
             _deposit(token, from, value, 0, to, false);
-        } else if (msg.sender == address(pools)) {
+        } else if (msg.sender == address(p00ls)) {
             _deposit(token, from, 0, value, to, false);
         } else {
             revert('invalid data');
@@ -240,7 +243,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
         }
 
         if (extra > 0) {
-            if (!erc1363received) SafeERC20.safeTransferFrom(pools, from, address(this), extra);
+            if (!erc1363received) SafeERC20.safeTransferFrom(p00ls, from, address(this), extra);
             vault.extra += extra;
         }
 
@@ -265,7 +268,7 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
 
         uint256 reward = lock.splitter.release(from);
         SafeERC20.safeTransfer(token, to, vault.value + reward);
-        SafeERC20.safeTransfer(pools, to, vault.extra);
+        SafeERC20.safeTransfer(p00ls, to, vault.extra);
 
         delete lock.vaults[from];
 
@@ -279,13 +282,13 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
     {
         uint256 rate        = _locks[token].rate;
         uint256 factor      = duration * UniswapV2Math.sqrt(duration);
-        uint256 extrafactor = value == 0 ? 0 : UniswapV2Math.sqrt(FullMath.mulDiv(
+        uint256 extrafactor = value == 0 ? 0 : UniswapV2Math.sqrt(Math.mulDiv(
             1e54,
             rate * extra, // rate is * 1e18
             value
         )); // = 1e18 * sqrt(extravalue / value)
 
-        return FullMath.mulDiv(
+        return Math.mulDiv(
             value * factor,                  // base weight
             EXTRA_FACTOR_BASE + extrafactor, // extra factor
             EXTRA_FACTOR_BASE                // renormalization
@@ -297,28 +300,5 @@ contract Locking is AccessControl, Multicall, IERC1363Receiver, IERC1363Spender 
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         ENSReverseRegistration.setName(ensregistry, ensname);
-    }
-
-    /*****************************************************************************************************************
-     *                                                Internal tools                                                 *
-     *****************************************************************************************************************/
-    function _tokenToPools(IERC20 token)
-        internal
-        view
-        returns (address[] memory path)
-    {
-        path = new address[](2);
-        path[0] = address(token);
-        path[1] = address(pools);
-    }
-
-    function _poolsToToken(IERC20 token)
-        internal
-        view
-        returns (address[] memory path)
-    {
-        path = new address[](2);
-        path[0] = address(pools);
-        path[1] = address(token);
     }
 }

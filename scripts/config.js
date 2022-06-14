@@ -9,10 +9,9 @@ module.exports = {
       xsymbol: "x$00",
       merkleroot: ethers.constants.HashZero,
     },
-    timelock: {
-      mindelay: 86400 * 7,
+    governance: {
+      timelockMinDelay: 86400 * 7,
     },
-    dao: {},
     vesting: {},
     escrow: {},
     registry: {
