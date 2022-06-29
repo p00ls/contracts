@@ -27,7 +27,7 @@ describe('Vested airdrop', function () {
 
     // create creator token with allocation to the auction manager
     this.allocations = [
-      { index: 0, account: this.vesting.address, amount: VALUE },
+      { index: 0, account: this.vestedAirdrop.address, amount: VALUE },
     ],
     this.merkletree    = utils.merkle.createMerkleTree(this.allocations.map(utils.merkle.hashAllocation));
     this.creatorToken  = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', '$Amxx', 'X Hadrien Croubois', 'x$Amxx', this.merkletree.getRoot());
@@ -43,26 +43,26 @@ describe('Vested airdrop', function () {
   });
 
   it('restricted access to admin function', async function () {
-    expect(await this.vesting.enabled(this.hexroot)).to.be.false;
+    expect(await this.vestedAirdrop.enabled(this.hexroot)).to.be.false;
 
-    await expect(this.vesting.connect(this.accounts.other).enableAirdrop(this.hexroot, true))
+    await expect(this.vestedAirdrop.connect(this.accounts.other).enableAirdrop(this.hexroot, true))
     .to.be.revertedWith(`AccessControl: account ${this.accounts.other.address.toLowerCase()} is missing role ${this.roles.VESTING_MANAGER}`);
 
-    expect(await this.vesting.enabled(this.hexroot)).to.be.false;
+    expect(await this.vestedAirdrop.enabled(this.hexroot)).to.be.false;
   });
 
   it('can enable & disable airdrop', async function () {
-    expect(await this.vesting.enabled(this.hexroot)).to.be.false;
+    expect(await this.vestedAirdrop.enabled(this.hexroot)).to.be.false;
 
-    await expect(this.vesting.enableAirdrop(this.hexroot, true))
-    .to.emit(this.vesting, 'Airdrop').withArgs(this.hexroot, true);
+    await expect(this.vestedAirdrop.enableAirdrop(this.hexroot, true))
+    .to.emit(this.vestedAirdrop, 'Airdrop').withArgs(this.hexroot, true);
 
-    expect(await this.vesting.enabled(this.hexroot)).to.be.true;
+    expect(await this.vestedAirdrop.enabled(this.hexroot)).to.be.true;
 
-    await expect(this.vesting.enableAirdrop(this.hexroot, false))
-    .to.emit(this.vesting, 'Airdrop').withArgs(this.hexroot, false);
+    await expect(this.vestedAirdrop.enableAirdrop(this.hexroot, false))
+    .to.emit(this.vestedAirdrop, 'Airdrop').withArgs(this.hexroot, false);
 
-    expect(await this.vesting.enabled(this.hexroot)).to.be.false;
+    expect(await this.vestedAirdrop.enabled(this.hexroot)).to.be.false;
   });
 
   it('cannot unlock for disabled airdrop', async function () {
@@ -70,13 +70,13 @@ describe('Vested airdrop', function () {
     const vestingHash = utils.merkle.hashVesting(vesting)
     const proof       = this.merkletree.getHexProof(vestingHash);
 
-    await expect(this.vesting.release(vesting, proof))
+    await expect(this.vestedAirdrop.release(vesting, proof))
     .to.be.revertedWith('unknown airdrop');
   });
 
   describe('with airdrop enabled', function () {
     beforeEach(async function () {
-      await this.vesting.enableAirdrop(this.hexroot, true);
+      await this.vestedAirdrop.enableAirdrop(this.hexroot, true);
     });
 
     it('unlock all at once', async function () {
@@ -84,9 +84,9 @@ describe('Vested airdrop', function () {
       const vestingHash = utils.merkle.hashVesting(vesting)
       const proof       = this.merkletree.getHexProof(vestingHash);
 
-      await expect(this.vesting.release(vesting, proof))
-      .to.emit(this.vesting, 'TokensReleased').withArgs(this.hexroot, ethers.utils.hexlify(vestingHash), vesting.token, vesting.recipient, vesting.amount, vesting.amount)
-      .to.emit(this.creatorToken, 'Transfer').withArgs(this.vesting.address, vesting.recipient, vesting.amount);
+      await expect(this.vestedAirdrop.release(vesting, proof))
+      .to.emit(this.vestedAirdrop, 'TokensReleased').withArgs(this.hexroot, ethers.utils.hexlify(vestingHash), vesting.token, vesting.recipient, vesting.amount, vesting.amount)
+      .to.emit(this.creatorToken, 'Transfer').withArgs(this.vestedAirdrop.address, vesting.recipient, vesting.amount);
     });
 
     it('apply schedule', async function () {
@@ -98,23 +98,23 @@ describe('Vested airdrop', function () {
         await network.provider.send('evm_setNextBlockTimestamp', [ timestamp ]);
 
         const vested      = vestedAmount(vesting, timestamp);
-        const released    = await this.vesting.released(vestingHash);
+        const released    = await this.vestedAirdrop.released(vestingHash);
         const releasable  = vested.sub(released);
 
-        expect(await this.vesting.vestedAmount(vesting, timestamp)).to.be.equal(vested);
+        expect(await this.vestedAirdrop.vestedAmount(vesting, timestamp)).to.be.equal(vested);
 
-        const tx = await this.vesting.release(vesting, proof);
+        const tx = await this.vestedAirdrop.release(vesting, proof);
         if (releasable.isZero()) {
           await expect(tx)
-          .to.not.emit(this.vesting, 'TokensReleased')
+          .to.not.emit(this.vestedAirdrop, 'TokensReleased')
           .to.not.emit(this.creatorToken, 'Transfer');
         } else {
           await expect(tx)
-          .to.emit(this.vesting, 'TokensReleased').withArgs(this.hexroot, ethers.utils.hexlify(vestingHash), vesting.token, vesting.recipient, releasable, vesting.amount)
-          .to.emit(this.creatorToken, 'Transfer').withArgs(this.vesting.address, vesting.recipient, releasable);
+          .to.emit(this.vestedAirdrop, 'TokensReleased').withArgs(this.hexroot, ethers.utils.hexlify(vestingHash), vesting.token, vesting.recipient, releasable, vesting.amount)
+          .to.emit(this.creatorToken, 'Transfer').withArgs(this.vestedAirdrop.address, vesting.recipient, releasable);
         }
 
-        expect(await this.vesting.released(vestingHash)).to.be.equal(vested)
+        expect(await this.vestedAirdrop.released(vestingHash)).to.be.equal(vested)
       }
     });
   });
