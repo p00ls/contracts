@@ -42,6 +42,7 @@ abstract contract P00lsTokenBase is
      */
     function _mint(address account, uint256 amount)
         internal
+        virtual
         override(ERC20Upgradeable, ERC20VotesUpgradeable)
     {
         super._mint(account, amount);
@@ -49,6 +50,7 @@ abstract contract P00lsTokenBase is
 
     function _burn(address account, uint256 amount)
         internal
+        virtual
         override(ERC20Upgradeable, ERC20VotesUpgradeable)
     {
         super._burn(account, amount);
@@ -56,6 +58,7 @@ abstract contract P00lsTokenBase is
 
     function _afterTokenTransfer(address from, address to, uint256 amount)
         internal
+        virtual
         override(ERC20Upgradeable, ERC20VotesUpgradeable)
     {
         super._afterTokenTransfer(from, to, amount);

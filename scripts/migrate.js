@@ -85,19 +85,6 @@ async function migrate(config = {}, env = {}) {
     );
 
     // ------ Token templates ----------------------------------------------------------------------------------------
-    // Would be better but getting 'Deployment at address 0x0000000000000000000000000000000000000000 is not registered'
-    // const tokenCreator = isEnabled('registry') && registry && await upgrades.prepareUpgrade(
-    //     await registry.beaconCreator(),
-    //     await getFactory('P00lsTokenCreator', { signer }),
-    //     { ...opts, constructorArgs: [ registry.address ], unsafeAllow: 'delegatecall' },
-    // );
-
-    // const tokenXCreator = isEnabled('registry') && registry && await upgrades.prepareUpgrade(
-    //     await registry.beaconXCreator(),
-    //     await getFactory('P00lsTokenXCreator', { signer }),
-    //     { ...opts, constructorArgs: [ escrow.address ], unsafeAllow: 'delegatecall' },
-    // );
-
     const tokenCreator = isEnabled('registry') && registry && await manager.migrate(
         'tokenCreator',
         getFactory('P00lsTokenCreator', { signer }),
@@ -127,7 +114,6 @@ async function migrate(config = {}, env = {}) {
         .then(beacon => beacon.implementation())
         .then(implementation => implementation == tokenXCreator.address || registry.upgradeXCreatorToken(tokenXCreator.address).then(tx => tx.wait()));
 
-
     // ------ Tooling ------------------------------------------------------------------------------------------------
     const newCreatorToken = (admin, name, symbol, xname, xsymbol, root) => registry.createToken(admin, name, symbol, xname, xsymbol, root)
         .then(tx => tx.wait())
@@ -154,6 +140,41 @@ async function migrate(config = {}, env = {}) {
         );
 
     const xToken = isEnabled('token') && await getXCreatorToken(token);
+
+    // ------ Upgrade p00ls token ------------------------------------------------------------------------------------
+    const tokenXCreatorV2 = isEnabled('registry') && registry && await manager.migrate(
+        'tokenXCreatorV2',
+        getFactory('P00lsTokenXCreatorV2', { signer }),
+        [
+            escrow.address,
+        ],
+        { ...opts, noConfirm: true },
+    );
+
+    // tokenCreator && await Promise.all([
+    //     registry.beaconCreator(),
+    //     getFactory('P00lsTokenCreator', { signer }),
+    // ]).then(([ beacon, factory ]) => upgrades.forceImport(beacon, factory, { constructorArgs: [ registry.address ] }));
+
+    // tokenXCreator && await Promise.all([
+    //     registry.beaconXCreator(),
+    //     getFactory('P00lsTokenXCreator', { signer }),
+    // ]).then(([ beacon, factory ]) => upgrades.forceImport(beacon, factory, { constructorArgs: [ escrow.address ] }));
+
+    // tokenXCreator && await Promise.all([
+    //     registry.beaconXCreator(),
+    //     getFactory('P00lsTokenXCreatorV2', { signer }),
+    // ]).then(([ beacon, factory ]) => upgrades.prepareUpgrade(beacon, factory, { constructorArgs: [ escrow.address ], unsafeAllow: 'delegatecall' }));
+
+    isEnabled('registry') && await registry.beaconXCreator()
+        .then(address => attach('Beacon', address))
+        .then(beacon => beacon.implementation())
+        .then(implementation => implementation == tokenXCreatorV2.address || registry.upgradeXCreatorToken(tokenXCreatorV2.address).then(tx => tx.wait()));
+
+    const getXCreatorTokenV2 = (creatorToken) => creatorToken.xCreatorToken()
+        .then(address => attach('P00lsTokenXCreatorV2', address));
+
+    const xTokenV2 = isEnabled('token') && await getXCreatorTokenV2(token);
 
     /*******************************************************************************************************************
      *                                                       DAO                                                       *
@@ -305,7 +326,7 @@ async function migrate(config = {}, env = {}) {
             escrow,
             registry,
             token,
-            xToken,
+            xToken: xTokenV2,
             factory,
             router,
             feemanager,
@@ -314,7 +335,7 @@ async function migrate(config = {}, env = {}) {
         },
         workflows: {
             newCreatorToken,
-            getXCreatorToken,
+            getXCreatorToken: getXCreatorTokenV2,
         },
     };
 }

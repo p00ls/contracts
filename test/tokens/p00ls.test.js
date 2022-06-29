@@ -46,15 +46,19 @@ describe('$00 Token', function () {
         expect(await this.token.balanceOf(this.accounts.user.address)).to.be.equal(value);
         expect(await this.xToken.balanceOf(this.accounts.user.address)).to.be.equal(0);
         expect(await this.dao.getVotes(this.accounts.user.address, tx.blockNumber)).to.be.equal(value);
+
+        expect(await this.xToken.convertToAssetsAtBlock(ethers.utils.parseEther('1'), tx.blockNumber)).to.be.equal(ethers.utils.parseEther('1'));
       }
       {
-        const tx = await this.xToken.connect(this.accounts.user).deposit(value.div(2));
+        const tx = await this.xToken.connect(this.accounts.user).deposit(value.div(2), this.accounts.user.address);
 
         await network.provider.send('evm_mine');
 
         expect(await this.token.balanceOf(this.accounts.user.address)).to.be.equal(value.div(2));
         expect(await this.xToken.balanceOf(this.accounts.user.address)).to.be.equal(value.div(2));
         expect(await this.dao.getVotes(this.accounts.user.address, tx.blockNumber)).to.be.equal(value);
+
+        expect(await this.xToken.convertToAssetsAtBlock(ethers.utils.parseEther('1'), tx.blockNumber)).to.be.equal(ethers.utils.parseEther('1'));
       }
       {
         const tx = await this.token.transfer(this.xToken.address, value);
@@ -64,6 +68,8 @@ describe('$00 Token', function () {
         expect(await this.token.balanceOf(this.accounts.user.address)).to.be.equal(value.div(2));
         expect(await this.xToken.balanceOf(this.accounts.user.address)).to.be.equal(value.div(2));
         expect(await this.dao.getVotes(this.accounts.user.address, tx.blockNumber)).to.be.equal(value);
+
+        expect(await this.xToken.convertToAssetsAtBlock(ethers.utils.parseEther('1'), tx.blockNumber)).to.be.equal(ethers.utils.parseEther('1'));
       }
       {
         const tx = await this.xToken.onEscrowRelease(0);
@@ -73,6 +79,8 @@ describe('$00 Token', function () {
         expect(await this.token.balanceOf(this.accounts.user.address)).to.be.equal(value.div(2));
         expect(await this.xToken.balanceOf(this.accounts.user.address)).to.be.equal(value.div(2));
         expect(await this.dao.getVotes(this.accounts.user.address, tx.blockNumber)).to.be.equal(value.mul(2));
+
+        expect(await this.xToken.convertToAssetsAtBlock(ethers.utils.parseEther('1'), tx.blockNumber)).to.be.equal(ethers.utils.parseEther('3'));
       }
     });
   });

@@ -47,7 +47,7 @@ contract P00lsDAO is
         IP00lsTokenCreator  _token  = token;
         IP00lsTokenXCreator _xtoken = _token.xCreatorToken();
         uint256             votes   = _token.getPastVotes(account, blockNumber);
-        uint256             xvotes  = _xtoken.pastSharesToValue(_xtoken.getPastVotes(account, blockNumber), blockNumber);
+        uint256             xvotes  = _xtoken.convertToAssetsAtBlock(_xtoken.getPastVotes(account, blockNumber), blockNumber);
         return votes + xvotes;
     }
 

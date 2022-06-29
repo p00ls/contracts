@@ -12,6 +12,7 @@ contract P00lsTokenXCreator is IEscrowReceiver, P00lsTokenBase
 {
     using Checkpoints for Checkpoints.History;
 
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     Escrow              public immutable stakingEscrow;
     IP00lsTokenCreator  public           creatorToken;
     Checkpoints.History internal         conversion;

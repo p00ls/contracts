@@ -36,7 +36,7 @@
     "@uniswap/v2-periphery": "*"
   },
   "devDependencies": {
-    "@openzeppelin/hardhat-upgrades": "^1.17.0",
+    "@openzeppelin/hardhat-upgrades": "^1.18.3",
     "copyfiles": "^2.4.1",
     "debug": "^2.6.9",
     "hardhat": "^2.7.1",
