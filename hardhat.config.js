@@ -6,7 +6,7 @@ const argv = require('yargs/yargs')(process.argv.slice(2))
     coverage:      { type: 'boolean',                                          default: false          },
     report:        { type: 'boolean',                                          default: false          },
     // compilations
-    compiler:      { type: 'string',                                           default: '0.8.14'       },
+    compiler:      { type: 'string',                                           default: '0.8.15'       },
     hardfork:      { type: 'string',                                           default: 'arrowGlacier' },
     mode:          { type: 'string', choices: [ 'production', 'development' ], default: 'production'   },
     runs:          { type: 'number',                                           default: 200            },
@@ -48,7 +48,7 @@ module.exports = {
   solidity: {
     compilers: [
       { version: argv.compiler, settings },
-      { version: '0.8.13',      settings },
+      { version: '0.8.15',      settings },
       { version: '0.7.6',       settings },
       { version: '0.6.12',      settings },
       { version: '0.5.16',      settings },

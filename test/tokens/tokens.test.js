@@ -26,7 +26,7 @@ describe('$Crea Token', function () {
       this.allocations = [
         // 40% vesting (creator + user)
         {
-          account: this.vesting.address,
+          account: this.vestedAirdrop.address,
           amount: CONFIG.extra.DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_DEPLOYER.mul(40).div(100),
         },
         // 10% AMM (+ dutch auction)

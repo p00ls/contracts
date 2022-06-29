@@ -88,7 +88,7 @@ contract Auction is
         }
     }
 
-    function onTransferReceived(address operator, address from, uint256 value, bytes calldata data)
+    function onTransferReceived(address, address from, uint256 value, bytes calldata)
         external
         override
         returns (bytes4)
