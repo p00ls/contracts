@@ -28,5 +28,5 @@ module.exports = {
     DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_AUCTION_MANAGER: ethers.utils.parseEther('500000'),
   },
   noCache: false,
-  noConfirm: false,
+  noConfirm: process.env.NO_CONFIRM ? Boolean(process.env.NO_CONFIRM) : false,
 };
