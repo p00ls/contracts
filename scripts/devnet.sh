@@ -2,4 +2,4 @@
 
 # Run devnet and migrations
 export NO_CONFIRM="1"
-npm run devnet:node & npm run devnet:migrate;
+sleep 5 && npm run devnet:migrate & npm run devnet:node
