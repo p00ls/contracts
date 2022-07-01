@@ -27,6 +27,6 @@ module.exports = {
     DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_DEPLOYER:        ethers.utils.parseEther('500000'),
     DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_AUCTION_MANAGER: ethers.utils.parseEther('500000'),
   },
-  noCache: false,
+  noCache:  process.env.NO_CACHE ? Boolean(process.env.NO_CACHE) : false,
   noConfirm: process.env.NO_CONFIRM ? Boolean(process.env.NO_CONFIRM) : false,
 };
