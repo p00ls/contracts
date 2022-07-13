@@ -12,7 +12,22 @@ contract GnosisSafeOverseen is GnosisSafe, Multicall
     event OverseerChanged(address overseer);
     event OverseerSelfExecution();
 
-    function setManager(address newOverseer) external {
+    function setup(
+        address _overseer,
+        address[] calldata _owners,
+        uint256 _threshold,
+        address to,
+        bytes calldata data,
+        address fallbackHandler,
+        address paymentToken,
+        uint256 payment,
+        address payable paymentReceiver
+    ) external {
+        this.setup(_owners, _threshold, to, data, fallbackHandler, paymentToken, payment, paymentReceiver);
+        this.setOverseer(_overseer);
+    }
+
+    function setOverseer(address newOverseer) external {
         require(msg.sender == (overseer == address(0) ? address(this) : overseer), "Unauthorized access");
         overseer = newOverseer;
         emit OverseerChanged(newOverseer);
