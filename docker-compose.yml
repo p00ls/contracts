@@ -1,0 +1,37 @@
+version: '3'
+services:
+  devnet:
+    build:
+      dockerfile: Dockerfile.devnet
+      context: .
+    ports:
+      - "8545:8545"
+  ipfs:
+    image: ipfs/go-ipfs
+    ports:
+      - "5001:5001"
+  postgres:
+    image: postgres:13-alpine
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_USER=p00ls
+      - POSTGRES_PASSWORD=p00ls
+      - POSTGRES_DB=thegraph
+  thegraph:
+    image: graphprotocol/graph-node
+    ports: 
+      - "8000:8000"
+      - "8001:8001"
+      - "8020:8020"
+    environment:
+      - ipfs=ipfs:5001
+      - postgres_host=postgres
+      - postgres_port=5432
+      - postgres_user=p00ls
+      - postgres_pass=p00ls
+      - postgres_db=thegraph
+    depends_on:
+      - postgres
+      - ipfs
+      - devnet
