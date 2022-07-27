@@ -94,5 +94,5 @@ Note: the deployment workflow is still being worked on.
 | [VestingFactory](contracts/finance/vesting/VestingFactory.sol)    | Finalized        | | | :x: |
 | [Escrow](contracts/finance/staking/Escrow.sol)                    | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | [Instance](https://etherscan.io/address/0x86bb69b6fB0395ECd1ACDABf292968Ac3754F7fb) | :x:                |
 | [Locking](contracts/finance/locking/Locking.sol)                  | Work in progress | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
-| [DAO Timelock](contracts/dao/P00lsTimelock.sol)                   | Work in progress | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
-| [DAO Governor](contracts/dao/P00lsDAO.sol)                        | Work in progress | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :heavy_check_mark: |
+| [DAO Timelock](contracts/dao/P00lsTimelock.sol)                   | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
+| [DAO Governor](contracts/dao/P00lsDAO.sol)                        | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :heavy_check_mark: |
