@@ -17,8 +17,10 @@ contract P00lsDAO is
     GovernorTimelockControlUpgradeable,
     UUPSUpgradeable
 {
+    using Checkpoints for Checkpoints.History;
+
     IP00lsTokenCreator public  token;
-    uint256            private _quorum;
+    Checkpoints.History private _quorum;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor()
@@ -35,7 +37,7 @@ contract P00lsDAO is
         __GovernorTimelockControl_init(__timelock);
 
         token = __token;
-        _quorum = 1;
+        _quorum.push(1);
     }
 
     function _getVotes(address account, uint256 blockNumber, bytes memory /* params */)
@@ -55,16 +57,16 @@ contract P00lsDAO is
         public
         onlyGovernance()
     {
-        _quorum = newQuorum;
+        _quorum.push(newQuorum);
     }
 
-    function quorum(uint256)
+    function quorum(uint256 blockNumber)
         public
         view
         override
         returns (uint256)
     {
-        return _quorum;
+        return _quorum.getAtBlock(blockNumber);
     }
 
     function _authorizeUpgrade(address newImplementation)

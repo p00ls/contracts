@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@amxx/hre/contracts/tokens/utils/Checkpoints.sol";
+import "@openzeppelin/contracts/utils/Checkpoints.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../finance/staking/Escrow.sol";
 import "./extensions/ERC4626Upgradeable.sol";
@@ -78,7 +78,7 @@ contract P00lsTokenXCreatorV2 is IEscrowReceiver, P00lsTokenBase, ERC4626Upgrade
         view
         returns (uint256)
     {
-        return Math.mulDiv(shares, conversion.past(blockNumber), 1 ether);
+        return Math.mulDiv(shares, conversion.getAtBlock(blockNumber), 1 ether);
     }
 
     /**
