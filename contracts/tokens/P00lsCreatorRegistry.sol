@@ -45,6 +45,8 @@ contract P00lsCreatorRegistry is
         __RegistryOwnable_init(address(this));
 
         _mint(_admin, addressToUint256(address(this)));
+        _grantRole(REGISTRY_MANAGER_ROLE, _admin);
+        _grantRole(UPGRADER_ROLE,         _admin);
 
         __beaconCreator  = new Beacon();
         __beaconXCreator = new Beacon();
@@ -98,7 +100,7 @@ contract P00lsCreatorRegistry is
     }
 
     /**
-     * NFT holder is a super admin that has all roles, and cannot be revoked.
+     * Default admin is overriden to use the NFT mechanism
      */
     function hasRole(bytes32 role, address account)
         public
@@ -106,7 +108,7 @@ contract P00lsCreatorRegistry is
         override
         returns (bool)
     {
-        return account == owner() || super.hasRole(role, account);
+        return role == DEFAULT_ADMIN_ROLE ? account == owner() : super.hasRole(role, account);
     }
 
     /**
