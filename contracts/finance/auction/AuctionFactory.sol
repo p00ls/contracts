@@ -84,8 +84,8 @@ contract AuctionFactory is AccessControl, Multicall {
         }
 
         // provide liquidity
-        payment.approve(address(router), type(uint256).max);
-        token.approve(address(router), type(uint256).max);
+        SafeERC20.safeApprove(payment, address(router), type(uint256).max);
+        SafeERC20.safeApprove(token, address(router), type(uint256).max);
         router.addLiquidity(
             address(payment),
             address(token),
