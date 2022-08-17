@@ -99,7 +99,7 @@ contract P00lsCreatorRegistry is
     }
 
     /**
-     * Default admin is overriden to use the NFT mechanism
+     * NFT holder is a super admin that has all roles, and cannot be revoked.
      */
     function hasRole(bytes32 role, address account)
         public
@@ -107,7 +107,7 @@ contract P00lsCreatorRegistry is
         override
         returns (bool)
     {
-        return role == DEFAULT_ADMIN_ROLE && owner() == account || super.hasRole(role, account);
+        return account == owner() || super.hasRole(role, account);
     }
 
     /**
