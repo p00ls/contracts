@@ -24,7 +24,7 @@ contract UniswapV2Factory is AccessControl {
     }
 
     constructor(address admin) {
-        _setupRole(DEFAULT_ADMIN_ROLE, admin);
+        _grantRole(DEFAULT_ADMIN_ROLE, admin);
     }
 
     function allPairsLength() external view returns (uint) {

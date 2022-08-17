@@ -31,8 +31,8 @@ contract VestedAirdrops is AccessControl, Multicall {
 
     constructor(address admin)
     {
-        _setupRole(DEFAULT_ADMIN_ROLE,   admin);
-        _setupRole(VESTING_MANAGER_ROLE, admin);
+        _grantRole(DEFAULT_ADMIN_ROLE,   admin);
+        _grantRole(VESTING_MANAGER_ROLE, admin);
     }
 
     function enableAirdrop(bytes32 root, bool enable)

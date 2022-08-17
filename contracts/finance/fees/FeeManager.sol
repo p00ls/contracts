@@ -46,8 +46,8 @@ contract FeeManager is AccessControl, Multicall {
     {
         require(_fee <= 1e18, "Invalid fee amount");
 
-        _setupRole(DEFAULT_ADMIN_ROLE,          _admin);
-        _setupRole(REDISTRIBUTION_MANAGER_ROLE, _admin);
+        _grantRole(DEFAULT_ADMIN_ROLE,          _admin);
+        _grantRole(REDISTRIBUTION_MANAGER_ROLE, _admin);
 
         router    = _router;
         factory   = IUniswapV2Factory(_router.factory());
