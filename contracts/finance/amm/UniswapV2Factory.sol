@@ -36,9 +36,7 @@ contract UniswapV2Factory is AccessControl {
     }
 
     function createPair(address tokenA, address tokenB) external onlyRoleOrOpenRole(PAIR_CREATOR_ROLE) returns (address pair) {
-        require(tokenA != tokenB, 'UniswapV2: IDENTICAL_ADDRESSES');
         (address token0, address token1) = UniswapV2Library.sortTokens(tokenA, tokenB);
-        require(token0 != address(0), 'UniswapV2: ZERO_ADDRESS');
         pair = Clones.cloneDeterministic(template, keccak256(abi.encodePacked(token0, token1)));
         UniswapV2Pair(pair).initialize(token0, token1);
         allPairs.push(pair);
