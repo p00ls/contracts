@@ -45,8 +45,6 @@ contract P00lsCreatorRegistry is
         __RegistryOwnable_init(address(this));
 
         _mint(_admin, addressToUint256(address(this)));
-        _grantRole(REGISTRY_MANAGER_ROLE, _admin);
-        _grantRole(UPGRADER_ROLE,         _admin);
 
         __beaconCreator  = new Beacon();
         __beaconXCreator = new Beacon();
