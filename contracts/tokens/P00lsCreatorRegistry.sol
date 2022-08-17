@@ -111,6 +111,22 @@ contract P00lsCreatorRegistry is
         return role == DEFAULT_ADMIN_ROLE ? account == owner() : super.hasRole(role, account);
     }
 
+    function _grantRole(bytes32 role, address account)
+        internal
+        override
+    {
+        require(role != DEFAULT_ADMIN_ROLE, "Admin role is managed by NFT");
+        super._grantRole(role, account);
+    }
+
+    function _revokeRole(bytes32 role, address account)
+        internal
+        override
+    {
+        require(role != DEFAULT_ADMIN_ROLE, "Admin role is managed by NFT");
+        super._revokeRole(role, account);
+    }
+
     /**
      * Token URI customization
      */
