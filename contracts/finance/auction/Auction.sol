@@ -105,7 +105,7 @@ contract Auction is
         _mint(user, amount);
     }
 
-    function leave(address payable to)
+    function leave(address to)
         public
     {
         require(start.isExpired() && deadline.isPending(), "Auction: auction not active");
