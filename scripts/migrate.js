@@ -275,6 +275,14 @@ async function migrate(config = {}, env = {}) {
         UPGRADER:         ethers.utils.id('UPGRADER_ROLE'),
     }).map(entry => Promise.all(entry))).then(Object.fromEntries);
 
+    // Testing needs some roles
+    if (network.chainId == 1337) {
+        const tmpSigner = await ethers.getSigners().then(signers => signers.pop());
+        await registry.connect(signer).transferFrom(signer.address, tmpSigner.address, registry.address);
+        await registry.connect(tmpSigner).grantRole(roles.REGISTRY_MANAGER, signer.address);
+        await registry.connect(tmpSigner).transferFrom(tmpSigner.address, signer.address, registry.address);
+    }
+
     // Transfer ownership of the registry
     isEnabled('governance', 'registry'          ) && await registry.hasRole     (roles.UPGRADER,      timelock.address).then(yes => yes || registry.grantRole   (roles.UPGRADER,      timelock.address).then(tx => tx.wait()));
     isEnabled('governance', 'registry'          ) && await registry.hasRole     (roles.UPGRADER,      signer.address  ).then(yes => yes && registry.renounceRole(roles.UPGRADER,      signer.address  ).then(tx => tx.wait()));

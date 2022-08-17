@@ -79,7 +79,7 @@ contract AuctionFactory is AccessControl, Multicall {
         uint256 balanceToken   = token.balanceOf(address(this));
 
         // create AMM pair if needed
-        if (factory.getPair(address(payment), address(token)) == address(0)) {
+        if (factory.getPair(address(payment), address(token)).code.length == 0) {
             factory.createPair(address(payment), address(token));
         }
 
