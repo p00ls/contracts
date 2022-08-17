@@ -62,6 +62,24 @@ contract VestingTemplate is VestingWalletUpgradeable, Multicall
         return _cliff;
     }
 
+    function releaseable()
+        public
+        view
+        virtual
+        returns (uint256)
+    {
+        return vestedAmount(uint64(block.timestamp)) - released();
+    }
+
+    function releaseable(address token)
+        public
+        view
+        virtual
+        returns (uint256)
+    {
+        return vestedAmount(token, uint64(block.timestamp)) - released(token);
+    }
+
     function _vestingSchedule(uint256 totalAllocation, uint64 timestamp)
         internal
         view
@@ -107,6 +125,7 @@ contract VestingFactory is ERC721("Vestings", "Vestings"), Multicall
         override
         returns (bool)
     {
-        return uint256(uint160((spender))) == tokenId || super._isApprovedOrOwner(spender, tokenId);
+        // super call will revert of tokenId does not exist
+        return super._isApprovedOrOwner(spender, tokenId) || uint256(uint160((spender))) == tokenId;
     }
 }

@@ -95,7 +95,8 @@ contract P00lsCreatorRegistry is
         override
         returns (bool)
     {
-        return addressToUint256(spender) == tokenId || super._isApprovedOrOwner(spender, tokenId);
+        // super call will revert of tokenId does not exist
+        return super._isApprovedOrOwner(spender, tokenId) || addressToUint256(spender) == tokenId;
     }
 
     /**
