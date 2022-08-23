@@ -79,20 +79,23 @@ Note: the deployment workflow is still being worked on.
 
 # Status
 
-| Contract name                                                     | Status           | Audited                                      | Deployment | Upgradeable        |
-|-------------------------------------------------------------------|------------------|----------------------------------------------|------------|--------------------|
-| [P00lsCreatorRegistry](contracts/tokens/P00lsCreatorRegistry.sol) | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | [Proxy](https://etherscan.io/address/0x7335db10622eecdeffadaee7f2454e37aedf7002) - [Implementation](https://etherscan.io/address/0xa5dd6c67a479c87cf8274cda565dafb285ced406) | :heavy_check_mark: |
-| [P00lsTokenCreator](contracts/tokens/P00lsTokenCreator.sol)       | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | [Implementation](https://etherscan.io/address/0x88C3E2AC77fCd790FfC2CBb0F10f20776851e2E2) | :heavy_check_mark: |
-| [P00lsTokenXCreator](contracts/tokens/P00lsTokenXCreator.sol)     | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | [Implementation](https://etherscan.io/address/0xB1C32d552aFf1498D2B5544cc2a5734A796ECe97) | :heavy_check_mark: |
-| [P00lsTokenXCreatorV2](contracts/tokens/P00lsTokenXCreatorV2.sol)     | Finalized        |  | | :heavy_check_mark: |
-| [AMM Router](contracts/finance/amm/UniswapV2Router02.sol)         | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
-| [AMM Factory](contracts/finance/amm/UniswapV2Factory.sol)         | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
-| [AMM Pair](contracts/finance/amm/UniswapV2Pair.sol)               | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
-| [AuctionFactory](contracts/finance/auction/AuctionFactory.sol)    | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
-| [Auction](contracts/finance/auction/Auction.sol)                  | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
-| [VestedAirdrops](contracts/finance/vesting/VestedAirdrops.sol)    | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | [Instance](https://etherscan.io/address/0x9fD7B5BE060bD5961fB645B6A5F93c1C05f55AFa) | :x:                |
-| [VestingFactory](contracts/finance/vesting/VestingFactory.sol)    | Finalized        | | | :x: |
-| [Escrow](contracts/finance/staking/Escrow.sol)                    | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | [Instance](https://etherscan.io/address/0x86bb69b6fB0395ECd1ACDABf292968Ac3754F7fb) | :x:                |
-| [Locking](contracts/finance/locking/Locking.sol)                  | Work in progress | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
-| [DAO Timelock](contracts/dao/P00lsTimelock.sol)                   | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :x:                |
-| [DAO Governor](contracts/dao/P00lsDAO.sol)                        | Finalized        | [Zokyo audit](audit/20220214_ZokyoAudit.pdf) | -          | :heavy_check_mark: |
+| Contract name                                                     | Status           | Audited   | Deployment | Upgradeable        |
+|-------------------------------------------------------------------|------------------|-----------|------------|--------------------|
+| [P00lsCreatorRegistry](contracts/tokens/P00lsCreatorRegistry.sol) | Finalized        | [^1] [^2] | [Proxy](https://etherscan.io/address/0x7335db10622eecdeffadaee7f2454e37aedf7002) - [Implementation](https://etherscan.io/address/0xa5dd6c67a479c87cf8274cda565dafb285ced406) | :heavy_check_mark: |
+| [P00lsTokenCreator](contracts/tokens/P00lsTokenCreator.sol)       | Finalized        | [^1] [^2] | [Implementation](https://etherscan.io/address/0x88C3E2AC77fCd790FfC2CBb0F10f20776851e2E2) | :heavy_check_mark: |
+| [P00lsTokenXCreator](contracts/tokens/P00lsTokenXCreator.sol)     | Finalized        | [^1]      | [Implementation](https://etherscan.io/address/0xB1C32d552aFf1498D2B5544cc2a5734A796ECe97) | :heavy_check_mark: |
+| [P00lsTokenXCreatorV2](contracts/tokens/P00lsTokenXCreatorV2.sol) | Finalized        |      [^2] | -          | :heavy_check_mark: |
+| [AMM Router](contracts/finance/amm/UniswapV2Router02.sol)         | Finalized        | [^1] [^2] | -          | :x:                |
+| [AMM Factory](contracts/finance/amm/UniswapV2Factory.sol)         | Finalized        | [^1] [^2] | -          | :x:                |
+| [AMM Pair](contracts/finance/amm/UniswapV2Pair.sol)               | Finalized        | [^1] [^2] | -          | :x:                |
+| [AuctionFactory](contracts/finance/auction/AuctionFactory.sol)    | Finalized        | [^1] [^2] | -          | :x:                |
+| [Auction](contracts/finance/auction/Auction.sol)                  | Finalized        | [^1] [^2] | -          | :x:                |
+| [VestedAirdrops](contracts/finance/vesting/VestedAirdrops.sol)    | Finalized        | [^1] [^2] | [Instance](https://etherscan.io/address/0x9fD7B5BE060bD5961fB645B6A5F93c1C05f55AFa) | :x:                |
+| [VestingFactory](contracts/finance/vesting/VestingFactory.sol)    | Finalized        |      [^2] | -          | :x: |
+| [Escrow](contracts/finance/staking/Escrow.sol)                    | Finalized        | [^1] [^2] | [Instance](https://etherscan.io/address/0x86bb69b6fB0395ECd1ACDABf292968Ac3754F7fb) | :x:                |
+| [Locking](contracts/finance/locking/Locking.sol)                  | Work in progress | [^1]      | -          | :x:                |
+| [DAO Timelock](contracts/dao/P00lsTimelock.sol)                   | Finalized        | [^1] [^2] | -          | :x:                |
+| [DAO Governor](contracts/dao/P00lsDAO.sol)                        | Finalized        | [^1] [^2] | -          | :heavy_check_mark: |
+
+[^1]: [Zokyo audit](audit/20220214_ZokyoAudit.pdf)
+[^2]: [Byterocket audit](audit/20220816_ByterocketAudit.pdf)
