@@ -41,8 +41,8 @@ contract Escrow is AccessControl, Multicall {
      *****************************************************************************************************************/
     constructor(address _admin)
     {
-        _setupRole(DEFAULT_ADMIN_ROLE,  _admin);
-        _setupRole(ESCROW_MANAGER_ROLE, _admin);
+        _grantRole(DEFAULT_ADMIN_ROLE,  _admin);
+        _grantRole(ESCROW_MANAGER_ROLE, _admin);
     }
 
     function configure(IP00lsTokenCreator token, uint48 start, uint48 stop)
@@ -69,7 +69,7 @@ contract Escrow is AccessControl, Multicall {
     function _configure(IERC20 token, uint48 start, uint48 stop, address beneficiary)
         internal
     {
-        release(token); // this will reset if previous is schedule is over
+        release(token); // this will reset if previous schedule is over
 
         require(start > 0, "Invalid input: start should be non 0");
         require(stop >= start, "Invalid input: start must be before stop");

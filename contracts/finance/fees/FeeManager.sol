@@ -44,14 +44,19 @@ contract FeeManager is AccessControl, Multicall {
 
     constructor(address _admin, IUniswapV2Router02 _router, IERC20 _p00ls, address _recipient, uint256 _fee)
     {
-        _setupRole(DEFAULT_ADMIN_ROLE,          _admin);
-        _setupRole(REDISTRIBUTION_MANAGER_ROLE, _admin);
+        require(_fee <= 1e18, "Invalid fee amount");
+
+        _grantRole(DEFAULT_ADMIN_ROLE,          _admin);
+        _grantRole(REDISTRIBUTION_MANAGER_ROLE, _admin);
+
         router    = _router;
         factory   = IUniswapV2Factory(_router.factory());
         WETH      = IWETH(_router.WETH());
         p00ls     = _p00ls;
         recipient = _recipient; // by default this should be the xP00ls
         fee       = _fee;
+
+        emit FeeUpdated(_fee);
         emit RecipientUpdated(_recipient);
     }
 
@@ -71,7 +76,7 @@ contract FeeManager is AccessControl, Multicall {
             }
         } catch {}
 
-        // there might me more because of a transfer, we send it to the recipient
+        // there might be more because of a transfer, we send it to the recipient
         uint256 amount = p00ls.balanceOf(address(this));
         SafeERC20.safeTransfer(p00ls, recipient, amount);
         emit FeesToRecipient(recipient, amount);
@@ -111,6 +116,7 @@ contract FeeManager is AccessControl, Multicall {
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
+        require(newFee <= 1e18, "Invalid fee amount");
         emit FeeUpdated(newFee);
         fee = newFee;
     }

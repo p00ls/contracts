@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.5.0;
+pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
 import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 import '../UniswapV2Factory.sol';
 
@@ -17,12 +16,11 @@ library UniswapV2Library {
     // calculates the CREATE2 address for a pair without making any external calls
     function pairFor(address factory, address tokenA, address tokenB) internal view returns (address pair) {
         (address token0, address token1) = sortTokens(tokenA, tokenB);
-        address predicted = Clones.predictDeterministicAddress(
+        return Clones.predictDeterministicAddress(
             UniswapV2Factory(factory).template(),
             keccak256(abi.encodePacked(token0, token1)),
             factory
         );
-        return Address.isContract(predicted) ? predicted : address(0);
     }
 
     // fetches and sorts the reserves for a pair

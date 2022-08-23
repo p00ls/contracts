@@ -13,7 +13,7 @@ import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "./Auction.sol";
 
 /**
- * @dev WARNING: the P00ls auction must be finalized before the other auctions. Otherwize, the p00ls tokens reserved
+ * @dev WARNING: the P00ls auction must be finalized before the other auctions. Otherwise, the p00ls tokens reserved
  * for providing liquidity in the ETH <> P00ls pair would be drained in the P00ls <> Creactor pair.
  */
 /// @custom:security-contact security@p00ls.com
@@ -34,8 +34,8 @@ contract AuctionFactory is AccessControl, Multicall {
 
     constructor(address _admin, IUniswapV2Router02 _router, IERC20 _p00ls, address _lpreceiver)
     {
-        _setupRole(DEFAULT_ADMIN_ROLE,   _admin);
-        _setupRole(AUCTION_MANAGER_ROLE, _admin);
+        _grantRole(DEFAULT_ADMIN_ROLE,   _admin);
+        _grantRole(AUCTION_MANAGER_ROLE, _admin);
         template   = address(new Auction(_router.WETH()));
         router     = _router;
         factory    = IUniswapV2Factory(_router.factory());
@@ -84,8 +84,8 @@ contract AuctionFactory is AccessControl, Multicall {
         }
 
         // provide liquidity
-        payment.approve(address(router), type(uint256).max);
-        token.approve(address(router), type(uint256).max);
+        SafeERC20.safeApprove(payment, address(router), type(uint256).max);
+        SafeERC20.safeApprove(token, address(router), type(uint256).max);
         router.addLiquidity(
             address(payment),
             address(token),

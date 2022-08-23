@@ -45,8 +45,8 @@ contract P00lsCreatorRegistry is
         __RegistryOwnable_init(address(this));
 
         _mint(_admin, addressToUint256(address(this)));
-        _setupRole(REGISTRY_MANAGER_ROLE, _admin);
-        _setupRole(UPGRADER_ROLE,         _admin);
+        _grantRole(REGISTRY_MANAGER_ROLE, _admin);
+        _grantRole(UPGRADER_ROLE,         _admin);
 
         __beaconCreator  = new Beacon();
         __beaconXCreator = new Beacon();
@@ -95,7 +95,8 @@ contract P00lsCreatorRegistry is
         override
         returns (bool)
     {
-        return addressToUint256(spender) == tokenId || super._isApprovedOrOwner(spender, tokenId);
+        // super call will revert of tokenId does not exist
+        return super._isApprovedOrOwner(spender, tokenId) || addressToUint256(spender) == tokenId;
     }
 
     /**
@@ -107,7 +108,23 @@ contract P00lsCreatorRegistry is
         override
         returns (bool)
     {
-        return role == DEFAULT_ADMIN_ROLE && owner() == account || super.hasRole(role, account);
+        return role == DEFAULT_ADMIN_ROLE ? account == owner() : super.hasRole(role, account);
+    }
+
+    function _grantRole(bytes32 role, address account)
+        internal
+        override
+    {
+        require(role != DEFAULT_ADMIN_ROLE, "Admin role is managed by NFT");
+        super._grantRole(role, account);
+    }
+
+    function _revokeRole(bytes32 role, address account)
+        internal
+        override
+    {
+        require(role != DEFAULT_ADMIN_ROLE, "Admin role is managed by NFT");
+        super._revokeRole(role, account);
     }
 
     /**

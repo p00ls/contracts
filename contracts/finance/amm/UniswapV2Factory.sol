@@ -24,7 +24,7 @@ contract UniswapV2Factory is AccessControl {
     }
 
     constructor(address admin) {
-        _setupRole(DEFAULT_ADMIN_ROLE, admin);
+        _grantRole(DEFAULT_ADMIN_ROLE, admin);
     }
 
     function allPairsLength() external view returns (uint) {
@@ -32,13 +32,12 @@ contract UniswapV2Factory is AccessControl {
     }
 
     function getPair(address tokenA, address tokenB) public view returns (address) {
-        return UniswapV2Library.pairFor(address(this), tokenA, tokenB);
+        address pair = UniswapV2Library.pairFor(address(this), tokenA, tokenB);
+        return pair.code.length > 0 ? pair : address(0);
     }
 
     function createPair(address tokenA, address tokenB) external onlyRoleOrOpenRole(PAIR_CREATOR_ROLE) returns (address pair) {
-        require(tokenA != tokenB, 'UniswapV2: IDENTICAL_ADDRESSES');
         (address token0, address token1) = UniswapV2Library.sortTokens(tokenA, tokenB);
-        require(token0 != address(0), 'UniswapV2: ZERO_ADDRESS');
         pair = Clones.cloneDeterministic(template, keccak256(abi.encodePacked(token0, token1)));
         UniswapV2Pair(pair).initialize(token0, token1);
         allPairs.push(pair);
