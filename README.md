@@ -83,7 +83,7 @@ Note: the deployment workflow is still being worked on.
 |-------------------------------------------------------------------|------------------|-----------|------------|--------------------|
 | [P00lsCreatorRegistry](contracts/tokens/P00lsCreatorRegistry.sol) | Finalized        | [^1] [^2] | [Proxy](https://etherscan.io/address/0x7335db10622eecdeffadaee7f2454e37aedf7002) - [Implementation](https://etherscan.io/address/0xa5dd6c67a479c87cf8274cda565dafb285ced406) | :heavy_check_mark: |
 | [P00lsTokenCreator](contracts/tokens/P00lsTokenCreator.sol)       | Finalized        | [^1] [^2] | [Implementation](https://etherscan.io/address/0x88C3E2AC77fCd790FfC2CBb0F10f20776851e2E2) | :heavy_check_mark: |
-| [P00lsTokenXCreator](contracts/tokens/P00lsTokenXCreator.sol)     | Finalized        | [^1]      | [Implementation](https://etherscan.io/address/0xB1C32d552aFf1498D2B5544cc2a5734A796ECe97) | :heavy_check_mark: |
+| [P00lsTokenXCreator](contracts/tokens/P00lsTokenXCreator.sol)     | Deprecated       | [^1]      | [Implementation](https://etherscan.io/address/0xB1C32d552aFf1498D2B5544cc2a5734A796ECe97) | :heavy_check_mark: |
 | [P00lsTokenXCreatorV2](contracts/tokens/P00lsTokenXCreatorV2.sol) | Finalized        |      [^2] | -          | :heavy_check_mark: |
 | [AMM Router](contracts/finance/amm/UniswapV2Router02.sol)         | Finalized        | [^1] [^2] | -          | :x:                |
 | [AMM Factory](contracts/finance/amm/UniswapV2Factory.sol)         | Finalized        | [^1] [^2] | -          | :x:                |
