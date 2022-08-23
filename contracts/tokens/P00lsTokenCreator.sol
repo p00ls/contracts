@@ -33,7 +33,7 @@ contract P00lsTokenCreator is P00lsTokenBase, RegistryOwnable
     }
 
     function isClaimed(uint256 index)
-        external
+        public
         view
         returns (bool)
     {
@@ -41,7 +41,7 @@ contract P00lsTokenCreator is P00lsTokenBase, RegistryOwnable
     }
 
     function claim(uint256 index, address account, uint256 amount, bytes32[] calldata merkleProof)
-        external
+        public
     {
         require(!isClaimed(index), "P00lsTokenCreator::claim: drop already claimed");
 
