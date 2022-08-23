@@ -69,7 +69,7 @@ contract Escrow is AccessControl, Multicall {
     function _configure(IERC20 token, uint48 start, uint48 stop, address beneficiary)
         internal
     {
-        release(token); // this will reset if previous is schedule is over
+        release(token); // this will reset if previous schedule is over
 
         require(start > 0, "Invalid input: start should be non 0");
         require(stop >= start, "Invalid input: start must be before stop");

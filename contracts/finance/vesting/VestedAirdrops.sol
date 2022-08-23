@@ -99,7 +99,7 @@ contract VestedAirdrops is AccessControl, Multicall {
             uint256 releasable,
             bytes32 drop,
             bytes32 leaf
-        ) = checkRelease(schedule, proof); // reverts it proof is invalud
+        ) = checkRelease(schedule, proof); // reverts if proof is invalid
 
         if (releasable > 0) {
             _released[leaf] = vested;

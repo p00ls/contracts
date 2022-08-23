@@ -43,7 +43,7 @@ contract P00lsTokenCreator is P00lsTokenBase, RegistryOwnable
     function claim(uint256 index, address account, uint256 amount, bytes32[] calldata merkleProof)
         external
     {
-        require(!__claimedBitMap.get(index), "P00lsTokenCreator::claim: drop already claimed");
+        require(!isClaimed(index), "P00lsTokenCreator::claim: drop already claimed");
 
         require(MerkleProof.verify(merkleProof, merkleRoot, keccak256(abi.encodePacked(index, account, amount))), "P00lsTokenCreator::claim: invalid merkle proof");
 

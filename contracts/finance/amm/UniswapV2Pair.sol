@@ -13,7 +13,7 @@ import "./libraries/UQ112x112.sol";
 contract UniswapV2Pair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
     using UQ112x112 for uint224;
 
-    uint256 public constant MINIMUM_LIQUIDITY = 10**3;
+    uint public constant MINIMUM_LIQUIDITY = 10**3;
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes('transfer(address,uint256)')));
 
     address public immutable factory;

@@ -76,7 +76,7 @@ contract FeeManager is AccessControl, Multicall {
             }
         } catch {}
 
-        // there might me more because of a transfer, we send it to the recipient
+        // there might be more because of a transfer, we send it to the recipient
         uint256 amount = p00ls.balanceOf(address(this));
         SafeERC20.safeTransfer(p00ls, recipient, amount);
         emit FeesToRecipient(recipient, amount);
