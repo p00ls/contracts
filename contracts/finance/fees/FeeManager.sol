@@ -11,7 +11,6 @@ import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 import "../amm/libraries/UniswapV2Library.sol";
-import "../../env/IWETH.sol";
 
 /**
  * @dev Liquidates and redistributes AMM fees for the p00ls <> eth and p00ls <> creatorToken pairs.
@@ -31,7 +30,6 @@ contract FeeManager is AccessControl, Multicall {
 
     IUniswapV2Router02 public immutable router;
     IUniswapV2Factory  public immutable factory;
-    IWETH              public immutable WETH;
     IERC20             public immutable p00ls;
     address            public           recipient;
     uint256            public           fee;
@@ -51,7 +49,6 @@ contract FeeManager is AccessControl, Multicall {
 
         router    = _router;
         factory   = IUniswapV2Factory(_router.factory());
-        WETH      = IWETH(_router.WETH());
         p00ls     = _p00ls;
         recipient = _recipient; // by default this should be the xP00ls
         fee       = _fee;
