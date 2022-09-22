@@ -8,9 +8,10 @@ import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Callee.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "./libraries/UniswapV2Math.sol";
 import "./libraries/UQ112x112.sol";
+import "./../../tokens/extensions/ERC1363Upgradeable.sol";
 
 /// @custom:security-contact security@p00ls.com
-contract UniswapV2Pair is ERC20PermitUpgradeable, ReentrancyGuardUpgradeable {
+contract UniswapV2Pair is ERC20PermitUpgradeable, ERC1363Upgradeable, ReentrancyGuardUpgradeable {
     using UQ112x112 for uint224;
 
     uint public constant MINIMUM_LIQUIDITY = 10**3;
