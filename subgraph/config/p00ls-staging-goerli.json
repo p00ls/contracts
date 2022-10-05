@@ -1,0 +1,43 @@
+{
+  "output": "./generated/p00ls-staging-goerli.",
+  "chain": "goerli",
+  "datasources": [{
+    "name": "P00lsCreatorRegistry",
+    "address": "0xA02CCc71f0Af7529EcA9B26bb09b758d9A120522",
+    "startBlock": 7627594,
+    "module": [
+      "accesscontrol",
+      "erc721",
+      "erc1967upgrade",
+      "voting",
+      "p00lscreatorregistry"
+    ]
+  },{
+    "name": "P00lsCreatorToken",
+    "templates": [
+      "erc20",
+      "erc1967upgrade",
+      "ownable",
+      "voting"
+    ]
+  },{
+    "name": "VestingAirdrops",
+    "address": "0x21b032a12128cf629aFe072C1CbfC5d4BC6ff747",
+    "startBlock": 7627594,
+    "module": [
+      "accesscontrol",
+      "vesting"
+    ]
+  },{
+    "name": "AuctionFactory",
+    "address": "0xcf1008954E984749c187fB0f5C7D7A5AB8450667",
+    "startBlock": 7627594,
+    "module": [
+      "accesscontrol",
+      "auctionfactory"
+    ],
+    "templates": [
+      "erc20"
+    ]
+  }]
+}
