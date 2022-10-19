@@ -3,10 +3,10 @@ const ethers = require("ethers");
 module.exports = {
   contracts: {
     token: {
-      name: "P00ls token",
-      symbol: "$00",
-      xname: "P00ls X token",
-      xsymbol: "x$00",
+      name: "00 Token",
+      symbol: "00",
+      xname: "x00 Token",
+      xsymbol: "x00",
       merkleroot: ethers.constants.HashZero,
     },
     governance: {

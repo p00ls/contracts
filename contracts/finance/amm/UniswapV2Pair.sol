@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
@@ -9,6 +10,15 @@ import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import "./libraries/UniswapV2Math.sol";
 import "./libraries/UQ112x112.sol";
 import "./../../tokens/extensions/ERC1363Upgradeable.sol";
+
+
+function getSymbol(address token) view returns (string memory) {
+    try IERC20Metadata(token).symbol() returns (string memory symbol) {
+        return symbol;
+    } catch {
+        return "unknown";
+    }
+}
 
 /// @custom:security-contact security@p00ls.com
 contract UniswapV2Pair is ERC20PermitUpgradeable, ERC1363Upgradeable, ReentrancyGuardUpgradeable {
@@ -47,8 +57,8 @@ contract UniswapV2Pair is ERC20PermitUpgradeable, ERC1363Upgradeable, Reentrancy
 
     // called once by the factory at time of deployment
     function initialize(address _token0, address _token1) public virtual initializer() {
-        __ERC20_init('P00ls LP Token', 'P00ls-LP');
-        __ERC20Permit_init('P00ls LP Token');
+        __ERC20_init('00 DEX LP Token', string.concat(getSymbol(_token0), "/", getSymbol(_token1), " LP"));
+        __ERC20Permit_init('00 DEX LP Token');
         __ReentrancyGuard_init();
         token0 = _token0;
         token1 = _token1;

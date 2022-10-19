@@ -6,6 +6,17 @@ const { prepare, utils } = require('../fixture.js');
 const VALUE = ethers.utils.parseEther('100');
 const value = ethers.utils.parseEther('1');
 
+const crea = {
+  token: {
+    name:    'Amxx Token',
+    symbol:  'Amxx',
+  },
+  xtoken: {
+    name:   'XAmxx Token',
+    symbol: 'xAmxx',
+  },
+};
+
 describe('Auction', function () {
   prepare();
 
@@ -161,6 +172,9 @@ describe('Auction', function () {
           .to.emit(this.weth,    'Transfer'        ).withArgs(this.auction_instance.address, this.auction.address, value)
           .to.emit(this.weth,    'Transfer'        ).withArgs(this.auction.address, pair.address, value)
           .to.emit(pair, 'Transfer');
+
+          expect(await pair.name()).to.be.equal('00 DEX LP Token');
+          expect(await pair.symbol()).to.be.equal(`WETH/${this.config.contracts.token.symbol} LP`);
         });
       });
     });
@@ -173,7 +187,7 @@ describe('Auction', function () {
         { index: 0, account: this.auction.address, amount: VALUE },
       ],
       this.merkletree    = utils.merkle.createMerkleTree(this.allocations.map(utils.merkle.hashAllocation));
-      this.creatorToken  = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', '$Amxx', 'X Hadrien Croubois', 'x$Amxx', this.merkletree.getRoot());
+      this.creatorToken  = await this.workflows.newCreatorToken(this.accounts.artist.address, crea.token.name, crea.token.symbol, crea.xtoken.name, crea.xtoken.symbol, this.merkletree.getRoot());
       this.xCreatorToken = await this.workflows.getXCreatorToken(this.creatorToken);
       await Promise.all(this.allocations.map(allocation => this.creatorToken.claim(allocation.index, allocation.account, allocation.amount, this.merkletree.getHexProof(utils.merkle.hashAllocation(allocation)))));
 
@@ -321,6 +335,9 @@ describe('Auction', function () {
           .to.emit(this.token,        'Transfer'        ).withArgs(this.auction_instance.address, this.auction.address, value)
           .to.emit(this.token,        'Transfer'        ).withArgs(this.auction.address, pair.address, value)
           .to.emit(pair, 'Transfer');
+
+          expect(await pair.name()).to.be.equal('00 DEX LP Token');
+          expect(await pair.symbol()).to.be.equal(`${this.config.contracts.token.symbol}/${crea.token.symbol} LP`);
         });
       });
     });

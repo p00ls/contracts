@@ -6,6 +6,17 @@ const { prepare, utils } = require('../fixture.js');
 const VALUE = ethers.utils.parseEther('100');
 const value = ethers.utils.parseEther('1');
 
+const crea = {
+  token: {
+    name:    'Amxx Token',
+    symbol:  'Amxx',
+  },
+  xtoken: {
+    name:   'XAmxx Token',
+    symbol: 'xAmxx',
+  },
+};
+
 describe('AMM', function () {
   prepare();
 
@@ -55,7 +66,7 @@ describe('AMM', function () {
       expect(await this.token.balanceOf(unipair.address)).to.be.equal(VALUE.div(2));
       expect(await this.weth.balanceOf(unipair.address)).to.be.equal(value);
 
-      expect(await unipair.balanceOf("0x000000000000000000000000000000000000dEaD")).to.be.gt(0);
+      expect(await unipair.balanceOf('0x000000000000000000000000000000000000dEaD')).to.be.gt(0);
       expect(await unipair.balanceOf(this.timelock.address)).to.be.gt(0);
       expect(await unipair.balanceOf(this.accounts.user.address)).to.be.equal(0);
     });
@@ -65,7 +76,7 @@ describe('AMM', function () {
     beforeEach(async function () {
       this.allocation = { index: 0, account: this.auction.address, amount: VALUE };
       this.merkletree = utils.merkle.createMerkleTree([ utils.merkle.hashAllocation(this.allocation) ]);
-      this.creatorToken  = await this.workflows.newCreatorToken(this.accounts.artist.address, 'Hadrien Croubois', '$Amxx', 'X Hadrien Croubois', 'x$Amxx', this.merkletree.getRoot());
+      this.creatorToken  = await this.workflows.newCreatorToken(this.accounts.artist.address, crea.token.name, crea.token.symbol, crea.xtoken.name, crea.xtoken.symbol, this.merkletree.getRoot());
       this.xCreatorToken = await this.workflows.getXCreatorToken(this.creatorToken);
       await this.creatorToken.claim(this.allocation.index, this.allocation.account, this.allocation.amount, this.merkletree.getHexProof(utils.merkle.hashAllocation(this.allocation)))
 
@@ -106,7 +117,10 @@ describe('AMM', function () {
       expect(await this.creatorToken.balanceOf(unipair.address)).to.be.equal(VALUE.div(2));
       expect(await this.token.balanceOf(unipair.address)).to.be.equal(value);
 
-      expect(await unipair.balanceOf("0x000000000000000000000000000000000000dEaD")).to.be.gt(0);
+      expect(await unipair.name()).to.be.equal('00 DEX LP Token');
+      expect(await unipair.symbol()).to.be.equal(`${this.config.contracts.token.symbol}/${crea.token.symbol} LP`);
+
+      expect(await unipair.balanceOf('0x000000000000000000000000000000000000dEaD')).to.be.gt(0);
       expect(await unipair.balanceOf(this.timelock.address)).to.be.gt(0);
       expect(await unipair.balanceOf(this.accounts.user.address)).to.be.equal(0);
     });

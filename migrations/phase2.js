@@ -106,7 +106,7 @@ async function migrate(config = {}, env = {}) {
             config.admin,
             router.address,
             await manager.cache.get('00'),
-            await manager.cache.get('x00'),
+            config.admin, // Recipient
             config.contracts.feeManager.fee,
         ],
         { ...opts },
