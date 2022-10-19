@@ -24,6 +24,7 @@ import "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 abstract contract ERC4626Upgradeable is Initializable, ERC20Upgradeable, IERC4626Upgradeable {
     using MathUpgradeable for uint256;
 
+    /// @custom:oz-renamed-from creatorToken
     IERC20MetadataUpgradeable private _asset;
 
     /**

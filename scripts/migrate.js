@@ -262,7 +262,7 @@ async function migrate(config = {}, env = {}) {
     );
 
     /*******************************************************************************************************************
-     *                                                       AMM                                                       *
+     *                                             Post deployment config                                              *
      *******************************************************************************************************************/
     const roles = await Promise.all(Object.entries({
         DEFAULT_ADMIN:    ethers.constants.HashZero,

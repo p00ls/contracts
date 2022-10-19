@@ -2,6 +2,8 @@ module.exports = {
   1: {
     weth:      "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
     multicall: "0xcA11bde05977b3631167028862bE2a173976CA11",
+    '00':      "0x881Ba05de1E78f549cC63a8f6Cabb1d4AD32250D",
+    x00:       "0x6ebd2eD4fE6ba47AF9b5AA691AB5009bf2d3A2b3",
   },
   3: {
     weth:      "0xc778417e063141139fce010982780140aa0cd5ab",

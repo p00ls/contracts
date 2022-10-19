@@ -1,7 +1,8 @@
 const ethers = require("ethers");
 
 module.exports = {
-  admin: "0x491Ba84a68570f08E0f0fe0078D5B3DdB61853e5",
+  // admin: "0x491Ba84a68570f08E0f0fe0078D5B3DdB61853e5",
+  admin: "0xEc73638be05Cc8D6Dd95695cf149Da7e9c9BfAFf", // ZeroZero operational multisig
   contracts: {
     registry: {
       name:   "P00LS Creator Registry",
@@ -14,7 +15,10 @@ module.exports = {
       xname: "x00 Token",
       xsymbol: "x00",
     },
+    feeManager: {
+      fee: ethers.utils.parseEther('.8'),
+    }
   },
-  noCache: true,   // TODO: disable for live deployment
-  noConfirm: true, // TODO: disable for live deployment
+  noCache: false,
+  noConfirm: false,
 };
