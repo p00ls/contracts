@@ -83,9 +83,19 @@ contract AuctionFactory is AccessControl, Multicall {
             factory.createPair(address(payment), address(token));
         }
 
-        // provide liquidity
-        SafeERC20.safeApprove(payment, address(router), type(uint256).max);
-        SafeERC20.safeApprove(token, address(router), type(uint256).max);
+        // approve tokens
+        //
+        // WARNING: do not use SafeERC20.safeApproval here!
+        // Doing so would revert because of leftover allowance on "payment" from the previous runs
+        if (payment.allowance(address(this), address(router)) < balancePayment) {
+            payment.approve(address(router), type(uint256).max);
+        }
+
+        if (token.allowance(address(this), address(router)) < balanceToken) {
+            token.approve(address(router), type(uint256).max);
+        }
+
+        // add liquidity
         router.addLiquidity(
             address(payment),
             address(token),

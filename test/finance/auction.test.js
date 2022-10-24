@@ -342,4 +342,35 @@ describe('Auction', function () {
       });
     });
   });
+
+  it('can run multiple auctions', async function () {
+    const duration = 100;
+
+    for (_ in Array(10).fill()) {
+      // get tokens
+      await this.token.transfer(this.accounts.user.address, VALUE);
+
+      // deploy creator token
+      const allocations  = [ { index: 0, account: this.auction.address, amount: VALUE } ];
+      const merkletree   = utils.merkle.createMerkleTree(allocations.map(utils.merkle.hashAllocation));
+      const creatorToken = await this.workflows.newCreatorToken(this.accounts.artist.address, crea.token.name, crea.token.symbol, crea.xtoken.name, crea.xtoken.symbol, merkletree.getRoot());
+      await Promise.all(allocations.map(allocation => creatorToken.claim(allocation.index, allocation.account, allocation.amount, merkletree.getHexProof(utils.merkle.hashAllocation(allocation)))));
+
+      // start auction
+      const { timestamp: now } = await ethers.provider.getBlock('latest');
+      const instance = await this.auction.start(creatorToken.address, now, duration)
+        .then(txPromise => txPromise.wait())
+        .then(receipt => receipt.events.find(ev => ev.event == "AuctionCreated").args.auction)
+        .then(address => utils.attach('Auction', address));
+
+      // buy in
+      await this.token.connect(this.accounts.user)['transferAndCall(address,uint256)'](instance.address, value);
+
+      // wait end
+      await network.provider.send('evm_increaseTime', [ duration ]);
+
+      // finalize
+      await this.auction.finalize(creatorToken.address);
+    }
+  });
 });
