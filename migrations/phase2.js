@@ -53,9 +53,9 @@ async function migrate(config = {}, env = {}) {
         { constructorArgs: [ escrow.address ], unsafeAllow: 'delegatecall' },
     );
 
-    DEBUG(`- tokenXCreator deployed ${tokenXCreator.address}`);
+    DEBUG(`- tokenXCreator deployed ${tokenXCreator}`);
 
-    await manager.cache.set('tokenXCreatorV2', tokenXCreator.address);
+    await manager.cache.set('tokenXCreatorV2', tokenXCreator);
 
     DEBUG(`- manifest filled`);
 
