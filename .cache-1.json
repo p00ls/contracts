@@ -3,8 +3,6 @@
 	"multicall": "0xcA11bde05977b3631167028862bE2a173976CA11",
 	"vesting-pending": "0x3b13ef262dfd2b3f7c207559c71ecdaa572f7eea8b196218cc541e619b96ecf9",
 	"vesting": "0x9fD7B5BE060bD5961fB645B6A5F93c1C05f55AFa",
-	"escrow-pending": "0x59dce31bd774c0eab3a70c00e41742eef8c05c1a0ca245932cbc2af6f8eca7c2",
-	"escrow": "0x86bb69b6fB0395ECd1ACDABf292968Ac3754F7fb",
 	"registry-pending": "0x15d1e7112c5a184023b532c79c70747147ec5ed5d0f23039d3341be2e16551b6",
 	"registry": "0x7335dB10622eeCdEFfAdAee7F2454e37aedf7002",
 	"tokenCreator-pending": "0xbd2c7183c48e7c4f01dfad1c4e304189e713da76e42b4f0d731492df9ec60683",
@@ -13,5 +11,16 @@
 	"tokenXCreator": "0xB1C32d552aFf1498D2B5544cc2a5734A796ECe97",
 	"token": "0x881Ba05de1E78f549cC63a8f6Cabb1d4AD32250D",
 	"00": "0x881Ba05de1E78f549cC63a8f6Cabb1d4AD32250D",
-	"x00": "0x6ebd2eD4fE6ba47AF9b5AA691AB5009bf2d3A2b3"
+	"x00": "0x6ebd2eD4fE6ba47AF9b5AA691AB5009bf2d3A2b3",
+	"escrow-pending": "0xf70de2511a5f0fc484296ffd613c54f71a02b11488cae8a9f2c55f9d475eca99",
+	"escrow": "0xe4Fe21FDA62e6281bF0bbbfD6FD2282D79aEF77F",
+	"tokenXCreatorV2": "0x1924ef9793D17F7073D2B452A41B49c579a82d5c",
+	"amm-factory-pending": "0x6a3d848885f40cc17853412a473f5074ac889302c904a9c633804adfdab08d24",
+	"amm-factory": "0x93F9a2765245fBeF39bC1aE79aCbe0222b524080",
+	"amm-router-pending": "0xd6a440282648c72f19e0d63793bdcd27b4c69a346f3b8efb46357d8af786ae23",
+	"amm-router": "0x537c356E9cd3BC88C10E3899F623704FdD80841A",
+	"auction-pending": "0xd3d8b110fc4727f61cb8087cae4465964ec86d32bdf34a33d0cc267a977c3ce2",
+	"auction": "0x760B657d0cC0d2a2bFCBD5585a2b47C2dbBEa8C5",
+	"feemanager-pending": "0xe2c0ea3516337dbe9f99fadeddaa16e6484c5e5731e910051d07aec94e930082",
+	"feemanager": "0xe088E57D17c81F455a5dD9A95a23b6e314146e87"
 }
