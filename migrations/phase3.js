@@ -33,13 +33,12 @@ async function migrate(config = {}, env = {}) {
     /*******************************************************************************************************************
      *                                            Auction factory redeploy                                             *
      *******************************************************************************************************************/
-
     const auction = await manager.migrate(
         'auction',
         getFactory('AuctionFactory', { signer }),
         [
             config.admin,
-            router.address,
+            await manager.cache.get('amm-router'),
             await manager.cache.get('00'),
             config.admin, // LP receiver
         ],
