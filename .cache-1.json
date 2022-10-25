@@ -19,8 +19,8 @@
 	"amm-factory": "0x93F9a2765245fBeF39bC1aE79aCbe0222b524080",
 	"amm-router-pending": "0xd6a440282648c72f19e0d63793bdcd27b4c69a346f3b8efb46357d8af786ae23",
 	"amm-router": "0x537c356E9cd3BC88C10E3899F623704FdD80841A",
-	"auction-pending": "0xd3d8b110fc4727f61cb8087cae4465964ec86d32bdf34a33d0cc267a977c3ce2",
-	"auction": "0x760B657d0cC0d2a2bFCBD5585a2b47C2dbBEa8C5",
 	"feemanager-pending": "0xe2c0ea3516337dbe9f99fadeddaa16e6484c5e5731e910051d07aec94e930082",
-	"feemanager": "0xe088E57D17c81F455a5dD9A95a23b6e314146e87"
+	"feemanager": "0xe088E57D17c81F455a5dD9A95a23b6e314146e87",
+	"auction-pending": "0xc238616dccda2091c6bee06ff77907a68d627d5a4eb93e3f5117eaafd631642f",
+	"auction": "0xa5f6FCCD9dC4BF0512BB9DDd9489D1800bCA9af4"
 }
