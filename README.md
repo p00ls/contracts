@@ -84,14 +84,14 @@ Note: the deployment workflow is still being worked on.
 | [P00lsCreatorRegistry](contracts/tokens/P00lsCreatorRegistry.sol) | Finalized        | [^1] [^2] | [Proxy](https://etherscan.io/address/0x7335db10622eecdeffadaee7f2454e37aedf7002) - [Implementation](https://etherscan.io/address/0xa5dd6c67a479c87cf8274cda565dafb285ced406) | :heavy_check_mark: |
 | [P00lsTokenCreator](contracts/tokens/P00lsTokenCreator.sol)       | Finalized        | [^1] [^2] | [Implementation](https://etherscan.io/address/0x88C3E2AC77fCd790FfC2CBb0F10f20776851e2E2) | :heavy_check_mark: |
 | [P00lsTokenXCreator](contracts/tokens/P00lsTokenXCreator.sol)     | Deprecated       | [^1]      | [Implementation](https://etherscan.io/address/0xB1C32d552aFf1498D2B5544cc2a5734A796ECe97) | :heavy_check_mark: |
-| [P00lsTokenXCreatorV2](contracts/tokens/P00lsTokenXCreatorV2.sol) | Finalized        |      [^2] | -          | :heavy_check_mark: |
-| [AMM Router](contracts/finance/amm/UniswapV2Router02.sol)         | Finalized        | [^1] [^2] | -          | :x:                |
-| [AMM Factory](contracts/finance/amm/UniswapV2Factory.sol)         | Finalized        | [^1] [^2] | -          | :x:                |
-| [AMM Pair](contracts/finance/amm/UniswapV2Pair.sol)               | Finalized        | [^1] [^2] | -          | :x:                |
-| [AuctionFactory](contracts/finance/auction/AuctionFactory.sol)    | Finalized        | [^1] [^2] | -          | :x:                |
-| [Auction](contracts/finance/auction/Auction.sol)                  | Finalized        | [^1] [^2] | -          | :x:                |
+| [P00lsTokenXCreatorV2](contracts/tokens/P00lsTokenXCreatorV2.sol) | Finalized        |      [^2] | [Implementation](https://etherscan.io/address/0x1924ef9793D17F7073D2B452A41B49c579a82d5c) | :heavy_check_mark: |
+| [AMM Router](contracts/finance/amm/UniswapV2Router02.sol)         | Finalized        | [^1] [^2] | [Instance](https://etherscan.io/address/0x537c356E9cd3BC88C10E3899F623704FdD80841A) | :x:                |
+| [AMM Factory](contracts/finance/amm/UniswapV2Factory.sol)         | Finalized        | [^1] [^2] | [Instance](https://etherscan.io/address/0x93F9a2765245fBeF39bC1aE79aCbe0222b524080) | :x:                |
+| [AMM Pair](contracts/finance/amm/UniswapV2Pair.sol)               | Finalized        | [^1] [^2] | [Implementation](https://etherscan.io/address/0x4A4efa663f98080227B0c8613976F985f2525d60) | :x:                |
+| [AuctionFactory](contracts/finance/auction/AuctionFactory.sol)    | Finalized        | [^1] [^2] | [Instance](https://etherscan.io/address/0xa5f6FCCD9dC4BF0512BB9DDd9489D1800bCA9af4) | :x:                |
+| [Auction](contracts/finance/auction/Auction.sol)                  | Finalized        | [^1] [^2] | [Implementation](https://etherscan.io/address/0x98fd9F656f7a48Af0B538B755C33E3F163Eb9819) | :x:                |
 | [VestedAirdrops](contracts/finance/vesting/VestedAirdrops.sol)    | Finalized        | [^1] [^2] | [Instance](https://etherscan.io/address/0x9fD7B5BE060bD5961fB645B6A5F93c1C05f55AFa) | :x:                |
-| [VestingFactory](contracts/finance/vesting/VestingFactory.sol)    | Finalized        |      [^2] | -          | :x: |
+| [VestingFactory](contracts/finance/vesting/VestingFactory.sol)    | Finalized        |      [^2] | [Instance](https://etherscan.io/address/0xDE09B87e50F65031DF6A3C3AA0E2f0EfCE5E2Cf6) | :x: |
 | [Escrow](contracts/finance/staking/Escrow.sol)                    | Finalized        | [^1] [^2] | [Instance](https://etherscan.io/address/0x86bb69b6fB0395ECd1ACDABf292968Ac3754F7fb) | :x:                |
 | [Locking](contracts/finance/locking/Locking.sol)                  | Work in progress | [^1]      | -          | :x:                |
 | [DAO Timelock](contracts/dao/P00lsTimelock.sol)                   | Finalized        | [^1] [^2] | -          | :x:                |
