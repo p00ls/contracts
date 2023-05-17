@@ -118,7 +118,7 @@ describe('AMM', function () {
       expect(await this.token.balanceOf(unipair.address)).to.be.equal(value);
 
       expect(await unipair.name()).to.be.equal('00 DEX LP Token');
-      expect(await unipair.symbol()).to.be.equal(`${this.config.contracts.token.symbol}/${crea.token.symbol} LP`);
+      expect(await unipair.symbol()).to.be.equal(`${crea.token.symbol}/${this.config.contracts.token.symbol} LP`);
 
       expect(await unipair.balanceOf('0x000000000000000000000000000000000000dEaD')).to.be.gt(0);
       expect(await unipair.balanceOf(this.timelock.address)).to.be.gt(0);

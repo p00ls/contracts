@@ -174,7 +174,7 @@ describe('Auction', function () {
           .to.emit(pair, 'Transfer');
 
           expect(await pair.name()).to.be.equal('00 DEX LP Token');
-          expect(await pair.symbol()).to.be.equal(`WETH/${this.config.contracts.token.symbol} LP`);
+          expect(await pair.symbol()).to.be.equal(`${this.config.contracts.token.symbol}/WETH LP`);
         });
       });
     });

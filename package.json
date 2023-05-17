@@ -30,6 +30,7 @@
   "dependencies": {
     "@amxx/hre": "^0.1.0-rc.0",
     "@ensdomains/ens-contracts": "^0.0.8",
+    "@maticnetwork/fx-portal": "^1.0.5",
     "@openzeppelin/contracts": "^4.7.0",
     "@openzeppelin/contracts-upgradeable": "^4.7.0",
     "@uniswap/v2-core": "^1.0.1",
