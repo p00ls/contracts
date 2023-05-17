@@ -28,7 +28,7 @@
     "url": "https://github.com/p00ls/contracts/issues"
   },
   "dependencies": {
-    "@amxx/hre": "^0.1.0-rc.0",
+    "@amxx/hre": "^0.1.0-rc.1",
     "@ensdomains/ens-contracts": "^0.0.8",
     "@maticnetwork/fx-portal": "^1.0.5",
     "@openzeppelin/contracts": "^4.7.0",
@@ -37,7 +37,7 @@
     "@uniswap/v2-periphery": "*"
   },
   "devDependencies": {
-    "@openzeppelin/hardhat-upgrades": "^1.18.3",
+    "@openzeppelin/hardhat-upgrades": "^1.26.0",
     "copyfiles": "^2.4.1",
     "debug": "^2.6.9",
     "hardhat": "^2.7.1",
