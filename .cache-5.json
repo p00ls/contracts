@@ -31,6 +31,6 @@
 	"multicall": "0x32F1a749c071c5F276FFe9ea753ca19bF1bDa244",
 	"feemanager-pending": "0xed78a41206bc0d142c2e2a19985fae26713309b4b98510aeb3cad9d463a90700",
 	"feemanager": "0x4790eB5D6B5Bd2ec86a7Ce7564C410e3a06e2B6f",
-	"bridge-matic-pending": "0x3d265c530f74433a37e594c8bb9e6198d9886b7c323b9e3be93d219804b9dbd1",
-	"bridge-matic": "0xdAb4Da4369de92aB1F3819C31A41fc7060C10a8c"
+	"matic-bridge-pending": "0x3d265c530f74433a37e594c8bb9e6198d9886b7c323b9e3be93d219804b9dbd1",
+	"matic-bridge": "0xdAb4Da4369de92aB1F3819C31A41fc7060C10a8c"
 }

@@ -5,7 +5,7 @@ import "./interfaces.sol";
 import "./P00lsRegistryBase.sol";
 import "./P00lsTokenCreator.matic.sol";
 import "./P00lsTokenXCreator.v2.sol";
-import "../crosschain/matic/P00lsBridgePolygon.sol";
+import "../crosschain/matic/utils.sol";
 
 /// @custom:security-contact security@p00ls.com
 contract P00lsCreatorRegistry_Polygon is P00lsRegistryBase, IP00lsCreatorRegistry_Polygon
@@ -50,7 +50,7 @@ contract P00lsCreatorRegistry_Polygon is P00lsRegistryBase, IP00lsCreatorRegistr
                 string memory symbol,
                 string memory xname,
                 string memory xsymbol
-            ) = decodeDeployData(data);
+            ) = decodeMigrateData(data);
 
             address creator  = address(new BeaconProxy{ salt: addressToSalt(rootToken) }(beaconCreator()));
             address xCreator = address(new BeaconProxy(beaconXCreator()));

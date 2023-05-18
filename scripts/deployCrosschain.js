@@ -1,53 +1,60 @@
-require('dotenv').config();
-
 const { MigrationManager, getFactory, attach } = require('@amxx/hre/scripts');
 const DEBUG  = require('debug')('p00ls');
 const matic  = require('@maticnetwork/fx-portal/config/config');
-const config = require('./config');
+
+require('dotenv').config();
+const argv = require('yargs/yargs')(process.argv.slice(2)).env('').argv;
 
 
-const argv = require('yargs/yargs')(process.argv.slice(2))
-  .env('')
-  .options({
-    network:  { type: 'string' , options: [ 'mainnet', 'testnet' ], default: 'testnet' },
-    mnemonic: { type: 'string' },
-  })
-  .argv;
+async function migrate(config = {}, env = {})
+{
+    const signer  = env.signer   || await ethers.getSigner();
+    const network = await ethers.provider.getNetwork();
+    const chains  = {};
+    const opts    = {};
 
+    switch (network.chainId) {
+        // matic
+        case 137:
+            chains.L1 = ethers.Wallet.fromMnemonic(argv.mnemonic).connect(ethers.getDefaultProvider(argv.mainnetNode));
+            chains.L2 = signer;
+            config.matic = matic.mainnet;
+            break;
+        // mumbai
+        case 80001:
+            chains.L1 = ethers.Wallet.fromMnemonic(argv.mnemonic).connect(ethers.getDefaultProvider(argv.goerliNode));
+            chains.L2 = signer;
+            config.matic = matic.testnet;
+            break;
+        // local testnet
+        case 1337:
+        case 31337:
+            chains.L1 = signer;
+            chains.L2 = signer;
+            opts.noCache = true;
+            break;
+        default:
+            throw new Error(`Unsuported network: ${network.name} (${network.chainId})`);
+    }
+    const { L1, L2 } = chains;
+    L1.manager = new MigrationManager(L1.provider);
+    L2.manager = new MigrationManager(L2.provider);
 
-(async () => {
-    const chains = await Promise.all(
-        [ 'mainnet', 'goerli', 'matic', 'mumbai' ]
-        .map(name => argv[`${name}Node`])
-        .map(node => ethers.getDefaultProvider(node))
-        .map(node => node.getNetwork().then(network => [ network.chainId, node ]))
-    ).then(Object.fromEntries);
-
-    const signer = ethers.Wallet.fromMnemonic(argv.mnemonic);
-    const L1     = signer.connect(chains[argv.network == 'mainnet' ? 1   : 5    ]);
-    const L2     = signer.connect(chains[argv.network == 'mainnet' ? 137 : 80001]);
-    L1.manager   = new MigrationManager(L1.provider);
-    L2.manager   = new MigrationManager(L2.provider);
-
-    const { fxRoot, fxChild, checkpointManager } = matic[argv.network];
     const L1registry = await L1.manager.cacheAsPromise.then(cache => cache.get('registry'));
 
-    const opts = { noCache: false, noConfirm: false };
-
     DEBUG(`=== config ===`);
-    DEBUG(`signer:  ${signer.address}`);
-    DEBUG(`L1: ${L1.provider.network.name} (${L1.provider.network.chainId})`);
-    DEBUG(`L2: ${L2.provider.network.name} (${L2.provider.network.chainId})`);
+    DEBUG(`L1: ${L1.provider.network.name} (${L1.provider.network.chainId}) - ${L1.address}`);
+    DEBUG(`L2: ${L2.provider.network.name} (${L2.provider.network.chainId}) - ${L2.address}`);
     DEBUG(`=== start ===`);
 
     /*******************************************************************************************************************
      *                                                    SIDECHAIN                                                    *
      *******************************************************************************************************************/
     const escrow = await L2.manager.migrate(
-        'escrow',
+        'matic-escrow',
         getFactory('Escrow', { signer: L2 }),
         [
-            signer.address,
+            L2.address,
         ],
         { ...opts },
     );
@@ -55,14 +62,14 @@ const argv = require('yargs/yargs')(process.argv.slice(2))
 
     // ------ Creator registry ---------------------------------------------------------------------------------------
     const registry = await L2.manager.migrate(
-        'registry',
+        'matic-registry',
         getFactory('P00lsCreatorRegistry_Polygon', { signer: L2 }),
         [
-            signer.address,
+            L2.address,
             config.contracts.registry.name,
             config.contracts.registry.symbol,
         ],
-        { ...opts, kind: 'uups', constructorArgs: [ fxChild.address ]},
+        { ...opts, kind: 'uups', constructorArgs: [ config.matic?.fxChild.address || ethers.constants.AddressZero ]},
     );
     DEBUG(`Registry:   ${registry.address}`);
     DEBUG(`- beacon:   ${await registry.beaconCreator()}`);
@@ -70,7 +77,7 @@ const argv = require('yargs/yargs')(process.argv.slice(2))
 
     // ------ Token templates ----------------------------------------------------------------------------------------
     const tokenCreator = await L2.manager.migrate(
-        'tokenCreator',
+        'matic-tokenCreator',
         getFactory('P00lsTokenCreator_Polygon', { signer: L2 }),
         [
             registry.address,
@@ -80,7 +87,7 @@ const argv = require('yargs/yargs')(process.argv.slice(2))
     DEBUG(`- creator:  ${tokenCreator.address}`);
 
     const tokenXCreator = await L2.manager.migrate(
-        'tokenXCreatorV2',
+        'matic-tokenXCreatorV2',
         getFactory('P00lsTokenXCreator', { signer: L2 }),
         [
             escrow.address,
@@ -104,12 +111,12 @@ const argv = require('yargs/yargs')(process.argv.slice(2))
      *                                                     MAINNET                                                     *
      *******************************************************************************************************************/
     const bridge = await L1.manager.migrate(
-        'bridge-matic',
+        'matic-bridge',
         getFactory('P00lsBridgePolygon', { signer: L1 }),
         [
-            checkpointManager.address,
-            fxRoot.address,
-            L1registry,
+            config.matic?.checkpointManager.address || ethers.constants.AddressZero,
+            config.matic?.fxRoot.address            || ethers.constants.AddressZero,
+            L1registry                              || ethers.constants.AddressZero,
         ],
         { ...opts },
     )
@@ -122,5 +129,16 @@ const argv = require('yargs/yargs')(process.argv.slice(2))
     await bridge.setFxChildTunnel(registry.address);
 
     DEBUG(`=== end ===`);
+}
 
-})().catch(console.error);
+if (require.main === module) {
+    const CONFIG = require('./config');
+    const ENV    = require('./env');
+
+    migrate(CONFIG, ENV)
+        .then(() => process.exit(0))
+        .catch(error => {
+            console.error(error);
+            process.exit(1);
+        });
+}

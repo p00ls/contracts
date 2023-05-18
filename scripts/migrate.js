@@ -4,8 +4,8 @@ const DEBUG = require('debug')('p00ls');
 
 upgrades.silenceWarnings();
 
-async function migrate(config = {}, env = {}) {
-
+async function migrate(config = {}, env = {})
+{
     const provider = env.provider || ethers.provider;
     const signer   = env.signer   || await ethers.getSigner();
     const network  = await ethers.provider.getNetwork();
