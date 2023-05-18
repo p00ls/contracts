@@ -89,10 +89,11 @@ describe('Polygon Bridging: Root → Child', function () {
 
     });
 
-    it('deploy', async function () {
+    it('migrate', async function () {
       expect(await this.bridge.isBridged(this.token.address)).to.be.false;
 
-      await expect(this.bridge.deploy(this.token.address))
+      await expect(this.bridge.migrate(this.token.address))
+      .to.emit(this.bridge, 'ContractMigrated').withArgs(this.token.address)
       .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, this.expectedDeployData);
 
       expect(await this.bridge.isBridged(this.token.address)).to.be.true;
@@ -116,6 +117,7 @@ describe('Polygon Bridging: Root → Child', function () {
           const tx = await this.bridge.connect(this.accounts.admin).bridge(this.token.address, this.accounts.receiver.address, amount);
           await expect(tx)
           .to.emit(this.token, 'Transfer').withArgs(this.accounts.admin.address, this.bridge.address, amount)
+          .to.emit(this.bridge, 'BridgeDeposit').withArgs(this.token.address, this.accounts.admin.address, this.accounts.receiver.address, amount)
           .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, this.expectedDeployData)
           .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, this.expectedBridgeData);
 
@@ -130,6 +132,7 @@ describe('Polygon Bridging: Root → Child', function () {
           const tx = await this.bridge.connect(this.accounts.admin).bridge(this.token.address, this.accounts.receiver.address, amount);
           await expect(tx)
           .to.emit(this.token, 'Transfer').withArgs(this.accounts.admin.address, this.bridge.address, amount)
+          .to.emit(this.bridge, 'BridgeDeposit').withArgs(this.token.address, this.accounts.admin.address, this.accounts.receiver.address, amount)
           .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, this.expectedBridgeData);
 
           const countFxEvents = await tx.wait().then(({ events }) => events.filter(({ address }) => address == this.fxRoot.address).length);
@@ -154,6 +157,7 @@ describe('Polygon Bridging: Root → Child', function () {
           const tx = await this.token.connect(this.accounts.admin)['transferAndCall(address,uint256,bytes)'](this.bridge.address, amount, this.erc1363data);
           await expect(tx)
           .to.emit(this.token, 'Transfer').withArgs(this.accounts.admin.address, this.bridge.address, amount)
+          .to.emit(this.bridge, 'BridgeDeposit').withArgs(this.token.address, this.accounts.admin.address, this.accounts.receiver.address, amount)
           .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, this.expectedDeployData)
           .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, this.expectedBridgeData);
 
@@ -168,6 +172,7 @@ describe('Polygon Bridging: Root → Child', function () {
           const tx = await this.token.connect(this.accounts.admin)['transferAndCall(address,uint256,bytes)'](this.bridge.address, amount, this.erc1363data);
           await expect(tx)
           .to.emit(this.token, 'Transfer').withArgs(this.accounts.admin.address, this.bridge.address, amount)
+          .to.emit(this.bridge, 'BridgeDeposit').withArgs(this.token.address, this.accounts.admin.address, this.accounts.receiver.address, amount)
           .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, this.expectedBridgeData);
 
           const countFxEvents = await tx.wait().then(({ events }) => events.filter(({ address }) => address == this.fxRoot.address).length);
