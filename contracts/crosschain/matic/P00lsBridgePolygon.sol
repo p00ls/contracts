@@ -30,6 +30,7 @@ function decodeDeployData(bytes memory data) pure returns (address, string memor
 /// @custom:security-contact security@p00ls.com
 contract P00lsBridgePolygon is FxBaseRootTunnel, IERC1363Receiver {
     IERC721 public immutable registry;
+    mapping(address => bool) public isBridged;
 
     constructor(address _checkpointManager, address _fxRoot, IERC721 _registry)
         FxBaseRootTunnel(_checkpointManager, _fxRoot)
@@ -42,12 +43,23 @@ contract P00lsBridgePolygon is FxBaseRootTunnel, IERC1363Receiver {
         _;
     }
 
-    function deploy(IP00lsTokenCreator rootToken)
-        external
-        onlyValidToken(address(rootToken))
-    {
-        IERC20Metadata xRootToken = rootToken.xCreatorToken();
+    modifier onlyBridged(address token) {
+        if (!isBridged[token]) deploy(token);
+        _;
+    }
 
+    /**
+     * Deploy token contract on child (root → child)
+     */
+    function deploy(address token)
+        public
+        onlyValidToken(token)
+    {
+        // mark as deployed
+        isBridged[token] = true;
+
+        IP00lsTokenCreator  rootToken  = IP00lsTokenCreator(token);
+        IP00lsTokenXCreator xRootToken = rootToken.xCreatorToken();
         bytes memory data = abi.encode(
             rootToken,
             rootToken.name(),
@@ -58,18 +70,22 @@ contract P00lsBridgePolygon is FxBaseRootTunnel, IERC1363Receiver {
         _sendMessageToChild(abi.encode(BRIDGE_OP.DEPLOY, data));
     }
 
-    function bridge(IERC20 rootToken, address to, uint256 amount)
-        external
-        onlyValidToken(address(rootToken))
+    /**
+     * Bridge assets to child (root → child)
+     */
+    function bridge(address token, address to, uint256 amount)
+        public
+        onlyBridged(token)
     {
         require(to != address(0), "P00lsBridgePolygon: invalid receiver");
-        SafeERC20.safeTransferFrom(rootToken, msg.sender, address(this), amount);
-        _sendMessageToChild(encodeDeposit(address(rootToken), to, amount));
+        SafeERC20.safeTransferFrom(IERC20(token), msg.sender, address(this), amount);
+        _sendMessageToChild(encodeDeposit(token, to, amount));
+
     }
 
     function onTransferReceived(address, address, uint256 value, bytes calldata data)
-        external
-        onlyValidToken(msg.sender)
+        public
+        onlyBridged(msg.sender)
         returns (bytes4)
     {
         address to = abi.decode(data, (address));
@@ -78,6 +94,9 @@ contract P00lsBridgePolygon is FxBaseRootTunnel, IERC1363Receiver {
         return this.onTransferReceived.selector;
     }
 
+    /**
+     * Withdraw asset (child → root)
+     */
     function _processMessageFromChild(bytes memory message)
         internal
         override

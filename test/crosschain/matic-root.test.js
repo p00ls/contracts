@@ -20,13 +20,17 @@ function encodeDepositData(rootToken, to, amount) {
   return outer;
 }
 
+const amount = ethers.BigNumber.from(17);
+
 describe('Polygon Bridging: Root → Child', function () {
   prepare();
 
   before(async function () {
+    this.accounts.receiver = this.accounts.shift();
+
     this.checkpointManager = await utils.deploy('AA');
     this.fxRoot            = await utils.deploy('AA');
-    this.fxChildTunnel     = this.accounts.unshift();
+    this.fxChildTunnel     = this.accounts.shift();
 
     // deploy bridge & record crosschain link
     this.bridge = await utils.deploy(
@@ -51,14 +55,16 @@ describe('Polygon Bridging: Root → Child', function () {
   });
 
   it('cannot override fxChildTunnel', async function () {
-    const randomAddress = ethers.utils.hexlify(ethers.utils.randomBytes(20));
+    const { address: randomAddress } = ethers.Wallet.createRandom();
+
     await expect(this.bridge.setFxChildTunnel(randomAddress))
       .to.be.revertedWith('FxBaseRootTunnel: CHILD_TUNNEL_ALREADY_SET');
   });
 
   describe('emit', function () {
-    it('deploy', async function () {
-      const data = await Promise.all([
+    before(async function () {
+      // message for bridging the token
+      this.expectedDeployData = await Promise.all([
         this.token.name(),
         this.token.symbol(),
         this.xToken.name(),
@@ -70,55 +76,114 @@ describe('Polygon Bridging: Root → Child', function () {
           encodeDeployData(this.token, ...params),
         ],
       ));
+      // message for bridging assets
+      this.expectedBridgeData = IFxStateSender.encodeFunctionData(
+        'sendMessageToChild(address,bytes)',
+        [
+          this.fxChildTunnel.address,
+          encodeDepositData(this.token, this.accounts.receiver, amount),
+        ],
+      );
+      // ERC1363 transferAndCall data
+      this.erc1363data = ethers.utils.defaultAbiCoder.encode([ 'address' ], [ this.accounts.receiver.address ]);
+
+    });
+
+    it('deploy', async function () {
+      expect(await this.bridge.isBridged(this.token.address)).to.be.false;
 
       await expect(this.bridge.deploy(this.token.address))
-      .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, data);
+      .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, this.expectedDeployData);
+
+      expect(await this.bridge.isBridged(this.token.address)).to.be.true;
     });
 
     it('invalid token', async function () {
-      const randomAddress = ethers.utils.hexlify(ethers.utils.randomBytes(20));
+      const { address: randomAddress } = ethers.Wallet.createRandom();
+
       await expect(this.bridge.bridge(randomAddress, this.accounts.admin.address, 0))
       .to.be.revertedWith('ERC721: invalid token ID');
     });
 
-    it('bridge approved token', async function () {
-      await this.token.connect(this.accounts.admin).approve(this.bridge.address, ethers.constants.MaxUint256);
+    it('bridge pre-approved tokens', async function () {
+      it('emits correct message', async function () {
+        await this.token.connect(this.accounts.admin).approve(this.bridge.address, ethers.constants.MaxUint256);
 
-      const receiver = ethers.utils.hexlify(ethers.utils.randomBytes(20));
-      const amount   = ethers.BigNumber.from(17);
-      const data     = IFxStateSender.encodeFunctionData(
-        'sendMessageToChild(address,bytes)',
-        [
-          this.fxChildTunnel.address,
-          encodeDepositData(this.token, receiver, amount),
-        ],
-      );
+        expect(await this.bridge.isBridged(this.token.address)).to.be.false;
 
-      await expect(this.bridge.connect(this.accounts.admin).bridge(this.token.address, receiver, amount))
-      .to.emit(this.token, 'Transfer').withArgs(this.accounts.admin.address, this.bridge.address, amount)
-      .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, data);
+        // once
+        {
+          const tx = await this.bridge.connect(this.accounts.admin).bridge(this.token.address, this.accounts.receiver.address, amount);
+          await expect(tx)
+          .to.emit(this.token, 'Transfer').withArgs(this.accounts.admin.address, this.bridge.address, amount)
+          .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, this.expectedDeployData)
+          .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, this.expectedBridgeData);
+
+          const countFxEvents = await tx.wait().then(({ events }) => events.filter(({ address }) => address == this.fxRoot.address).length);
+          expect(countFxEvents).to.be.equal(2);
+        }
+
+        expect(await this.bridge.isBridged(this.token.address)).to.be.true;
+
+        // twice
+        {
+          const tx = await this.bridge.connect(this.accounts.admin).bridge(this.token.address, this.accounts.receiver.address, amount);
+          await expect(tx)
+          .to.emit(this.token, 'Transfer').withArgs(this.accounts.admin.address, this.bridge.address, amount)
+          .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, this.expectedBridgeData);
+
+          const countFxEvents = await tx.wait().then(({ events }) => events.filter(({ address }) => address == this.fxRoot.address).length);
+          expect(countFxEvents).to.be.equal(1);
+        }
+
+        expect(await this.bridge.isBridged(this.token.address)).to.be.true;
+      });
     });
 
-    it('bridge using ERC1363.transferAndCall', async function () {
-      const receiver = ethers.utils.hexlify(ethers.utils.randomBytes(20));
-      const encoded  = ethers.utils.defaultAbiCoder.encode([ 'address' ], [ receiver ]);
-      const amount   = ethers.BigNumber.from(42);
-      const data     = IFxStateSender.encodeFunctionData(
-        'sendMessageToChild(address,bytes)',
-        [
-          this.fxChildTunnel.address,
-          encodeDepositData(this.token, receiver, amount),
-        ],
-      );
+    describe('bridge using ERC1363.transferAndCall', function () {
+      it('emits correct message', async function () {
+        // missing data
+        await expect(this.token.connect(this.accounts.admin)['transferAndCall(address,uint256)'](this.bridge.address, amount))
+        .to.be.revertedWith('ERC1363: onTransferReceived reverted without reason');
 
-      // missing data
-      await expect(this.token.connect(this.accounts.admin)['transferAndCall(address,uint256)'](this.bridge.address, amount))
-      .to.be.revertedWith('ERC1363: onTransferReceived reverted without reason');
+        // with data
+        expect(await this.bridge.isBridged(this.token.address)).to.be.false;
 
-      // with data
-      await expect(this.token.connect(this.accounts.admin)['transferAndCall(address,uint256,bytes)'](this.bridge.address, amount, encoded))
-      .to.emit(this.token, 'Transfer').withArgs(this.accounts.admin.address, this.bridge.address, amount)
-      .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, data);
+        // once
+        {
+          const tx = await this.token.connect(this.accounts.admin)['transferAndCall(address,uint256,bytes)'](this.bridge.address, amount, this.erc1363data);
+          await expect(tx)
+          .to.emit(this.token, 'Transfer').withArgs(this.accounts.admin.address, this.bridge.address, amount)
+          .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, this.expectedDeployData)
+          .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, this.expectedBridgeData);
+
+          const countFxEvents = await tx.wait().then(({ events }) => events.filter(({ address }) => address == this.fxRoot.address).length);
+          expect(countFxEvents).to.be.equal(2);
+        }
+
+        expect(await this.bridge.isBridged(this.token.address)).to.be.true;
+
+        // twice
+        {
+          const tx = await this.token.connect(this.accounts.admin)['transferAndCall(address,uint256,bytes)'](this.bridge.address, amount, this.erc1363data);
+          await expect(tx)
+          .to.emit(this.token, 'Transfer').withArgs(this.accounts.admin.address, this.bridge.address, amount)
+          .to.emit(this.fxRoot, 'Call').withArgs(this.bridge.address, 0, this.expectedBridgeData);
+
+          const countFxEvents = await tx.wait().then(({ events }) => events.filter(({ address }) => address == this.fxRoot.address).length);
+          expect(countFxEvents).to.be.equal(1);
+        }
+
+        expect(await this.bridge.isBridged(this.token.address)).to.be.true;
+      });
+
+      it('revert if caller is not token', async function () {
+        const { address: operator } = ethers.Wallet.createRandom();
+        const { address: from     } = ethers.Wallet.createRandom();
+
+        await expect(this.bridge.onTransferReceived(operator, from, amount, this.erc1363data))
+        .to.be.revertedWith('ERC721: invalid token ID');
+      });
     });
   });
 });
