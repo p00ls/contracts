@@ -16,3 +16,5 @@ coverage.json
 !.github
 !.openzeppelin
 !.cache-1.json
+!.cache-5.json
+!.cache-80001.json
