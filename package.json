@@ -37,7 +37,11 @@
     "@uniswap/v2-periphery": "*"
   },
   "devDependencies": {
+    "@maticnetwork/maticjs": "^3.5.0",
+    "@maticnetwork/maticjs-ethers": "^1.0.3",
+    "@maticnetwork/maticjs-web3": "^1.0.4",
     "@openzeppelin/hardhat-upgrades": "^1.26.0",
+    "@truffle/hdwallet-provider": "^2.1.11",
     "copyfiles": "^2.4.1",
     "debug": "^2.6.9",
     "hardhat": "^2.7.1",
