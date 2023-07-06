@@ -14,8 +14,8 @@ contract P00lsTokenCreator_Polygon is
     AccessControlUpgradeable,
     RegistryOwnable
 {
-    bytes32 public constant WHITELIST_MANAGER = keccak256("WHITELIST_MANAGER");
-    bytes32 public constant WHITELISTED       = keccak256("WHITELISTED");
+    bytes32 public constant WHITELISTER = keccak256("WHITELISTER");
+    bytes32 public constant WHITELISTED = keccak256("WHITELISTED");
 
     IP00lsTokenXCreator public xCreatorToken;
     bool                public isOpen;
@@ -35,8 +35,8 @@ contract P00lsTokenCreator_Polygon is
         __AccessControl_init();
         __ERC20_init(name, symbol);
         __ERC20Permit_init(name);
-        _setRoleAdmin(WHITELISTED, WHITELIST_MANAGER);
-        _grantRole(WHITELIST_MANAGER, owner());
+        _setRoleAdmin(WHITELISTED, WHITELISTER);
+        _grantRole(WHITELISTER, owner());
 
         xCreatorToken = IP00lsTokenXCreator(child);
     }
