@@ -55,6 +55,10 @@ contract P00lsCreatorRegistry_Polygon is P00lsRegistryBase, IP00lsCreatorRegistr
             address creator  = address(new BeaconProxy{ salt: addressToSalt(rootToken) }(beaconCreator()));
             address xCreator = address(new BeaconProxy(beaconXCreator()));
 
+            _mint(owner(), addressToUint256(creator));
+            childToRoot[creator] = rootToken;
+            rootToChild[rootToken] = creator;
+
             P00lsTokenCreator_Polygon(creator).initialize(
                 name,
                 symbol,
@@ -65,10 +69,6 @@ contract P00lsCreatorRegistry_Polygon is P00lsRegistryBase, IP00lsCreatorRegistr
                 xsymbol,
                 creator
             );
-
-            _mint(owner(), addressToUint256(creator));
-            childToRoot[creator] = rootToken;
-            rootToChild[rootToken] = creator;
         }
         else if (op == BRIDGE_OP.DEPOSIT)
         {

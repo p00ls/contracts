@@ -26,8 +26,8 @@ describe('Polygon Bridging: Child → Root', function () {
   prepare();
 
   before(async function () {
-    this.receiver = this.accounts.shift();
-    this.other    = this.accounts.shift();
+    this.accounts.receiver = this.accounts.shift();
+    this.accounts.other    = this.accounts.shift();
 
     this.matic = {};
     this.matic.fxChild  = await utils.deploy('AA');
@@ -131,9 +131,9 @@ describe('Polygon Bridging: Child → Root', function () {
 
       it('mint', async function () {
         const amount   = ethers.BigNumber.from(42);
-        const data     = encodeDepositData(this.token, this.receiver, amount);
+        const data     = encodeDepositData(this.token, this.accounts.receiver, amount);
         const tx       = await this.matic.fxChild.forward(this.matic.registry, 'processMessageFromRoot(uint256,address,bytes)', [ 0, this.fxRootTunnel.address, data ]);
-        expect(tx).to.emit(this.matic.token, 'Transfer').withArgs(ethers.constants.ZeroAddress, this.receiver, amount);
+        expect(tx).to.emit(this.matic.token, 'Transfer').withArgs(ethers.constants.ZeroAddress, this.accounts.receiver, amount);
       });
     });
   });
@@ -142,15 +142,17 @@ describe('Polygon Bridging: Child → Root', function () {
     const amount = ethers.BigNumber.from(42);
 
     beforeEach(async function () {
+      // deploy
       this.matic.token = await Promise.all([ this.token.name(), this.token.symbol(), this.xToken.name(), this.xToken.symbol() ])
-        .then(names => encodeDeployData(this.token, ...names))
-        .then(data => this.matic.fxChild.forward(this.matic.registry, 'processMessageFromRoot(uint256,address,bytes)', [ 0, this.fxRootTunnel.address, data ]))
-        .then(tx => tx.wait())
-        .then(receipt => receipt.events.find(({ address }) => address === this.matic.registry.address))
-        .then(event => this.matic.registry.interface.parseLog(event).args.tokenId)
-        .then(tokenId => ethers.utils.getAddress(ethers.utils.hexlify(ethers.utils.zeroPad(tokenId, 20))))
-        .then(address => utils.attach('P00lsTokenCreator_Polygon', address));
+      .then(names => encodeDeployData(this.token, ...names))
+      .then(data => this.matic.fxChild.forward(this.matic.registry, 'processMessageFromRoot(uint256,address,bytes)', [ 0, this.fxRootTunnel.address, data ]))
+      .then(tx => tx.wait())
+      .then(receipt => receipt.events.find(({ address }) => address === this.matic.registry.address))
+      .then(event => this.matic.registry.interface.parseLog(event).args.tokenId)
+      .then(tokenId => ethers.utils.getAddress(ethers.utils.hexlify(ethers.utils.zeroPad(tokenId, 20))))
+      .then(address => utils.attach('P00lsTokenCreator_Polygon', address));
 
+      // mint
       await this.matic.fxChild.forward(
         this.matic.registry,
         'processMessageFromRoot(uint256,address,bytes)',
@@ -162,36 +164,121 @@ describe('Polygon Bridging: Child → Root', function () {
       );
     });
 
-    it('withdraw', async function () {
-      await expect(this.matic.token.connect(this.accounts.admin).withdraw(this.receiver.address, amount))
-      .to.emit(this.matic.token, 'Transfer').withArgs(this.accounts.admin.address, ethers.constants.ZeroAddress, amount)
-      .to.emit(this.matic.registry, 'MessageSent').withArgs(encodeWithdrawData(
-        this.token.address,
-        this.receiver.address,
-        amount,
-      ));
+    describe('with open token', function () {
+      beforeEach(async function () {
+        expect(await this.matic.token.open())
+        .to.emit(this.matic.token, 'Opened');
+      });
+
+      it('withdraw', async function () {
+        await expect(this.matic.token.connect(this.accounts.admin).withdraw(this.accounts.receiver.address, amount))
+        .to.emit(this.matic.token, 'Transfer').withArgs(this.accounts.admin.address, ethers.constants.ZeroAddress, amount)
+        .to.emit(this.matic.registry, 'MessageSent').withArgs(encodeWithdrawData(
+          this.token.address,
+          this.accounts.receiver.address,
+          amount,
+        ));
+      });
+
+      it('withdrawFrom', async function () {
+        // missing approval
+        await expect(this.matic.token.connect(this.accounts.other).withdrawFrom(this.accounts.admin.address, this.accounts.receiver.address, amount))
+        .to.be.revertedWith('ERC20: insufficient allowance');
+
+        // with approval
+        await this.matic.token.connect(this.accounts.admin).approve(this.accounts.other.address, ethers.constants.MaxUint256);
+
+        await expect(this.matic.token.connect(this.accounts.other).withdrawFrom(this.accounts.admin.address, this.accounts.receiver.address, amount))
+        .to.emit(this.matic.token, 'Transfer').withArgs(this.accounts.admin.address, ethers.constants.ZeroAddress, amount)
+        .to.emit(this.matic.registry, 'MessageSent').withArgs(encodeWithdrawData(
+          this.token.address,
+          this.accounts.receiver.address,
+          amount,
+        ));
+      });
+
+      it('__withdraw', async function () {
+        await expect(this.matic.registry.__withdraw(this.accounts.receiver.address, amount))
+        .to.be.revertedWith('No known rootToken for withdrawal');
+      });
+    });
+  });
+
+  describe('whitelist', function () {
+    beforeEach(async function () {
+      // deploy
+      this.matic.token = await Promise.all([ this.token.name(), this.token.symbol(), this.xToken.name(), this.xToken.symbol() ])
+      .then(names => encodeDeployData(this.token, ...names))
+      .then(data => this.matic.fxChild.forward(this.matic.registry, 'processMessageFromRoot(uint256,address,bytes)', [ 0, this.fxRootTunnel.address, data ]))
+      .then(tx => tx.wait())
+      .then(receipt => receipt.events.find(({ address }) => address === this.matic.registry.address))
+      .then(event => this.matic.registry.interface.parseLog(event).args.tokenId)
+      .then(tokenId => ethers.utils.getAddress(ethers.utils.hexlify(ethers.utils.zeroPad(tokenId, 20))))
+      .then(address => utils.attach('P00lsTokenCreator_Polygon', address));
+
+      // mint
+      await this.matic.fxChild.forward(
+        this.matic.registry,
+        'processMessageFromRoot(uint256,address,bytes)',
+        [
+          0,
+          this.fxRootTunnel.address,
+          encodeDepositData(this.token, this.accounts.admin.address, ethers.utils.parseEther('1000000000')),
+        ]
+      );
+
+      // add admin to whitelist
+      await this.matic.token.grantRole(this.roles.WHITELISTED, this.accounts.admin.address);
     });
 
-    it('withdrawFrom', async function () {
-      // missing approval
-      await expect(this.matic.token.connect(this.other).withdrawFrom(this.accounts.admin.address, this.receiver.address, amount))
-      .to.be.revertedWith('ERC20: insufficient allowance');
-
-      // with approval
-      await this.matic.token.connect(this.accounts.admin).approve(this.other.address, ethers.constants.MaxUint256);
-
-      await expect(this.matic.token.connect(this.other).withdrawFrom(this.accounts.admin.address, this.receiver.address, amount))
-      .to.emit(this.matic.token, 'Transfer').withArgs(this.accounts.admin.address, ethers.constants.ZeroAddress, amount)
-      .to.emit(this.matic.registry, 'MessageSent').withArgs(encodeWithdrawData(
-        this.token.address,
-        this.receiver.address,
-        amount,
-      ));
+    it('token is closed by default', async function () {
+      expect(await this.matic.token.isOpen()).to.be.false;
     });
 
-    it('__withdraw', async function () {
-      await expect(this.matic.registry.__withdraw(this.receiver.address, amount))
-      .to.be.revertedWith('No known rootToken for withdrawal');
+    describe('closed', function () {
+      it ('open is restricted', async function () {
+        await expect(this.matic.token.connect(this.accounts.other).open()).to.be.revertedWith('RegistryOwnable: caller is not the owner');
+      });
+
+      it ('whitelisted → non whitelisted: ok', async function () {
+        await expect(this.matic.token.transferFrom(this.accounts.admin.address, this.accounts.receiver.address, 0))
+        .to.emit(this.matic.token, 'Transfer').withArgs(this.accounts.admin.address, this.accounts.receiver.address, 0);
+      });
+
+      it ('non whitelisted → whitelisted: ok', async function () {
+        await expect(this.matic.token.transferFrom(this.accounts.other.address, this.accounts.admin.address, 0))
+        .to.emit(this.matic.token, 'Transfer').withArgs(this.accounts.other.address, this.accounts.admin.address, 0);
+      });
+
+      it ('non whitelisted → non whitelisted: revert', async function () {
+        await expect(this.matic.token.transferFrom(this.accounts.other.address, this.accounts.receiver.address, 0))
+        .to.be.revertedWith('Transfer restricted to whitelisted');
+      });
+    });
+
+    describe('open', function () {
+      beforeEach(async function () {
+        expect(await this.matic.token.open()).to.emit(this.matic.token, 'Opened');
+      });
+
+      it('flag is set', async function () {
+        expect(await this.matic.token.isOpen()).to.be.true;
+      });
+
+      it ('whitelisted → non whitelisted: ok', async function () {
+        await expect(this.matic.token.transferFrom(this.accounts.admin.address, this.accounts.receiver.address, 0))
+        .to.emit(this.matic.token, 'Transfer').withArgs(this.accounts.admin.address, this.accounts.receiver.address, 0);
+      });
+
+      it ('non whitelisted → whitelisted: ok', async function () {
+        await expect(this.matic.token.transferFrom(this.accounts.other.address, this.accounts.admin.address, 0))
+        .to.emit(this.matic.token, 'Transfer').withArgs(this.accounts.other.address, this.accounts.admin.address, 0);
+      });
+
+      it ('non whitelisted → non whitelisted: ok', async function () {
+        await expect(this.matic.token.transferFrom(this.accounts.other.address, this.accounts.receiver.address, 0))
+        .to.emit(this.matic.token, 'Transfer').withArgs(this.accounts.other.address, this.accounts.receiver.address, 0);
+      });
     });
   });
 });

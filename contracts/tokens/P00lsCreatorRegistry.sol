@@ -27,6 +27,8 @@ contract P00lsCreatorRegistry is P00lsRegistryBase {
         address creator  = _createProxy(beaconCreator());
         address xCreator = _createProxy(beaconXCreator());
 
+        _mint(owner, addressToUint256(creator));
+
         P00lsTokenCreator(creator).initialize(
             name,
             symbol,
@@ -39,7 +41,6 @@ contract P00lsCreatorRegistry is P00lsRegistryBase {
             creator
         );
 
-        _mint(owner, addressToUint256(creator));
         return creator;
     }
 }
