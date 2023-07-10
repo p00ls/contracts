@@ -1,10 +1,10 @@
 {
-	"matic-escrow-pending": "0x49499e70a27bf51bb9e4748b370dbacc8368d890003b3307231913aac266881c",
-	"matic-escrow": "0x2BA6ca5a63Adb06B0BE99E23d28b2654F3be0ae5",
-	"matic-registry-pending": "0x32fad27afde4c3bc188148aa44e1c993b99bfb210261e301c774caf06ed62d69",
-	"matic-registry": "0x4f5b4578ef1067f2577199def29abbd4aa839563",
-	"matic-tokenCreator-pending": "0xf14c6e06e26615746577431e93948b4755187b588d437a8f4da3401586917d91",
-	"matic-tokenCreator": "0xe381A78BdcA2B55ab12750E701149c05ecB07031",
-	"matic-tokenXCreatorV2-pending": "0xaf364badd2425e615a1601b31e16a1b998b790b3e010909cff79f78ee8f57a16",
-	"matic-tokenXCreatorV2": "0xee62665b7560bE5c1099eC3A583f03Ef0Fc2B00e"
+	"matic-escrow-pending": "0x0bc98a1dfb4a963b2e046f341f6ff5058c34c6c18f797aac9d24579522b58ef1",
+	"matic-escrow": "0x69Fc4D0749054532845c26302C22f22AC20a694C",
+	"matic-registry-pending": "0x2861cdabb4c1d5fc163fce69aae9381faafa21c04de75d74197ecffd37508a10",
+	"matic-registry": "0xe83d080F6a83b4d1b38F4266545412FeC7709e00",
+	"matic-tokenCreator-pending": "0xb24e5378c9d2c6d1a582f92ff3e1cc512541ff42e46c1a8e80097fe7bdfa268c",
+	"matic-tokenCreator": "0xc46E57354EEc59aDa7f89ccb494aAE72501dFabe",
+	"matic-tokenXCreatorV2-pending": "0xb8f8f0ddc77434fbb9466c5064b64dca9b2432a546d16ff9f083d12cf4859319",
+	"matic-tokenXCreatorV2": "0x1f750C7830b4f5C3ca2BD121076E2E440ad64a89"
 }
