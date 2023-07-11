@@ -22,5 +22,7 @@
 	"feemanager-pending": "0xe2c0ea3516337dbe9f99fadeddaa16e6484c5e5731e910051d07aec94e930082",
 	"feemanager": "0xe088E57D17c81F455a5dD9A95a23b6e314146e87",
 	"auction-pending": "0xc238616dccda2091c6bee06ff77907a68d627d5a4eb93e3f5117eaafd631642f",
-	"auction": "0xa5f6FCCD9dC4BF0512BB9DDd9489D1800bCA9af4"
+	"auction": "0xa5f6FCCD9dC4BF0512BB9DDd9489D1800bCA9af4",
+	"matic-bridge-pending": "0xcbb809a4e7c008aea497d3bc9b2b835e74f75bf6d5b9da04c4ba7cf7d76026bb",
+	"matic-bridge": "0x29D9D0b795242176af0d304Afd6Fc94748310026"
 }
