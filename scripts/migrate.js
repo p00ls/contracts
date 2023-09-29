@@ -144,7 +144,7 @@ async function migrate(config = {}, env = {})
     // ------ Upgrade p00ls token ------------------------------------------------------------------------------------
     const tokenXCreatorV2 = isEnabled('registry') && registry && await manager.migrate(
         'tokenXCreatorV2',
-        getFactory('P00lsTokenXCreatorV2', { signer }),
+        getFactory('P00lsTokenXCreator_V2', { signer }),
         [
             escrow.address,
         ],
@@ -163,7 +163,7 @@ async function migrate(config = {}, env = {})
 
     // tokenXCreator && await Promise.all([
     //     registry.beaconXCreator(),
-    //     getFactory('P00lsTokenXCreatorV2', { signer }),
+    //     getFactory('P00lsTokenXCreator_V2', { signer }),
     // ]).then(([ beacon, factory ]) => upgrades.prepareUpgrade(beacon, factory, { constructorArgs: [ escrow.address ], unsafeAllow: 'delegatecall' }));
 
     isEnabled('registry') && await registry.beaconXCreator()
@@ -172,12 +172,12 @@ async function migrate(config = {}, env = {})
         .then(implementation => implementation == tokenXCreatorV2.address || registry.upgradeXCreatorToken(tokenXCreatorV2.address).then(tx => tx.wait()));
 
     const getXCreatorTokenV2 = (creatorToken) => creatorToken.xCreatorToken()
-        .then(address => attach('P00lsTokenXCreatorV2', address));
+        .then(address => attach('P00lsTokenXCreator_V2', address));
 
     const xTokenV2 = isEnabled('token') && await getXCreatorTokenV2(token);
 
     // ------ Upgrade p00ls registry ---------------------------------------------------------------------------------
-    const registryV2 = await getFactory('P00lsCreatorRegistryV2', { signer }).then(factory => upgrades.upgradeProxy(registry, factory));
+    const registryV2 = await getFactory('P00lsCreatorRegistry_V2', { signer }).then(factory => upgrades.upgradeProxy(registry, factory));
 
     /*******************************************************************************************************************
      *                                                       DAO                                                       *

@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./P00lsCreatorRegistry.sol";
 
 /// @custom:security-contact security@p00ls.com
-contract P00lsCreatorRegistryV2 is P00lsCreatorRegistry {
+contract P00lsCreatorRegistry_V2 is P00lsCreatorRegistry {
     function createToken2(
         address owner,
         string calldata name,

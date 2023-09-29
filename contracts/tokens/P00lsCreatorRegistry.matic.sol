@@ -51,24 +51,7 @@ contract P00lsCreatorRegistry_Polygon is P00lsRegistryBase, IP00lsCreatorRegistr
                 string memory xname,
                 string memory xsymbol
             ) = decodeMigrateData(data);
-
-            address creator  = address(new BeaconProxy{ salt: addressToSalt(rootToken) }(beaconCreator()));
-            address xCreator = address(new BeaconProxy(beaconXCreator()));
-
-            _mint(owner(), addressToUint256(creator));
-            childToRoot[creator] = rootToken;
-            rootToChild[rootToken] = creator;
-
-            P00lsTokenCreator_Polygon(creator).initialize(
-                name,
-                symbol,
-                xCreator
-            );
-            P00lsTokenXCreatorV2(xCreator).initialize(
-                xname,
-                xsymbol,
-                creator
-            );
+            deployAndInitialize(rootToken, name, symbol, xname, xsymbol);
         }
         else if (op == BRIDGE_OP.DEPOSIT)
         {
@@ -92,5 +75,35 @@ contract P00lsCreatorRegistry_Polygon is P00lsRegistryBase, IP00lsCreatorRegistr
         address rootToken = childToRoot[msg.sender];
         require(rootToken != address(0), "No known rootToken for withdrawal");
         emit MessageSent(abi.encode(rootToken, to, amount));
+    }
+
+    function deployAndInitialize(
+        address rootToken,
+        string memory name,
+        string memory symbol,
+        string memory xname,
+        string memory xsymbol
+    )
+    internal virtual returns (address)
+    {
+        address creator  = address(new BeaconProxy{ salt: addressToSalt(rootToken) }(beaconCreator()));
+        address xCreator = address(new BeaconProxy(beaconXCreator()));
+
+        _mint(owner(), addressToUint256(creator));
+        childToRoot[creator] = rootToken;
+        rootToChild[rootToken] = creator;
+
+        P00lsTokenCreator_Polygon(creator).initialize(
+            name,
+            symbol,
+            xCreator
+        );
+        P00lsTokenXCreator_V2(xCreator).initialize(
+            xname,
+            xsymbol,
+            creator
+        );
+
+        return creator;
     }
 }

@@ -1,5 +1,6 @@
-const { ethers } = require('hardhat');
+const { ethers, upgrades } = require('hardhat');
 const { expect } = require('chai');
+const { getFactory } = require('@amxx/hre/scripts');
 
 const { prepare, utils } = require('../fixture.js');
 
@@ -45,10 +46,17 @@ describe('Polygon Bridging: Child → Root', function () {
       }
     );
 
+    // upgrade
+    this.matic.registry = await getFactory('P00lsCreatorRegistry_Polygon_V2').then(factory => upgrades.upgradeProxy(
+      this.matic.registry,
+      factory,
+      { constructorArgs: [ this.matic.fxChild.address ] },
+    ));
+
     await utils.deploy('P00lsTokenCreator_Polygon', [ this.matic.registry.address ])
       .then(({ address }) => this.matic.registry.upgradeCreatorToken(address));
 
-    await utils.deploy('P00lsTokenXCreatorV2', [ this.matic.escrow.address ])
+    await utils.deploy('P00lsTokenXCreator_V2', [ this.matic.escrow.address ])
       .then(({ address }) => this.matic.registry.upgradeXCreatorToken(address));
 
     this.fxRootTunnel = this.accounts.shift();
@@ -101,7 +109,7 @@ describe('Polygon Bridging: Child → Root', function () {
         .then(address => utils.attach('P00lsTokenCreator_Polygon', address));
 
       this.matic.xToken = await this.matic.token.xCreatorToken()
-        .then(address => utils.attach('P00lsTokenXCreatorV2', address));
+        .then(address => utils.attach('P00lsTokenXCreator_V2', address));
 
       expect(tx).to.emit(this.matic.registry, 'Transfer').withArgs(ethers.constants.ZeroAddress, this.accounts.admin.address, this.matic.token.address);
 
