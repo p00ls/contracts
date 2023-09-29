@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@amxx/hre/contracts/ENSReverseRegistration.sol";
+import "@openzeppelin/contracts/utils/Create2.sol";
 import "@openzeppelin/contracts/utils/Multicall.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
@@ -58,6 +59,10 @@ contract P00lsRegistryBase is
 
     function _createProxy(Beacon beacon, bytes32 salt) internal returns (address) {
         return address(new BeaconProxy{ salt: salt }(beacon));
+    }
+
+    function _predictProxy(Beacon beacon, bytes32 salt) internal view returns (address) {
+        return Create2.computeAddress(salt, keccak256(bytes.concat(type(BeaconProxy).creationCode, abi.encode(beacon))));
     }
 
     /**

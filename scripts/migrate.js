@@ -176,6 +176,9 @@ async function migrate(config = {}, env = {})
 
     const xTokenV2 = isEnabled('token') && await getXCreatorTokenV2(token);
 
+    // ------ Upgrade p00ls registry ---------------------------------------------------------------------------------
+    const registryV2 = await getFactory('P00lsCreatorRegistryV2', { signer }).then(factory => upgrades.upgradeProxy(registry, factory));
+
     /*******************************************************************************************************************
      *                                                       DAO                                                       *
      *******************************************************************************************************************/
@@ -326,7 +329,7 @@ async function migrate(config = {}, env = {})
             vestedAirdrop,
             vestingFactory,
             escrow,
-            registry,
+            registry: registryV2,
             token,
             xToken: xTokenV2,
             factory,
