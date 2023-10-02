@@ -22,7 +22,7 @@ contract P00lsCreatorRegistry_Polygon_V2 is P00lsCreatorRegistry_Polygon
         uint256 liquidity
     )
         external
-        onlyRole(UPGRADER_ROLE)
+        onlyRole(BRIDGER_ROLE)
     {
         // deploy and initialize bridged tokens
         address creator = deployAndInitialize(holder, rootToken, name, symbol, xname, xsymbol);

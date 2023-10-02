@@ -43,6 +43,24 @@ async function migrate(config = {}, env = {}) {
     );
 
     DEBUG(`- P00lsCreatorRegistry_Polygon_V2 deployed ${registryV2}`);
+
+    await upgrades.forceImport(
+        await registryV2.beaconCreator(),
+        await getFactory('P00lsTokenCreator_Polygon'),
+        { constructorArgs: [ registryV2.address ] },
+    );
+
+    const tokenCreatorV2 = await upgrades.prepareUpgrade(
+        await registryV2.beaconCreator(),
+        await getFactory('P00lsTokenCreator_Polygon_V2'),
+        { constructorArgs: [ registryV2.address ] },
+    );
+
+    DEBUG(`- P00lsTokenCreator_Polygon_V2 deployed ${tokenCreatorV2}`);
+
+    await manager.cache.set('matic-tokenCreatorV2', tokenCreatorV2);
+
+    DEBUG(`- manifest filled`);
 }
 
 if (require.main === module) {

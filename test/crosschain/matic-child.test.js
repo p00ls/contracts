@@ -1,6 +1,6 @@
 const { ethers, upgrades } = require('hardhat');
 const { expect } = require('chai');
-const { getFactory } = require('@amxx/hre/scripts');
+const { getFactory, attach } = require('@amxx/hre/scripts');
 
 const { prepare, utils } = require('../fixture.js');
 
@@ -27,6 +27,7 @@ describe('Polygon Bridging: Child → Root', function () {
   prepare();
 
   before(async function () {
+    this.accounts.holder   = this.accounts.shift();
     this.accounts.receiver = this.accounts.shift();
     this.accounts.other    = this.accounts.shift();
 
@@ -46,13 +47,6 @@ describe('Polygon Bridging: Child → Root', function () {
       }
     );
 
-    // upgrade
-    this.matic.registry = await getFactory('P00lsCreatorRegistry_Polygon_V2').then(factory => upgrades.upgradeProxy(
-      this.matic.registry,
-      factory,
-      { constructorArgs: [ this.matic.fxChild.address ] },
-    ));
-
     await utils.deploy('P00lsTokenCreator_Polygon', [ this.matic.registry.address ])
       .then(({ address }) => this.matic.registry.upgradeCreatorToken(address));
 
@@ -63,6 +57,25 @@ describe('Polygon Bridging: Child → Root', function () {
     await this.matic.registry.setFxRootTunnel(this.fxRootTunnel.address);
 
     this.matic.fxChild.forward = (target, signature, args = []) => this.matic.fxChild.__forward(target.address, 0, target.interface.encodeFunctionData(signature, args));
+
+    // upgrades
+    this.matic.registry = await upgrades.upgradeProxy(
+      this.matic.registry,
+      await getFactory('P00lsCreatorRegistry_Polygon_V2'),
+      { constructorArgs: [ this.matic.fxChild.address ] },
+    );
+
+    await upgrades.forceImport(
+      await this.matic.registry.beaconCreator(),
+      await getFactory('P00lsTokenCreator_Polygon'),
+      { constructorArgs: [ this.matic.registry.address ] },
+    );
+
+    await upgrades.prepareUpgrade(
+      await this.matic.registry.beaconCreator(),
+      await getFactory('P00lsTokenCreator_Polygon_V2'),
+      { constructorArgs: [ this.matic.registry.address ] },
+    ).then(impl => this.matic.registry.upgradeCreatorToken(impl));
 
     // Overwrite the snapshot
     __SNAPSHOT_ID__ = await ethers.provider.send('evm_snapshot');
@@ -79,7 +92,7 @@ describe('Polygon Bridging: Child → Root', function () {
       .to.be.revertedWith('FxBaseChildTunnel: ROOT_TUNNEL_ALREADY_SET');
   });
 
-  describe('receive crosschain signal', async function () {
+  describe('receive crosschain signal', function () {
     it ('revert if not sent by the fxChild', async function () {
       await expect(this.matic.registry.processMessageFromRoot(0, this.fxRootTunnel.address, "0x"))
       .to.be.revertedWith('Invalid crosschain sender');
@@ -245,7 +258,7 @@ describe('Polygon Bridging: Child → Root', function () {
 
     describe('closed', function () {
       it ('open is restricted', async function () {
-        await expect(this.matic.token.connect(this.accounts.other).open()).to.be.revertedWith('RegistryOwnable: caller is not the owner');
+        await expect(this.matic.token.connect(this.accounts.other).open()).to.be.revertedWith('RegistryOwnable: caller is not the admin');
       });
 
       it ('whitelisted → non whitelisted: ok', async function () {
@@ -289,4 +302,46 @@ describe('Polygon Bridging: Child → Root', function () {
       });
     });
   });
+
+  describe('forceBridgeToken', function () {
+    const name      = "name";
+    const symbol    = "symbol";
+    const xname     = "xname";
+    const xsymbol   = "xsymbol";
+    const root      = ethers.utils.randomBytes(32);
+    const value     = ethers.utils.parseEther("1");
+
+    beforeEach(async function () {
+      await this.matic.registry.grantRole(this.roles.BRIDGER, this.accounts.admin.address)
+
+      this.rootToken = await this.registry.predictToken2(name, symbol, xname, xsymbol, root);
+
+      this.matic.token = await this.matic.registry.forceBridgeToken(
+        this.accounts.holder.address,
+        this.rootToken,
+        name,
+        symbol,
+        xname,
+        xsymbol,
+        this.accounts.receiver.address,
+        value,
+      )
+      .then(tx => tx.wait())
+      .then(receipt => receipt.events.find(({ address }) => address === this.matic.registry.address))
+      .then(event => this.matic.registry.interface.parseLog(event).args.tokenId)
+      .then(tokenId => ethers.utils.getAddress(ethers.utils.hexlify(ethers.utils.zeroPad(tokenId, 20))))
+      .then(address => utils.attach('P00lsTokenCreator_Polygon', address));
+    });
+
+    it('post creation state', async function () {
+      expect(await this.matic.token.admin()).to.be.equal(this.accounts.admin.address);
+      expect(await this.matic.token.owner()).to.be.equal(this.accounts.holder.address);
+      expect(await this.matic.token.name()).to.be.equal(name);
+      expect(await this.matic.token.symbol()).to.be.equal(symbol);
+      expect(await this.matic.token.totalSupply()).to.be.equal(value);
+      expect(await this.matic.token.balanceOf(this.accounts.receiver.address)).to.be.equal(value);
+
+      expect(await this.matic.token.hasRole(this.roles.WHITELISTER, this.accounts.holder.address)).to.be.true;
+    });
+  })
 });

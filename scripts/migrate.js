@@ -278,6 +278,7 @@ async function migrate(config = {}, env = {})
         UPGRADER:         ethers.utils.id('UPGRADER_ROLE'),
         WHITELISTER:      ethers.utils.id('WHITELISTER'),
         WHITELISTED:      ethers.utils.id('WHITELISTED'),
+        BRIDGER:          ethers.utils.id('BRIDGER_ROLE'),
     }).map(entry => Promise.all(entry))).then(Object.fromEntries);
 
     // Transfer ownership of the registry
