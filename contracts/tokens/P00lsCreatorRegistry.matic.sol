@@ -51,7 +51,7 @@ contract P00lsCreatorRegistry_Polygon is P00lsRegistryBase, IP00lsCreatorRegistr
                 string memory xname,
                 string memory xsymbol
             ) = decodeMigrateData(data);
-            deployAndInitialize(rootToken, name, symbol, xname, xsymbol);
+            deployAndInitialize(owner(), rootToken, name, symbol, xname, xsymbol);
         }
         else if (op == BRIDGE_OP.DEPOSIT)
         {
@@ -78,6 +78,7 @@ contract P00lsCreatorRegistry_Polygon is P00lsRegistryBase, IP00lsCreatorRegistr
     }
 
     function deployAndInitialize(
+        address holder,
         address rootToken,
         string memory name,
         string memory symbol,
@@ -89,7 +90,7 @@ contract P00lsCreatorRegistry_Polygon is P00lsRegistryBase, IP00lsCreatorRegistr
         address creator  = address(new BeaconProxy{ salt: addressToSalt(rootToken) }(beaconCreator()));
         address xCreator = address(new BeaconProxy(beaconXCreator()));
 
-        _mint(owner(), addressToUint256(creator));
+        _mint(holder, addressToUint256(creator));
         childToRoot[creator] = rootToken;
         rootToChild[rootToken] = creator;
 

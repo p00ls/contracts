@@ -11,13 +11,13 @@ contract P00lsCreatorRegistry_V2 is P00lsCreatorRegistry {
         string calldata symbol,
         string calldata xname,
         string calldata xsymbol,
-        bytes32 root,
-        bytes32 salt
+        bytes32 root
     )
         external
         onlyRole(REGISTRY_MANAGER_ROLE)
         returns (address)
     {
+        bytes32 salt     = keccak256(abi.encodePacked(name, symbol, xname, xsymbol, root));
         address creator  = _createProxy(beaconCreator(), salt);
         address xCreator = _createProxy(beaconXCreator(), salt);
 
@@ -38,7 +38,16 @@ contract P00lsCreatorRegistry_V2 is P00lsCreatorRegistry {
         return creator;
     }
 
-    function predictToken2(bytes32 salt) external view returns (address) {
-        return _predictProxy(beaconCreator(), salt);
+    function predictToken2(
+        string calldata name,
+        string calldata symbol,
+        string calldata xname,
+        string calldata xsymbol,
+        bytes32 root
+    ) external view returns (address) {
+        return _predictProxy(
+            beaconCreator(),
+            keccak256(abi.encodePacked(name, symbol, xname, xsymbol, root))
+        );
     }
 }

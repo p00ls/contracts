@@ -14,19 +14,16 @@ describe('Create token conterfactualy', function () {
   });
 
   it('predict & create', async function () {
-    const salt = ethers.utils.randomBytes(32);
+    const name    = 'Some Token';
+    const symbol  = 'ST';
+    const xname   = 'X Some Token';
+    const xsymbol = 'xST';
+    const root    = ethers.utils.randomBytes(32);
 
-    const predicted = await this.registry.predictToken2(salt);
 
-    expect(await this.registry.createToken2(
-      this.accounts.artist.address, // admin
-      'Some Token',                 // name
-      'ST',                         // symbol
-      'X Some Token',               // xname
-      'xST',                        // xsymbol
-      ethers.constants.HashZero,    // root
-      salt,
-    ))
+    const predicted = await this.registry.predictToken2(name, symbol, xname, xsymbol, root);
+
+    expect(await this.registry.createToken2(this.accounts.artist.address, name, symbol, xname, xsymbol, root))
     .to.emit(this.registry, 'Transfer').withArgs(ethers.constants.AddressZero, this.accounts.artist.address, predicted);
   });
 

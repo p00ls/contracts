@@ -12,6 +12,7 @@ contract P00lsCreatorRegistry_Polygon_V2 is P00lsCreatorRegistry_Polygon
     constructor(address _fxChild) P00lsCreatorRegistry_Polygon(_fxChild) {}
 
     function forceBridgeToken(
+        address holder,
         address rootToken,
         string calldata name,
         string calldata symbol,
@@ -24,7 +25,7 @@ contract P00lsCreatorRegistry_Polygon_V2 is P00lsCreatorRegistry_Polygon
         onlyRole(UPGRADER_ROLE)
     {
         // deploy and initialize bridged tokens
-        address creator = deployAndInitialize(rootToken, name, symbol, xname, xsymbol);
+        address creator = deployAndInitialize(holder, rootToken, name, symbol, xname, xsymbol);
 
         // Mint liquidity. An equivalent amount should be deposited on the bridge
         P00lsTokenCreator_Polygon(creator).mint(recipient, liquidity);
