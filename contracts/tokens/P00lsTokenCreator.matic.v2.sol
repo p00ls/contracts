@@ -10,6 +10,17 @@ contract P00lsTokenCreator_Polygon_V2 is P00lsTokenCreator_Polygon
     constructor(address registry) P00lsTokenCreator_Polygon(registry) {}
 
     // Change the access management from onlyOwner to onlyAdmin
+    function hasRole(bytes32 role, address account)
+        public
+        view
+        virtual
+        override
+        returns (bool)
+    {
+        return role == DEFAULT_ADMIN_ROLE ? account == admin() : super.hasRole(role, account);
+    }
+
+    // Change the access management from onlyOwner to onlyAdmin
     function open() public virtual override onlyAdmin() {
         isOpen = true;
         emit Opened();

@@ -47,6 +47,7 @@ contract P00lsTokenCreator_Polygon is
     function hasRole(bytes32 role, address account)
         public
         view
+        virtual
         override
         returns (bool)
     {
