@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "./P00lsRegistryBase.v2.sol";
 import "./P00lsCreatorRegistry.sol";
 
 /// @custom:security-contact security@p00ls.com
-contract P00lsCreatorRegistry_V2 is P00lsCreatorRegistry {
+contract P00lsCreatorRegistry_V2 is P00lsRegistryBaseV2, P00lsCreatorRegistry {
     function createToken2(
         address owner,
         string calldata name,
@@ -49,5 +50,16 @@ contract P00lsCreatorRegistry_V2 is P00lsCreatorRegistry {
             beaconCreator(),
             keccak256(abi.encodePacked(name, symbol, xname, xsymbol, root))
         );
+    }
+
+    // Resolve
+    function _isApprovedOrOwner(address spender, uint256 tokenId)
+        internal
+        view
+        virtual
+        override(P00lsRegistryBase, P00lsRegistryBaseV2)
+        returns (bool)
+    {
+        return super._isApprovedOrOwner(spender, tokenId);
     }
 }

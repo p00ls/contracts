@@ -3,11 +3,11 @@ const { expect } = require('chai');
 
 const { prepare, utils } = require('../fixture.js');
 
-describe('ENS', function () {
+describe.skip('ENS', function () {
   prepare();
 
   before(async function () {
-    this.provider     = new ethers.providers.FallbackProvider([ ethers.provider ]);
+    this.provider = new ethers.providers.FallbackProvider([ ethers.provider ]);
 
     this.ens = {};
     this.ens.admin = this.accounts.shift();

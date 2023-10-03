@@ -17,11 +17,12 @@ contract P00lsTokenCreator_Polygon_V2 is P00lsTokenCreator_Polygon
         override
         returns (bool)
     {
-        return role == DEFAULT_ADMIN_ROLE ? account == admin() : super.hasRole(role, account);
+        return role == DEFAULT_ADMIN_ROLE
+            ? account == admin() || account == owner()
+            : super.hasRole(role, account);
     }
 
-    // Change the access management from onlyOwner to onlyAdmin
-    function open() public virtual override onlyAdmin() {
+    function open() public virtual override onlyOwner() {
         isOpen = true;
         emit Opened();
     }

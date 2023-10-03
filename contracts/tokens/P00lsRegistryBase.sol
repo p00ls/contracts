@@ -71,6 +71,7 @@ contract P00lsRegistryBase is
     function _isApprovedOrOwner(address spender, uint256 tokenId)
         internal
         view
+        virtual
         override
         returns (bool)
     {
@@ -84,9 +85,11 @@ contract P00lsRegistryBase is
     function hasRole(bytes32 role, address account)
         public
         view
+        virtual
         override
         returns (bool)
     {
+        // here owner() == admin()
         return role == DEFAULT_ADMIN_ROLE ? account == owner() : super.hasRole(role, account);
     }
 

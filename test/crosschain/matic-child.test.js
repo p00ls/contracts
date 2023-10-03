@@ -258,7 +258,7 @@ describe('Polygon Bridging: Child → Root', function () {
 
     describe('closed', function () {
       it ('open is restricted', async function () {
-        await expect(this.matic.token.connect(this.accounts.other).open()).to.be.revertedWith('RegistryOwnable: caller is not the admin');
+        await expect(this.matic.token.connect(this.accounts.other).open()).to.be.revertedWith('RegistryOwnable: caller is not the owner');
       });
 
       it ('whitelisted → non whitelisted: ok', async function () {

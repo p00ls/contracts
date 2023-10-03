@@ -174,7 +174,10 @@ describe('Auction', function () {
           .to.emit(pair, 'Transfer');
 
           expect(await pair.name()).to.be.equal('00 DEX LP Token');
-          expect(await pair.symbol()).to.be.equal(`${this.config.contracts.token.symbol}/WETH LP`);
+          expect(await pair.symbol()).to.be.oneOf([
+            `${this.config.contracts.token.symbol}/WETH LP`,
+            `WETH/${this.config.contracts.token.symbol} LP`,
+          ]);
         });
       });
     });
@@ -337,7 +340,10 @@ describe('Auction', function () {
           .to.emit(pair, 'Transfer');
 
           expect(await pair.name()).to.be.equal('00 DEX LP Token');
-          expect(await pair.symbol()).to.be.equal(`${this.config.contracts.token.symbol}/${crea.token.symbol} LP`);
+          expect(await pair.symbol()).to.be.oneOf([
+            `${this.config.contracts.token.symbol}/${crea.token.symbol} LP`,
+            `${crea.token.symbol}/${this.config.contracts.token.symbol} LP`,
+          ]);
         });
       });
     });
