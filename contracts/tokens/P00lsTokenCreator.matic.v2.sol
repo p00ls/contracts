@@ -4,12 +4,13 @@ pragma solidity ^0.8.0;
 import "./P00lsTokenCreator.matic.sol";
 
 /// @custom:security-contact security@p00ls.com
+/// @custom:oz-upgrades-from P00lsTokenCreator_Polygon
 contract P00lsTokenCreator_Polygon_V2 is P00lsTokenCreator_Polygon
 {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address registry) P00lsTokenCreator_Polygon(registry) {}
 
-    // Change the access management from onlyOwner to onlyAdmin
+    // Admin gets the whitelister role
     function hasRole(bytes32 role, address account)
         public
         view
@@ -17,13 +18,7 @@ contract P00lsTokenCreator_Polygon_V2 is P00lsTokenCreator_Polygon
         override
         returns (bool)
     {
-        return role == DEFAULT_ADMIN_ROLE
-            ? account == admin() || account == owner()
-            : super.hasRole(role, account);
-    }
-
-    function open() public virtual override onlyOwner() {
-        isOpen = true;
-        emit Opened();
+        return super.hasRole(role, account)
+            || (role == WHITELISTER && account == admin());
     }
 }
