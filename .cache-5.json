@@ -28,7 +28,7 @@
 	"auction-pending": "0x1d3fc8742c5118d9c99711b54b1a6f4d36d4cb8b1e7333e9be98db7585638299",
 	"auction": "0xb4a8b5ea602FC21cfeF1017fe3357508C6931523",
 	"multicall-pending": "0x3e6f618280ace5c3efb5c2a57b6ffdc9f757cfcad9aa8f412139f394875e3931",
-	"multicall": "0x32F1a749c071c5F276FFe9ea753ca19bF1bDa244",
+	"multicall": "0xcA11bde05977b3631167028862bE2a173976CA11",
 	"feemanager-pending": "0xed78a41206bc0d142c2e2a19985fae26713309b4b98510aeb3cad9d463a90700",
 	"feemanager": "0x4790eB5D6B5Bd2ec86a7Ce7564C410e3a06e2B6f",
 	"matic-bridge-pending": "0x85ee9638c61baa4f381371c47cc3de6b7ce40440f6a604ed44ae7ccdb95c7c1c",
