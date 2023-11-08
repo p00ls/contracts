@@ -38,13 +38,13 @@ async function migrate(config = {}, env = {}) {
     assert.include([137, 80001], network.chainId, 'The migration script is for sidechain (matic & mumbai) only');
 
     const registry = await manager.cache.get('matic-registry');
-    const registryV2 = await upgrades.prepareUpgrade(
+    const registryV2Impl = await upgrades.prepareUpgrade(
         registry,
         await getFactory('P00lsCreatorRegistry_Polygon_V2', {signer}),
         { kind: 'uups', constructorArgs: [ matic.testnet.fxChild.address ] },
     );
 
-    DEBUG(`- P00lsCreatorRegistry_Polygon_V2 deployed ${registryV2}`);
+    DEBUG(`- P00lsCreatorRegistry_Polygon_V2 deployed ${registryV2Impl}`);
     const realRegistryV2 = await attach("P00lsCreatorRegistry_Polygon_V2", registry);
 
     await upgrades.forceImport(
