@@ -6,5 +6,6 @@
 	"matic-tokenCreator-pending": "0xd1ecc592616d88eba9faee3f284660a73162589c0b322d8517ffcf2c0ddd9e2f",
 	"matic-tokenCreator": "0x7335dB10622eeCdEFfAdAee7F2454e37aedf7002",
 	"matic-tokenXCreatorV2-pending": "0xb16fe365a6955a46b3379707afd35e8ed6654f136109f5368f2233ced12eab1c",
-	"matic-tokenXCreatorV2": "0x88C3E2AC77fCd790FfC2CBb0F10f20776851e2E2"
+	"matic-tokenXCreatorV2": "0x88C3E2AC77fCd790FfC2CBb0F10f20776851e2E2",
+	"matic-tokenCreatorV2": "0x1c36fcaa728F4cEec74F119E39c80eF4dF2b38d9"
 }
