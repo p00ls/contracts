@@ -41,7 +41,7 @@ async function migrate(config = {}, env = {}) {
     const registryV2Impl = await upgrades.prepareUpgrade(
         registry,
         await getFactory('P00lsCreatorRegistry_Polygon_V2', {signer}),
-        { kind: 'uups', constructorArgs: [ matic.testnet.fxChild.address ] },
+        { kind: 'uups', constructorArgs: [ network.chainId === 137 ? matic.mainnet.fxChild.address : matic.testnet.fxChild.address ] },
     );
 
     DEBUG(`- P00lsCreatorRegistry_Polygon_V2 deployed ${registryV2Impl}`);
