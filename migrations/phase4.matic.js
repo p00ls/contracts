@@ -2,6 +2,7 @@ const { upgrades                             } = require('hardhat');
 const { MigrationManager, getFactory, attach } = require('@amxx/hre/scripts');
 const { assert                               } = require('chai');
 const DEBUG  = require('debug')('p00ls');
+const matic  = require('@maticnetwork/fx-portal/config/config');
 
 const roles = {
     DEFAULT_ADMIN:    ethers.constants.HashZero,
@@ -36,24 +37,26 @@ async function migrate(config = {}, env = {}) {
      *******************************************************************************************************************/
     assert.include([137, 80001], network.chainId, 'The migration script is for sidechain (matic & mumbai) only');
 
-    const registryV2 = await upgrades.prepareUpgrade(
-        await manager.cache.get('matic-registry'),
-        await getFactory('P00lsCreatorRegistry_Polygon_V2', { signer }),
-        { kind: 'uups' },
+    const registry = await manager.cache.get('matic-registry');
+    const registryV2Impl = await upgrades.prepareUpgrade(
+        registry,
+        await getFactory('P00lsCreatorRegistry_Polygon_V2', {signer}),
+        { kind: 'uups', constructorArgs: [ network.chainId === 137 ? matic.mainnet.fxChild.address : matic.testnet.fxChild.address ] },
     );
 
-    DEBUG(`- P00lsCreatorRegistry_Polygon_V2 deployed ${registryV2}`);
+    DEBUG(`- P00lsCreatorRegistry_Polygon_V2 deployed ${registryV2Impl}`);
+    const realRegistryV2 = await attach("P00lsCreatorRegistry_Polygon_V2", registry);
 
     await upgrades.forceImport(
-        await registryV2.beaconCreator(),
+        await realRegistryV2.beaconCreator(),
         await getFactory('P00lsTokenCreator_Polygon'),
-        { constructorArgs: [ registryV2.address ] },
+        { constructorArgs: [ realRegistryV2.address ] },
     );
 
     const tokenCreatorV2 = await upgrades.prepareUpgrade(
-        await registryV2.beaconCreator(),
+        await realRegistryV2.beaconCreator(),
         await getFactory('P00lsTokenCreator_Polygon_V2'),
-        { constructorArgs: [ registryV2.address ] },
+        { constructorArgs: [ realRegistryV2.address ] },
     );
 
     DEBUG(`- P00lsTokenCreator_Polygon_V2 deployed ${tokenCreatorV2}`);
