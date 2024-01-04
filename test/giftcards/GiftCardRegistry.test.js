@@ -5,6 +5,7 @@ const { prepare, utils } = require('../fixture.js');
 
 const name = 'MockName';
 const symbol = 'MckSmbl';
+const uri = 'https://someapi.com/tokenId/';
 const fee = ethers.utils.parseEther('1.0');
 
 const FACTORY = { address: '0x4e59b44847b379578588920ca78fbf26c0b4956c', tx: '0xf8a58085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf31ba02222222222222222222222222222222222222222222222222222222222222222a02222222222222222222222222222222222222222222222222222222222222222' };
@@ -32,7 +33,7 @@ describe('$Crea Token', function () {
     this.mock = await utils.deploy('GiftCardRegistry', [name, symbol]);
     await this.mock.setBeneficiary(this.accounts.beneficiary.address);
     await this.mock.setMintFee(fee);
-
+    await this.mock.setBaseURI(uri);
 
     this.implementation = await this.mock.implementation();
     this.chainId = await ethers.provider.getNetwork().then(({ chainId }) => chainId);
@@ -57,6 +58,7 @@ describe('$Crea Token', function () {
     expect(await this.mock.owner()).to.equal(this.accounts.admin.address);
     expect(await this.mock.registry()).to.equal(REGISTRY.address);
     expect(await this.mock.beneficiary()).to.equal(this.accounts.beneficiary.address);
+    expect(await this.mock.mintFee()).to.equal(fee);
     expect(await this.mock.newTokenId()).to.equal(0n);
   });
 
@@ -86,6 +88,8 @@ describe('$Crea Token', function () {
             .withArgs(ethers.constants.AddressZero, this.accounts.user.address, tokenId)
             .to.emit(this.registry, 'ERC6551AccountCreated')
             .withArgs(tokenAccount.address, this.implementation, ethers.constants.HashZero, this.chainId, this.mock.address, tokenId);
+
+          expect(await this.mock.tokenURI(tokenId)).to.equal(uri + tokenId.toString());
 
           // check account creation
           expect(await ethers.provider.getCode(tokenAccount.address)).to.not.equal('0x');
@@ -122,17 +126,58 @@ describe('$Crea Token', function () {
   });
 
   describe('admin operation', function () {
-    describe('URI', function () {
-      it.skip('admin can update URI', async function () { });
-      it.skip('other cannot update URI', async function () { });
+    beforeEach(async function () {
+      await this.mock.mint(this.accounts.user.address, { value: fee });
     });
-    describe('beneficairy', function () {
-      it.skip('admin can update beneficairy', async function () { });
-      it.skip('other cannot update beneficairy', async function () { });
+
+    describe('URI', function () {
+      const newURI = 'https://someotherapi.com/';
+
+      it('admin can update URI', async function () {
+        expect(await this.mock.tokenURI(0)).to.equal(uri + '0');
+
+        await expect(this.mock.connect(this.accounts.admin).setBaseURI(newURI))
+          .to.emit(this.mock, 'BatchMetadataUpdate')
+          .withArgs(0, ethers.constants.MaxUint256);
+
+          expect(await this.mock.tokenURI(0)).to.equal(newURI + '0');
+        });
+
+      it('other cannot update URI', async function () {
+        await expect(this.mock.connect(this.accounts.other).setBaseURI(newURI))
+          .to.be.revertedWith('Ownable: caller is not the owner');
+      });
+
+    });
+    describe('beneficiary', function () {
+      it('admin can update beneficiary', async function () {
+        await expect(this.mock.connect(this.accounts.admin).setBeneficiary(this.accounts.other.address))
+          .to.emit(this.mock, 'BeneficiaryUpdate')
+          .withArgs(this.accounts.other.address);
+
+        expect(await this.mock.beneficiary()).to.equal(this.accounts.other.address);
+      });
+
+      it('other cannot update beneficiary', async function () {
+        await expect(this.mock.connect(this.accounts.other).setBeneficiary(this.accounts.other.address))
+          .to.be.revertedWith('Ownable: caller is not the owner');
+      });
     });
     describe('mint fee', function () {
-      it.skip('admin can update mint fee', async function () { });
-      it.skip('other cannot update mint fee', async function () { });
+      const newMintFee = 1337n;
+
+      it('admin can update mint fee', async function () {
+        await expect(this.mock.connect(this.accounts.admin).setMintFee(newMintFee))
+          .to.emit(this.mock, 'MintFeeUpdate')
+          .withArgs(newMintFee);
+
+        expect(await this.mock.mintFee()).to.equal(newMintFee);
+      });
+
+      it('other cannot update mint fee', async function () {
+        await expect(this.mock.connect(this.accounts.other).setMintFee(newMintFee))
+          .to.be.revertedWith('Ownable: caller is not the owner');
+      });
     });
   });
 });
