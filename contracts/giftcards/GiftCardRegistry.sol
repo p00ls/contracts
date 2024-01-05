@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC4906.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "./references/ERC6551Account.sol";
+import "./implementations/ERC6551Account.sol";
 import "./interfaces/IERC6551Registry.sol";
 
 contract GiftCardRegistry is
