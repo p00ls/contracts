@@ -28,7 +28,7 @@ module.exports = {
         symbol: 'test', // required
         owner: '0x7859821024E633C5dC8a4FcF86fC52e7720Ce525', // optional, default to signer
         beneficiary: '0x7859821024E633C5dC8a4FcF86fC52e7720Ce525', // optional, default to admin/signer,
-        uri: 'http://something.com/tokenId/',
+        uri: 'http://something.com/tokenId/', // optional, default is empty
         mintFee: ethers.utils.parseEther('1'), // optional, default to 0
       },
     },
