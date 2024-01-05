@@ -7,8 +7,9 @@ import "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import "@openzeppelin/contracts/interfaces/IERC5313.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/utils/Multicall.sol";
 
 import "../interfaces/IERC6551Account.sol";
 import "../interfaces/IERC6551Executable.sol";
@@ -20,7 +21,8 @@ contract ERC6551Account is
     IERC6551Account,
     IERC6551Executable,
     ERC721Holder,
-    ERC1155Holder
+    ERC1155Holder,
+    Multicall
 {
     // IERC165
     function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165, ERC1155Receiver) returns (bool) {
