@@ -2,15 +2,15 @@
   "manifestVersion": "3.2",
   "proxies": [
     {
-      "address": "0x7335dB10622eeCdEFfAdAee7F2454e37aedf7002",
+      "address": "0x72042f526d9c3894868d9f5248d435a87e9be0b4517f7dcfc90ae214f25d1be5",
       "txHash": "0x15d1e7112c5a184023b532c79c70747147ec5ed5d0f23039d3341be2e16551b6",
       "kind": "uups"
     }
   ],
   "impls": {
     "b3bb740154b22aa3a8db2d29316d6bb79afc806ef1db63f76a62c48e6ad0f2ca": {
-      "address": "0xa5DD6c67a479c87cf8274cDA565daFb285CeD406",
-      "txHash": "0x1dc690682d9dbff9b1a4f2beced615e521b48a7236e7514ff403b19b0de1f23d",
+      "address": "0xD18b0f2044043e0B6e046393c8C55f67B81E3802",
+      "txHash": "0x6c2e2f5d66d8f56fb0750ac0b9a8b238182156423cc4c2b4804999082702bbcf",
       "layout": {
         "storage": [
           {
@@ -249,7 +249,7 @@
       }
     },
     "d19fab15c88ec34f25616b340f27515128ef89dd03ad3bc2da8275b48e52c979": {
-      "address": "0x88C3E2AC77fCd790FfC2CBb0F10f20776851e2E2",
+      "address": "0xCbA57360a2bFDAa9dD498853e6e861e538C105ce",
       "layout": {
         "storage": [
           {
@@ -568,7 +568,7 @@
       }
     },
     "e8690d364fd870fdb3ab2a3876f309f3df6e87044533e79a4145b3ff1846bba4": {
-      "address": "0xB1C32d552aFf1498D2B5544cc2a5734A796ECe97",
+      "address": "0xd97958F7eEA995Ed11A8A5185544398929A82d72",
       "layout": {
         "storage": [
           {
@@ -897,8 +897,8 @@
       }
     },
     "fb71e7e5ec4ce7e7a9b966b26c192aedd9bb5640931c1081109c4ce9f453a8e3": {
-      "address": "0x1924ef9793D17F7073D2B452A41B49c579a82d5c",
-      "txHash": "0x77aa2cd5aedc54562ff66276215a433e2d20cb1a01c77e5257d4ff9cb39fc1b1",
+      "address": "0xdAdaa9dC162FA0E01E2438E152162D130a63569D",
+      "txHash": "0x15622a6001898fa78c4cbb944ce032d19df04e5de34e8cfdcc8a306c6e1748eb",
       "layout": {
         "storage": [
           {
@@ -1234,8 +1234,8 @@
       }
     },
     "ab11e99b4dfe1635933f8dcba2671771aeef183cc9e04ab137f45d6e5737b730": {
-      "address": "0xFB6048AfD42776f8c4033da9600c816182D898cF",
-      "txHash": "0x91c3db104accb079ea18bab47d00a7e78c4ea809c0f0d6587f9e59a48ea93dd8",
+      "address": "0x04C0605a6442f0cAB47A508e54355881dDA7460d",
+      "txHash": "0x07ff1d683b3fddcdde94b9116699ba2f1daefd9f2b049786519d1e4ec52eddbe",
       "layout": {
         "solcVersion": "0.8.17",
         "storage": [
@@ -1276,7 +1276,7 @@
             "label": "_roles",
             "offset": 0,
             "slot": "101",
-            "type": "t_mapping(t_bytes32,t_struct(RoleData)501_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)9170_storage)",
             "contract": "AccessControlUpgradeable",
             "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:62"
           },
@@ -1348,7 +1348,7 @@
             "label": "ownershipRegistry",
             "offset": 0,
             "slot": "201",
-            "type": "t_contract(IERC721)9940",
+            "type": "t_contract(IERC721)26842",
             "contract": "RegistryOwnableUpgradeable",
             "src": "contracts/utils/RegistryOwnable.sol:54"
           },
@@ -1372,7 +1372,7 @@
             "label": "__beaconCreator",
             "offset": 0,
             "slot": "302",
-            "type": "t_contract(Beacon)16162",
+            "type": "t_contract(Beacon)45479",
             "contract": "P00lsRegistryBase",
             "src": "contracts/tokens/P00lsRegistryBase.sol:27"
           },
@@ -1380,7 +1380,7 @@
             "label": "__beaconXCreator",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(Beacon)16162",
+            "type": "t_contract(Beacon)45479",
             "contract": "P00lsRegistryBase",
             "src": "contracts/tokens/P00lsRegistryBase.sol:28"
           },
@@ -1418,11 +1418,11 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(Beacon)16162": {
+          "t_contract(Beacon)45479": {
             "label": "contract Beacon",
             "numberOfBytes": "20"
           },
-          "t_contract(IERC721)9940": {
+          "t_contract(IERC721)26842": {
             "label": "contract IERC721",
             "numberOfBytes": "20"
           },
@@ -1438,7 +1438,7 @@
             "label": "mapping(address => uint256)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_bytes32,t_struct(RoleData)501_storage)": {
+          "t_mapping(t_bytes32,t_struct(RoleData)9170_storage)": {
             "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
             "numberOfBytes": "32"
           },
@@ -1450,7 +1450,7 @@
             "label": "string",
             "numberOfBytes": "32"
           },
-          "t_struct(RoleData)501_storage": {
+          "t_struct(RoleData)9170_storage": {
             "label": "struct AccessControlUpgradeable.RoleData",
             "members": [
               {

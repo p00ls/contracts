@@ -4,8 +4,8 @@ const DEBUG = require('debug')('p00ls');
 
 upgrades.silenceWarnings();
 
-async function migrate(config = {}, env = {}) {
-
+async function migrate(config = {}, env = {})
+{
     const provider = env.provider || ethers.provider;
     const signer   = env.signer   || await ethers.getSigner();
     const network  = await ethers.provider.getNetwork();
@@ -144,7 +144,7 @@ async function migrate(config = {}, env = {}) {
     // ------ Upgrade p00ls token ------------------------------------------------------------------------------------
     const tokenXCreatorV2 = isEnabled('registry') && registry && await manager.migrate(
         'tokenXCreatorV2',
-        getFactory('P00lsTokenXCreatorV2', { signer }),
+        getFactory('P00lsTokenXCreator_V2', { signer }),
         [
             escrow.address,
         ],
@@ -163,7 +163,7 @@ async function migrate(config = {}, env = {}) {
 
     // tokenXCreator && await Promise.all([
     //     registry.beaconXCreator(),
-    //     getFactory('P00lsTokenXCreatorV2', { signer }),
+    //     getFactory('P00lsTokenXCreator_V2', { signer }),
     // ]).then(([ beacon, factory ]) => upgrades.prepareUpgrade(beacon, factory, { constructorArgs: [ escrow.address ], unsafeAllow: 'delegatecall' }));
 
     isEnabled('registry') && await registry.beaconXCreator()
@@ -172,9 +172,12 @@ async function migrate(config = {}, env = {}) {
         .then(implementation => implementation == tokenXCreatorV2.address || registry.upgradeXCreatorToken(tokenXCreatorV2.address).then(tx => tx.wait()));
 
     const getXCreatorTokenV2 = (creatorToken) => creatorToken.xCreatorToken()
-        .then(address => attach('P00lsTokenXCreatorV2', address));
+        .then(address => attach('P00lsTokenXCreator_V2', address));
 
     const xTokenV2 = isEnabled('token') && await getXCreatorTokenV2(token);
+
+    // ------ Upgrade p00ls registry ---------------------------------------------------------------------------------
+    const registryV2 = await getFactory('P00lsCreatorRegistry_V2', { signer }).then(factory => upgrades.upgradeProxy(registry, factory));
 
     /*******************************************************************************************************************
      *                                                       DAO                                                       *
@@ -273,6 +276,9 @@ async function migrate(config = {}, env = {}) {
         LOCKING_MANAGER:  ethers.utils.id('LOCKING_MANAGER_ROLE'),
         REGISTRY_MANAGER: ethers.utils.id('REGISTRY_MANAGER_ROLE'),
         UPGRADER:         ethers.utils.id('UPGRADER_ROLE'),
+        WHITELISTER:      ethers.utils.id('WHITELISTER'),
+        WHITELISTED:      ethers.utils.id('WHITELISTED'),
+        BRIDGER:          ethers.utils.id('BRIDGER_ROLE'),
     }).map(entry => Promise.all(entry))).then(Object.fromEntries);
 
     // Transfer ownership of the registry
@@ -324,7 +330,7 @@ async function migrate(config = {}, env = {}) {
             vestedAirdrop,
             vestingFactory,
             escrow,
-            registry,
+            registry: registryV2,
             token,
             xToken: xTokenV2,
             factory,

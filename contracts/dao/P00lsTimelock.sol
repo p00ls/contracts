@@ -13,6 +13,6 @@ contract P00lsTimelock is TimelockController
         address[] memory proposers,
         address[] memory executors
     )
-        TimelockController(minDelay, proposers, executors)
+        TimelockController(minDelay, proposers, executors, msg.sender)
     {}
 }

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/interfaces/IERC20.sol";
+import "@openzeppelin/contracts/interfaces/IERC721.sol";
 import "@openzeppelin/contracts/interfaces/draft-IERC2612.sol";
 import "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import "@openzeppelin/contracts/governance/utils/IVotes.sol";
@@ -9,7 +10,7 @@ import "./extensions/IERC1046.sol";
 import "./extensions/IERC1363.sol";
 
 /// @custom:security-contact security@p00ls.com
-interface IP00lsTokenBase is IERC20, IERC1046, IERC1363, IERC2612, IVotes
+interface IP00lsTokenBase is IERC20, IERC20Metadata, IERC1046, IERC1363, IERC2612, IVotes
 {
     function owner() external view returns (address);
     function setTokenURI(string calldata) external;
@@ -30,4 +31,12 @@ interface IP00lsTokenXCreator is IP00lsTokenBase, IERC4626 {
     function escrow() external view returns (address);
     function convertToAssetsAtBlock(uint256 shares, uint256 blockNumber) external view returns (uint256);
     function __delegate(address, address) external;
+}
+
+interface IFxMessageProcessor {
+    function processMessageFromRoot(uint256 stateId, address rootMessageSender, bytes calldata data) external;
+}
+
+interface IP00lsCreatorRegistry_Polygon is IFxMessageProcessor {
+    function __withdraw(address to, uint256 amount) external;
 }

@@ -1,0 +1,24 @@
+{
+  "output": "./generated/p00ls-staging-mumbai.",
+  "chain": "mumbai",
+  "datasources": [{
+    "name": "P00lsCreatorRegistry",
+    "address": "0xe83d080F6a83b4d1b38F4266545412FeC7709e00",
+    "startBlock": 37768143,
+    "module": [
+      "accesscontrol",
+      "erc721",
+      "erc1967upgrade",
+      "voting",
+      "p00lscreatorregistry"
+    ]
+  },{
+    "name": "P00lsCreatorToken",
+    "templates": [
+      "erc20",
+      "erc1967upgrade",
+      "ownable",
+      "voting"
+    ]
+  }]
+}

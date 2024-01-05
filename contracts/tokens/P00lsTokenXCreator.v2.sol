@@ -9,7 +9,8 @@ import "./P00lsTokenBase.sol";
 import "./interfaces.sol";
 
 /// @custom:security-contact security@p00ls.com
-contract P00lsTokenXCreatorV2 is IEscrowReceiver, P00lsTokenBase, ERC4626Upgradeable
+/// @custom:oz-upgrades-from P00lsTokenXCreator
+contract P00lsTokenXCreator_V2 is IEscrowReceiver, P00lsTokenBase, ERC4626Upgradeable
 {
     using Checkpoints for Checkpoints.History;
 

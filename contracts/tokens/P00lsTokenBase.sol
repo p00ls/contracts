@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "@amxx/hre/contracts/ENSReverseRegistration.sol";
+import "@openzeppelin/contracts/utils/Multicall.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import "./extensions/ERC1046Upgradeable.sol";
 import "./extensions/ERC1363Upgradeable.sol";
 
@@ -12,7 +12,7 @@ abstract contract P00lsTokenBase is
     ERC20VotesUpgradeable,
     ERC1046Upgradeable,
     ERC1363Upgradeable,
-    MulticallUpgradeable
+    Multicall
 {
     function owner()
         public

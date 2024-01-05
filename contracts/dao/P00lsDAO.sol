@@ -38,6 +38,15 @@ contract P00lsDAO is
         _quorum = 1;
     }
 
+    function clock() public view override returns (uint48) {
+        return SafeCast.toUint48(block.number);
+    }
+
+    function CLOCK_MODE() public view override returns (string memory) {
+        require(clock() == block.number, "Votes: broken clock mode");
+        return "mode=blocknumber&from=default";
+    }
+
     function _getVotes(address account, uint256 blockNumber, bytes memory /* params */)
         internal
         view

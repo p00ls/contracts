@@ -1,0 +1,24 @@
+{
+  "output": "./generated/p00ls-production-polygon.",
+  "chain": "polygon",
+  "datasources": [{
+    "name": "P00lsCreatorRegistry",
+    "address": "0xa5DD6c67a479c87cf8274cDA565daFb285CeD406",
+    "startBlock": 44953524,
+    "module": [
+      "accesscontrol",
+      "erc721",
+      "erc1967upgrade",
+      "voting",
+      "p00lscreatorregistry"
+    ]
+  },{
+    "name": "P00lsCreatorToken",
+    "templates": [
+      "erc20",
+      "erc1967upgrade",
+      "ownable",
+      "voting"
+    ]
+  }]
+}

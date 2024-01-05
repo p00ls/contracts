@@ -3,10 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
-function addressToUint256(address a) pure returns (uint256) {
-    return uint256(uint160(a));
-}
+import "./convert.sol";
 
 /// @custom:security-contact security@p00ls.com
 abstract contract RegistryOwnable {
@@ -67,7 +64,7 @@ abstract contract RegistryOwnableUpgradeable is Initializable {
     }
 
     function __RegistryOwnable_init(address ownershipRegistry_)
-        public
+        internal
         initializer
     {
         ownershipRegistry = IERC721(ownershipRegistry_);
