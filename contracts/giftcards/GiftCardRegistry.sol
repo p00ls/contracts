@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@amxx/hre/contracts/ENSReverseRegistration.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC4906.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -54,18 +55,22 @@ contract GiftCardRegistry is
         return _uriPrefix;
     }
 
-    function setBaseURI(string calldata newBaseURI) public onlyOwner() {
+    function setBaseURI(string calldata newBaseURI) external onlyOwner() {
         emit BatchMetadataUpdate(0, type(uint256).max);
         _uriPrefix = newBaseURI;
     }
 
-    function setBeneficiary(address newBeneficiary) public onlyOwner() {
+    function setBeneficiary(address newBeneficiary) external onlyOwner() {
         emit BeneficiaryUpdate(newBeneficiary);
         beneficiary = newBeneficiary;
     }
 
-    function setMintFee(uint256 newFee) public onlyOwner() {
+    function setMintFee(uint256 newFee) external onlyOwner() {
         emit MintFeeUpdate(newFee);
         mintFee = newFee;
+    }
+
+    function setName(address ensregistry, string calldata ensname) external onlyOwner() {
+        ENSReverseRegistration.setName(ensregistry, ensname);
     }
 }
