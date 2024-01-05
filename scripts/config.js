@@ -22,6 +22,16 @@ module.exports = {
     amm: {},
     auction: {},
     locking: {},
+    giftcards: {
+      Test: {
+        name: 'Test', // optional, default to the entry name
+        symbol: 'test', // required
+        owner: '0x7859821024E633C5dC8a4FcF86fC52e7720Ce525', // optional, default to signer
+        beneficiary: '0x7859821024E633C5dC8a4FcF86fC52e7720Ce525', // optional, default to admin/signer,
+        uri: 'http://something.com/tokenId/',
+        mintFee: ethers.utils.parseEther('1'), // optional, default to 0
+      },
+    },
   },
   extra: {
     DEFAULT_TOKEN_AMOUNT_ALLOCATED_TO_DEPLOYER:        ethers.utils.parseEther('500000'),

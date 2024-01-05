@@ -6,12 +6,14 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC4906.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/utils/Multicall.sol";
 import "./implementations/ERC6551Account.sol";
 import "./interfaces/IERC6551Registry.sol";
 
 contract GiftCardRegistry is
     Ownable,
     ERC721,
+    Multicall,
     IERC4906
 {
     event MintFeeUpdate(uint256 newFee);
@@ -25,7 +27,11 @@ contract GiftCardRegistry is
     uint256 public  newTokenId;
     string  private _uriPrefix;
 
-    constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) {}
+    constructor(string memory name_, string memory symbol_)
+        ERC721(name_, symbol_)
+    {
+        beneficiary = msg.sender;
+    }
 
     function mint(address to) public payable returns (address) {
         uint256 fee = mintFee; // cache value
