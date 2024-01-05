@@ -38,13 +38,7 @@ describe('$Crea Token', function () {
     this.implementation = await this.mock.implementation();
     this.chainId = await ethers.provider.getNetwork().then(({ chainId }) => chainId);
 
-    this.getAccount = (tokenId) => this.registry.account(
-      this.implementation,
-      ethers.constants.HashZero,
-      this.chainId,
-      this.mock.address,
-      tokenId,
-    ).then(address => utils.attach('ERC6551Account', address));
+    this.getAccount = (tokenId) => this.mock.getAccountForToken(tokenId).then(address => utils.attach('ERC6551Account', address));
   });
 
   it('sanity: registry exists', async function () {
@@ -93,6 +87,26 @@ describe('$Crea Token', function () {
 
           // check account creation
           expect(await ethers.provider.getCode(tokenAccount.address)).to.not.equal('0x');
+
+          // check account prediction match
+          expect(
+            await this.registry.account(
+              this.implementation,
+              ethers.constants.HashZero,
+              this.chainId,
+              this.mock.address,
+              tokenId,
+            )
+          ).to.equal(
+            await this.mock.getAccountForToken(tokenId)
+          );
+
+          // check getters
+          const result = await tokenAccount.token();
+          expect(result[0]).to.equal(this.chainId);
+          expect(result[1]).to.equal(this.mock.address);
+          expect(result[2]).to.equal(tokenId);
+          expect(await tokenAccount.owner()).to.equal(this.accounts.user.address);
         }
       });
 
@@ -164,7 +178,7 @@ describe('$Crea Token', function () {
       });
     });
     describe('mint fee', function () {
-      const newMintFee = 1337n;
+      const newMintFee = 420n;
 
       it('admin can update mint fee', async function () {
         await expect(this.mock.connect(this.accounts.admin).setMintFee(newMintFee))
@@ -178,6 +192,90 @@ describe('$Crea Token', function () {
         await expect(this.mock.connect(this.accounts.other).setMintFee(newMintFee))
           .to.be.revertedWith('Ownable: caller is not the owner');
       });
+    });
+  });
+
+  describe('account operations', function () {
+    beforeEach(async function () {
+      this.tokenId = await this.mock.newTokenId();
+      this.tokenAccount = await this.getAccount(this.tokenId);
+
+      await this.mock.mint(this.accounts.user.address, { value: fee });
+    });
+
+    it('check signer validity', async function () {
+      expect(await this.tokenAccount.isValidSigner(this.accounts.user.address, "0x12345678"))
+        .to.equal(this.tokenAccount.interface.getSighash('isValidSigner'));
+
+      expect(await this.tokenAccount.isValidSigner(this.accounts.other.address, "0x12345678"))
+        .to.equal('0x00000000');
+    });
+
+    it('check signature validity', async function () {
+      const message = "hello world!";
+      const hash = ethers.utils.hashMessage(message);
+      const userSign = await this.accounts.user.signMessage(message);
+      const otherSign = await this.accounts.other.signMessage(message);
+
+      expect(await this.tokenAccount.isValidSignature(hash, userSign))
+        .to.equal(this.tokenAccount.interface.getSighash('isValidSignature'));
+
+        expect(await this.tokenAccount.isValidSignature(hash, otherSign))
+        .to.equal('0x00000000');
+    });
+
+    it('signature verification support chainning', async function () {
+      const message = "hello world!";
+      const hash = ethers.utils.hashMessage(message);
+      const sign = await this.accounts.user.signMessage(message);
+
+      let account = this.accounts.user;
+      for (const _ of Array(10).fill()) {
+        account = await this.mock.mint(account.address, { value: fee })
+          .then(tx => tx.wait())
+          .then(receipt => receipt.events.find(ev => ev.event == 'Transfer').args.tokenId)
+          .then(tokenId => this.getAccount(tokenId));
+
+        expect(await account.isValidSignature(hash, sign))
+          .to.equal(this.tokenAccount.interface.getSighash('isValidSignature'));
+      }
+    });
+
+    it('execute is protected', async function () {
+      await expect(this.tokenAccount.connect(this.accounts.other).execute(ethers.constants.AddressZero, 0, '0x', 0))
+        .to.be.revertedWith('Invalid signer');
+    });
+
+    it('execute bubbles reverts', async function () {
+      // Not enough tokens for operation
+      const data = this.token.interface.encodeFunctionData('transfer', [ this.accounts.other.address, ethers.constants.MaxUint256 ]);
+      await expect(this.tokenAccount.connect(this.accounts.user).execute(this.token.address, 0, data, 0))
+        .to.be.revertedWith('ERC20: transfer amount exceeds balance');
+    });
+
+    it('account receive and spend ether', async function () {
+      const value = 23_000n;
+
+      // receive
+      await expect(() => this.accounts.admin.sendTransaction({ to: this.tokenAccount.address, value }))
+        .to.changeEtherBalances([ this.accounts.admin, this.tokenAccount ], [ -value, value ]);
+
+      // spend
+      await expect(() => this.tokenAccount.connect(this.accounts.user).execute(this.accounts.other.address, value, '0x', 0))
+        .to.changeEtherBalances([ this.tokenAccount, this.accounts.other ], [ -value, value ]);
+    });
+
+    it('account receive and spend erc20', async function () {
+      const value = 23_000n;
+
+      // receive
+      await expect(() => this.token.transfer(this.tokenAccount.address, value))
+        .to.changeTokenBalances(this.token, [ this.accounts.admin, this.tokenAccount ], [ -value, value ]);
+
+      // spend
+      const data = this.token.interface.encodeFunctionData('transfer', [ this.accounts.other.address, value ]);
+      await expect(() => this.tokenAccount.connect(this.accounts.user).execute(this.token.address, 0, data, 0))
+        .to.changeTokenBalances(this.token, [ this.tokenAccount, this.accounts.other ], [ -value, value ]);
     });
   });
 });

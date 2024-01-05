@@ -82,6 +82,7 @@ contract ERC6551Account is
 
         ++state;
 
-        return Address.functionCallWithValue(to, data, value);
+        (bool success, bytes memory returndata) = to.call{value: value}(data);
+        return Address.verifyCallResult(success, returndata, 'ERC6551Account execution failed');
     }
 }
