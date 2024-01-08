@@ -10,7 +10,7 @@ const argv = require('yargs/yargs')(process.argv.slice(2))
     evmVersion:    { type: 'string',                                           default: 'paris'     },
     mode:          { type: 'string', choices: [ 'production', 'development' ], default: 'production'   },
     runs:          { type: 'number',                                           default: 200            },
-    enableIr:      { type: 'boolean',                                          default: false          },
+    viaIr:         { type: 'boolean',                                          default: false          },
     revertStrings: { type: 'string', choices: [ 'default', 'strip'          ], default: 'default'      },
     // chain
     fork:          { type: 'string',                                                                   },
@@ -32,7 +32,7 @@ require('solidity-coverage');
 
 argv.etherscan && require('@nomiclabs/hardhat-etherscan');
 argv.report    && require('hardhat-gas-reporter');
-argv.verbose   && console.table([ 'coverage', 'report', 'compiler', 'evmVersion', 'mode', 'runs', 'enableIr', 'revertStrings', 'fork', 'chainId', 'hardfork', 'slow', 'coinmarketcap', 'etherscan' ].map(key => ({ key, value: argv[key] })));
+argv.verbose   && console.table([ 'coverage', 'report', 'compiler', 'evmVersion', 'mode', 'runs', 'viaIr', 'revertStrings', 'fork', 'chainId', 'hardfork', 'slow', 'coinmarketcap', 'etherscan' ].map(key => ({ key, value: argv[key] })));
 
 const accounts = [
   argv.mnemonic   && { mnemonic: argv.mnemonic },
@@ -100,4 +100,3 @@ module.exports = {
 };
 
 require('debug')('compilation')(JSON.stringify(module.exports.solidity.compilers, null, 2))
-require('debug')('compilation')(JSON.stringify(module.exports, null, 2))
