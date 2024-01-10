@@ -19,17 +19,18 @@ contract GiftCardRegistry is
     event MintFeeUpdate(uint256 newFee);
     event BeneficiaryUpdate(address newBeneficiary);
 
-    IERC6551Registry public constant registry = IERC6551Registry(0x000000006551c19487814612e58FE06813775758);
-    ERC6551Account   public immutable implementation = new ERC6551Account();
+    IERC6551Registry public constant  registry = IERC6551Registry(0x000000006551c19487814612e58FE06813775758);
+    address          public immutable implementation;
 
     uint256 public  mintFee;
     address public  beneficiary;
     uint256 public  newTokenId;
     string  private _uriPrefix;
 
-    constructor(string memory name_, string memory symbol_)
+    constructor(string memory name_, string memory symbol_, address implementation_)
         ERC721(name_, symbol_)
     {
+        implementation = implementation_;
         beneficiary = msg.sender;
     }
 
@@ -42,7 +43,7 @@ contract GiftCardRegistry is
         _safeMint(to, tokenId);
 
         // Create the account. This does not revert if the account already exists.
-        address account = registry.createAccount(address(implementation), bytes32(0), block.chainid, address(this), tokenId);
+        address account = registry.createAccount(implementation, bytes32(0), block.chainid, address(this), tokenId);
 
         // Move funds: fee to the beneficiary, extra to the account
         Address.sendValue(payable(beneficiary), fee);
@@ -54,7 +55,7 @@ contract GiftCardRegistry is
     }
 
     function getAccountForToken(uint256 tokenId) public view returns (address) {
-        return registry.account(address(implementation), bytes32(0), block.chainid, address(this), tokenId);
+        return registry.account(implementation, bytes32(0), block.chainid, address(this), tokenId);
     }
 
     function _baseURI() internal view override returns (string memory) {

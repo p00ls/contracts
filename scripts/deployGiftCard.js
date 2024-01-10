@@ -29,11 +29,21 @@ async function migrate(config = {}, env = {})
         const uri         = details.uri;
         const mintFee     = details.mintFee;
 
+        if (
+            await provider.getCode(details.account ?? ethers.constants.AddressZero) == '0x'
+        ) {
+            details.account = await manager.migrate(
+                'erc6551account',
+                getFactory('ERC6551Account', { signer }),
+                opts,
+            ).then(({ address }) => address);
+        }
+
         const instance = await manager.migrate(
             `giftcard-${symbol}`,
             getFactory('GiftCardRegistry', { signer }),
-            [ name, symbol ],
-            { ...opts },
+            [ name, symbol, details.account ],
+            opts,
         );
 
         if (signer.address == await instance.owner()) {

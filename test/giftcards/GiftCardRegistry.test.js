@@ -30,7 +30,8 @@ describe('$Crea Token', function () {
     this.registry = await utils.attach('ERC6551Registry', REGISTRY.address);
 
     // Mock
-    this.mock = await utils.deploy('GiftCardRegistry', [name, symbol]);
+    this.impl = await utils.deploy('ERC6551Account');
+    this.mock = await utils.deploy('GiftCardRegistry', [name, symbol, this.impl.address]);
     await this.mock.setBeneficiary(this.accounts.beneficiary.address);
     await this.mock.setMintFee(fee);
     await this.mock.setBaseURI(uri);
