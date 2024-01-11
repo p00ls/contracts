@@ -30,7 +30,6 @@ module.exports = {
         beneficiary: '0x7859821024E633C5dC8a4FcF86fC52e7720Ce525', // optional, default to admin/signer,
         uri: 'http://something.com/tokenId/', // optional, default is empty
         mintFee: ethers.utils.parseEther('1'), // optional, default to 0
-        account: '0x41C8f39463A868d3A88af00cd0fe7102F30E44eC'
       },
     },
   },
