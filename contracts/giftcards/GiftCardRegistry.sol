@@ -20,9 +20,9 @@ contract GiftCardRegistry is
     event MintFeeUpdate(uint256 newFee);
     event BeneficiaryUpdate(address newBeneficiary);
 
-    IERC6551Registry public constant  registry = IERC6551Registry(0x000000006551c19487814612e58FE06813775758);
-    address          public immutable proxy    = 0x55266d75D1a14E4572138116aF39863Ed6596E7F;
-    address          public immutable account  = 0x41C8f39463A868d3A88af00cd0fe7102F30E44eC;
+    IERC6551Registry public constant registry = IERC6551Registry(0x000000006551c19487814612e58FE06813775758);
+    address          public constant proxy    = 0x55266d75D1a14E4572138116aF39863Ed6596E7F;
+    address          public constant account  = 0x41C8f39463A868d3A88af00cd0fe7102F30E44eC;
 
     uint256 public  mintFee;
     address public  beneficiary;
