@@ -91,7 +91,7 @@ module.exports = {
     ...Object.fromEntries(networkNames.map(name => [name, { url: argv[`${name}Node`], accounts }]).filter(([, { url }]) => url)),
   },
   etherscan: {
-    apiKey: Object.fromEntries(networkNames.map(name => [name, argv.etherscan])),
+    apiKey: argv.etherscan,
   },
   gasReporter: {
     currency: 'USD',
