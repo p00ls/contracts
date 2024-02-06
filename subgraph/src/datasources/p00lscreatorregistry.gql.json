@@ -1,15 +1,16 @@
 [{
     "name": "ERC20Contract",
     "fields": [
-        { "name": "id",                   "type": "Bytes!"                                  },
+        { "name": "id",             "type": "Bytes!"        },
         { "name": "ownershipToken", "type": "ERC721Token"   },
         { "name": "creatorToken",   "type": "ERC20Contract" },
-        { "name": "xCreatorToken",  "type": "ERC20Contract" }
+        { "name": "xCreatorToken",  "type": "ERC20Contract" },
+        { "name": "isOpened",       "type": "Boolean"       }
     ]
 },{
     "name": "ERC721Contract",
     "fields": [
-        { "name": "id",                   "type": "Bytes!"                                  },
+        { "name": "id",              "type": "Bytes!"       },
         { "name": "ownershipToken",  "type": "ERC721Token"  },
         { "name": "creatorBeacon",   "type": "Account"      },
         { "name": "creatorXBeacon",  "type": "Account"      }

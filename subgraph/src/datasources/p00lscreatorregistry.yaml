@@ -22,6 +22,8 @@
           file: {root}/../artifacts/contracts/tokens/P00lsTokenCreator.sol/P00lsTokenCreator.json
         - name: P00lsTokenXCreator
           file: {root}/../artifacts/contracts/tokens/P00lsTokenXCreator.sol/P00lsTokenXCreator.json
+        - name: P00lsTokenCreator_Polygon_V2
+          file: {root}/../artifacts/contracts/tokens/P00lsTokenCreator.matic.v2.sol/P00lsTokenCreator_Polygon_V2.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer

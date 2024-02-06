@@ -1,0 +1,19 @@
+  - kind: ethereum/contract
+    name: {id}
+    network: {chain}
+    source:
+      address: "{address}"
+      abi: P00lsTokenCreator_Polygon_V2
+      startBlock: {startBlock}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - ERC20Contract
+      abis:
+        - name: P00lsTokenCreator_Polygon_V2
+          file: {root}/../artifacts/contracts/tokens/P00lsTokenCreator.matic.v2.sol/P00lsTokenCreator_Polygon_V2.json
+      eventHandlers:
+        - event: Opened()
+          handler: handleOpened
