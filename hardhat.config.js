@@ -6,15 +6,16 @@ const argv = require('yargs/yargs')(process.argv.slice(2))
     coverage:      { type: 'boolean',                                          default: false          },
     report:        { type: 'boolean',                                          default: false          },
     // compilations
-    compiler:      { type: 'string',                                           default: '0.8.16'       },
-    hardfork:      { type: 'string',                                           default: 'arrowGlacier' },
+    compiler:      { type: 'string',                                           default: '0.8.23'       },
+    evmVersion:    { type: 'string',                                           default: 'paris'     },
     mode:          { type: 'string', choices: [ 'production', 'development' ], default: 'production'   },
     runs:          { type: 'number',                                           default: 200            },
-    enableIr:      { type: 'boolean',                                          default: false          },
+    viaIr:         { type: 'boolean',                                          default: false          },
     revertStrings: { type: 'string', choices: [ 'default', 'strip'          ], default: 'default'      },
     // chain
     fork:          { type: 'string',                                                                   },
     chainId:       { type: 'number',                                           default: 1337           },
+    hardfork:      { type: 'string',                                           default: 'merge'     },
     slow:          { type: 'boolean',                                          default: false          },
     // APIs
     coinmarketcap: { type: 'string'                                                                    },
@@ -31,34 +32,63 @@ require('solidity-coverage');
 
 argv.etherscan && require('@nomiclabs/hardhat-etherscan');
 argv.report    && require('hardhat-gas-reporter');
-argv.verbose   && console.table([ 'coverage', 'report', 'compiler', 'hardfork', 'mode', 'runs', 'enableIr', 'revertStrings', 'fork', 'chainId', 'slow', 'coinmarketcap', 'etherscan' ].map(key => ({ key, value: argv[key] })));
+argv.verbose   && console.table([ 'coverage', 'report', 'compiler', 'evmVersion', 'mode', 'runs', 'viaIr', 'revertStrings', 'fork', 'chainId', 'hardfork', 'slow', 'coinmarketcap', 'etherscan' ].map(key => ({ key, value: argv[key] })));
 
-const settings = {
-  optimizer: {
-    enabled: argv.mode === 'production' || argv.report,
-    runs: argv.runs,
-  },
-	viaIR: argv.enableIr,
-  debug: {
-    revertStrings: argv.revertStrings,
-  },
-};
+const accounts = [
+  argv.mnemonic   && { mnemonic: argv.mnemonic },
+  argv.privateKey && [argv.privateKey],
+].find(Boolean);
+
+const networkNames = [
+  // main
+  'mainnet', 'ropsten', 'rinkeby', 'goerli', 'kovan', 'sepolia',
+  // binance smart chain
+  'bsc', 'bscTestnet',
+  // huobi eco chain
+  'heco', 'hecoTestnet',
+  // fantom mainnet
+  'opera', 'ftmTestnet',
+  // optimism
+  'optimisticEthereum', 'optimisticKovan',
+  // polygon
+  'polygon', 'polygonMumbai',
+  // arbitrum
+  'arbitrumOne', 'arbitrumTestnet',
+  // avalanche
+  'avalanche', 'avalancheFujiTestnet',
+  // moonbeam
+  'moonbeam', 'moonriver', 'moonbaseAlpha',
+  // xdai
+  'xdai', 'sokol',
+];
 
 module.exports = {
   solidity: {
     compilers: [
-      { version: argv.compiler, settings },
-      { version: '0.8.16',      settings },
-      { version: '0.7.6',       settings },
-      { version: '0.6.12',      settings },
-      { version: '0.5.16',      settings },
+      {
+        version: argv.compiler,
+        settings: {
+          evmVersion: argv.evmVersion,
+          optimizer: {
+            enabled: argv.mode === 'production' || argv.report,
+            runs: argv.runs,
+          },
+          viaIR: argv.viaIr,
+          debug: {
+            revertStrings: argv.revertStrings,
+          },
+        },
+      },
     ],
   },
   networks: {
     hardhat: {
       chainId: argv.chainId,
-      hardfork: argv.hardfork,
+      // hardfork: argv.hardfork,
+      mining: argv.slow ? { auto: false, interval: [3000, 6000] } : undefined,
+      forking: argv.fork ? { url: argv.fork } : undefined,
     },
+    ...Object.fromEntries(networkNames.map(name => [name, { url: argv[`${name}Node`], accounts }]).filter(([, { url }]) => url)),
   },
   etherscan: {
     apiKey: argv.etherscan,
@@ -69,22 +99,4 @@ module.exports = {
   },
 };
 
-const accounts = [
-  argv.mnemonic   && { mnemonic: argv.mnemonic },
-  argv.privateKey && [ argv.privateKey ],
-].find(Boolean);
-
-Object.assign(
-  module.exports.networks,
-  accounts && Object.fromEntries([
-    'mainnet',
-    'ropsten',
-    'rinkeby',
-    'goerli',
-    'kovan',
-    'matic',
-    'mumbai',
-  ].map(name => [ name, { url: argv[`${name}Node`], accounts } ]).filter(([, { url} ]) => url)),
-  argv.slow && { hardhat: { mining: { auto: false, interval: [3000, 6000] }}}, // Simulate a slow chain locally
-  argv.fork && { hardhat: { forking: { url: argv.fork }}}, // Simulate a mainnet fork
-);
+require('debug')('compilation')(JSON.stringify(module.exports.solidity.compilers, null, 2))

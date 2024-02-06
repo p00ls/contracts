@@ -6,9 +6,10 @@ import "@openzeppelin/contracts/governance/utils/IVotes.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Multicall.sol";
+import "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/finance/VestingWalletUpgradeable.sol";
 
-contract VestingTemplate is VestingWalletUpgradeable, Multicall
+contract VestingTemplate is VestingWalletUpgradeable, MulticallUpgradeable
 {
     VestingFactory public immutable registry = VestingFactory(msg.sender);
     uint64         private          _cliff;

@@ -7,5 +7,9 @@
 	"matic-tokenCreator": "0x7335dB10622eeCdEFfAdAee7F2454e37aedf7002",
 	"matic-tokenXCreatorV2-pending": "0xb16fe365a6955a46b3379707afd35e8ed6654f136109f5368f2233ced12eab1c",
 	"matic-tokenXCreatorV2": "0x88C3E2AC77fCd790FfC2CBb0F10f20776851e2E2",
-	"matic-tokenCreatorV2": "0x1c36fcaa728F4cEec74F119E39c80eF4dF2b38d9"
+	"matic-tokenCreatorV2": "0x1c36fcaa728F4cEec74F119E39c80eF4dF2b38d9",
+	"giftcard-WPACK-pending": "0xe7b42e8aa3b6a8f89076da54f1a5b07bedbd079d1c0fa5605963220f93f8edee",
+	"giftcard-WPACK": "0xe0517B8A8179F1eE63dCE1EdaB883844a09DbC14",
+	"giftcard-ST4RT-pending": "0xf27ed25a96dc8aeba40288bf66b07a090f2d0658148897d2eec0f0db78cf06d8",
+	"giftcard-ST4RT": "0xe05b172278722b7009faF690508aE437E8bA2de2"
 }

@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@amxx/hre/contracts/ENSReverseRegistration.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
-import "@openzeppelin/contracts/utils/Multicall.sol";
+import "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -19,7 +19,7 @@ contract P00lsRegistryBase is
     ERC721Upgradeable,
     RegistryOwnableUpgradeable,
     UUPSUpgradeable,
-    Multicall
+    MulticallUpgradeable
 {
     bytes32 public constant REGISTRY_MANAGER_ROLE = keccak256("REGISTRY_MANAGER_ROLE");
     bytes32 public constant UPGRADER_ROLE         = keccak256("UPGRADER_ROLE");

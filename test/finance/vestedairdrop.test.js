@@ -71,7 +71,7 @@ describe('Vested airdrop', function () {
     const proof       = this.merkletree.getHexProof(vestingHash);
 
     await expect(this.vestedAirdrop.release(vesting, proof))
-    .to.be.revertedWith('unknown airdrop');
+    .to.be.revertedWith('VestedAirdrops: unknown airdrop');
   });
 
   describe('with airdrop enabled', function () {
