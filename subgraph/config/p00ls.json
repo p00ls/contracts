@@ -18,7 +18,8 @@
       "erc20",
       "erc1967upgrade",
       "ownable",
-      "voting"
+      "voting",
+      "p00lstokencreator"
     ]
   },{
     "name": "VestingAirdrops",
