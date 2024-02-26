@@ -9,5 +9,11 @@
 	"matic-tokenXCreatorV2": "0x1f750C7830b4f5C3ca2BD121076E2E440ad64a89",
 	"matic-tokenCreatorV2": "0x13CE5b62dc2379A794913F12E35Ff3dC998a0C8a",
 	"giftcard-GF3-pending": "0x78fc74cc5c59a3decc9e98eadd68379383f7b2381b786767c3edafbe95a25a2f",
-	"giftcard-GF3": "0xcf1008954E984749c187fB0f5C7D7A5AB8450667"
+	"giftcard-GF3": "0xcf1008954E984749c187fB0f5C7D7A5AB8450667",
+	"giftcard-test-pending": "0x35ea47bf931238d4b4077d731f438a433f9a15185293f0f9a285448559e1479d",
+	"giftcard-test": "0xdFD2A754bbb3F004ef7BB7aB5fC9C3c7E8ae912B",
+	"giftcard-test1-pending": "0x409ce173a823cf65736724f60d397b8a78547f272dba7389cfdf61a8d57b8bc9",
+	"giftcard-test1": "0x57827c9A9305b4E6587980Eb5B7a383eD131C58B",
+	"giftcard-test2-pending": "0xb95096c2ae72d36312622adfa58d305f28b59fbeb64133a4658febb777ea59a9",
+	"giftcard-test2": "0xbDE3fEE404eCE58E52f32f664E6786630F24284d"
 }
