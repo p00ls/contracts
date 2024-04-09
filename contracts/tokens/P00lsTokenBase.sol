@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@amxx/hre/contracts/ENSReverseRegistration.sol";
-import "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol";
+import "../vendor/@amxx-hre-0.1.0/ENSReverseRegistration.sol";
+import "@openzeppelin/contracts-upgradeable-v4/utils/MulticallUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable-v4/token/ERC20/extensions/ERC20VotesUpgradeable.sol";
 import "./extensions/ERC1046Upgradeable.sol";
 import "./extensions/ERC1363Upgradeable.sol";
 

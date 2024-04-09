@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@amxx/hre/contracts/ENSReverseRegistration.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/interfaces/IERC4906.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/utils/Multicall.sol";
+import "../vendor/@amxx-hre-0.1.0/ENSReverseRegistration.sol";
+import "@openzeppelin/contracts-v4/access/Ownable.sol";
+import "@openzeppelin/contracts-v4/interfaces/IERC4906.sol";
+import "@openzeppelin/contracts-v4/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts-v4/utils/Address.sol";
+import "@openzeppelin/contracts-v4/utils/Multicall.sol";
 import "./implementations/ERC6551Account.sol";
 import "./interfaces/IAccountProxy.sol";
 import "./interfaces/IERC6551Registry.sol";

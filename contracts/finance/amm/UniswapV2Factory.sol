@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
+import "@openzeppelin/contracts-v4/access/AccessControl.sol";
+import "@openzeppelin/contracts-v4/proxy/Clones.sol";
 import "./libraries/UniswapV2Library.sol";
 import './UniswapV2Pair.sol';
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts-v4/token/ERC20/utils/SafeERC20.sol";
 import "@maticnetwork/fx-portal/contracts/tunnel/FxBaseRootTunnel.sol";
 import "../../tokens/interfaces.sol";
 import "../../utils/convert.sol";

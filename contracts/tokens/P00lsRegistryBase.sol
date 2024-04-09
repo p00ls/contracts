@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@amxx/hre/contracts/ENSReverseRegistration.sol";
-import "@openzeppelin/contracts/utils/Create2.sol";
-import "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "../vendor/@amxx-hre-0.1.0/ENSReverseRegistration.sol";
+import "@openzeppelin/contracts-v4/utils/Create2.sol";
+import "@openzeppelin/contracts-upgradeable-v4/utils/MulticallUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable-v4/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable-v4/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable-v4/proxy/utils/UUPSUpgradeable.sol";
 import "../utils/Beacon.sol";
 import "../utils/BeaconProxy.sol";
 import "../utils/RegistryOwnable.sol";

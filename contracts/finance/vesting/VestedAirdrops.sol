@@ -2,12 +2,12 @@
 
 pragma solidity ^0.8.0;
 
-import "@amxx/hre/contracts/ENSReverseRegistration.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
-import "@openzeppelin/contracts/utils/Multicall.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import "../../vendor/@amxx-hre-0.1.0/ENSReverseRegistration.sol";
+import "@openzeppelin/contracts-v4/access/AccessControl.sol";
+import "@openzeppelin/contracts-v4/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts-v4/utils/math/Math.sol";
+import "@openzeppelin/contracts-v4/utils/Multicall.sol";
+import "@openzeppelin/contracts-v4/utils/cryptography/MerkleProof.sol";
 
 /// @custom:security-contact security@p00ls.com
 contract VestedAirdrops is AccessControl, Multicall {

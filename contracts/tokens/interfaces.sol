@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/interfaces/IERC20.sol";
-import "@openzeppelin/contracts/interfaces/IERC721.sol";
-import "@openzeppelin/contracts/interfaces/draft-IERC2612.sol";
-import "@openzeppelin/contracts/interfaces/IERC4626.sol";
-import "@openzeppelin/contracts/governance/utils/IVotes.sol";
+import "@openzeppelin/contracts-v4/interfaces/IERC20.sol";
+import "@openzeppelin/contracts-v4/interfaces/IERC721.sol";
+import "@openzeppelin/contracts-v4/interfaces/draft-IERC2612.sol";
+import "@openzeppelin/contracts-v4/interfaces/IERC4626.sol";
+import "@openzeppelin/contracts-v4/governance/utils/IVotes.sol";
 import "./extensions/IERC1046.sol";
 import "./extensions/IERC1363.sol";
 

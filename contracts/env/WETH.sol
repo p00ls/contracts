@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts-v4/token/ERC20/extensions/draft-ERC20Permit.sol";
+import "@openzeppelin/contracts-v4/utils/Address.sol";
 import "./IWETH.sol";
 
 contract WETH is IWETH, ERC20Permit {

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import "@openzeppelin/contracts/utils/structs/BitMaps.sol";
+import "@openzeppelin/contracts-v4/utils/cryptography/MerkleProof.sol";
+import "@openzeppelin/contracts-v4/utils/structs/BitMaps.sol";
 import "../utils/RegistryOwnable.sol";
 import "./P00lsTokenBase.sol";
 import "./interfaces.sol";

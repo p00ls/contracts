@@ -2,12 +2,12 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/governance/utils/IVotes.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/utils/Multicall.sol";
-import "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/finance/VestingWalletUpgradeable.sol";
+import "@openzeppelin/contracts-v4/governance/utils/IVotes.sol";
+import "@openzeppelin/contracts-v4/proxy/Clones.sol";
+import "@openzeppelin/contracts-v4/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts-v4/utils/Multicall.sol";
+import "@openzeppelin/contracts-upgradeable-v4/utils/MulticallUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable-v4/finance/VestingWalletUpgradeable.sol";
 
 contract VestingTemplate is VestingWalletUpgradeable, MulticallUpgradeable
 {
