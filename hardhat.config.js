@@ -51,7 +51,7 @@ const networkNames = [
   // optimism
   'optimisticEthereum', 'optimisticKovan',
   // polygon
-  'polygon', 'polygonMumbai',
+  'polygon', 'polygonMumbai', 'polygonAmoy',
   // arbitrum
   'arbitrumOne', 'arbitrumTestnet',
   // avalanche
@@ -92,6 +92,16 @@ module.exports = {
   },
   etherscan: {
     apiKey: argv.etherscan,
+    customChains: [
+      {
+        network: "polygonAmoy",
+        chainId: 80002,
+        urls: {
+          apiURL: "https://api-amoy.polygonscan.com/api",
+          browserURL: "https://amoy.polygonscan.com/"
+        }
+      }
+    ]
   },
   gasReporter: {
     currency: 'USD',

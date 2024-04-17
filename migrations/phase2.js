@@ -49,7 +49,7 @@ async function migrate(config = {}, env = {}) {
 
     const tokenXCreator = await upgrades.prepareUpgrade(
         await registry.beaconXCreator(),
-        await getFactory('P00lsTokenXCreatorV2', { signer }),
+        await getFactory('P00lsTokenXCreator_V2', { signer }),
         { constructorArgs: [ escrow.address ], unsafeAllow: 'delegatecall' },
     );
 

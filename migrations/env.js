@@ -17,4 +17,8 @@ module.exports = {
     weth:      "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
     multicall: "0xcA11bde05977b3631167028862bE2a173976CA11",
   },
+  11155111: {
+    weth:      "0x7b79995e5f793a07bc00c21412e50ecae098e7f9",
+    multicall: "0xcA11bde05977b3631167028862bE2a173976CA11",
+  }
 };
