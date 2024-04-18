@@ -1,0 +1,33 @@
+{
+  "output": "./generated/p00ls-staging-sepolia.",
+  "chain": "sepolia",
+  "datasources": [{
+    "name": "P00lsCreatorRegistry",
+    "address": "0xa00B44A75f837eC140817cCc69a4F50b1640d858",
+    "startBlock": 5717833,
+    "module": [
+      "accesscontrol",
+      "erc721",
+      "erc1967upgrade",
+      "voting",
+      "p00lscreatorregistry"
+    ]
+  },{
+    "name": "P00lsCreatorToken",
+    "templates": [
+      "erc20",
+      "erc1967upgrade",
+      "ownable",
+      "voting",
+      "p00lstokencreator"
+    ]
+  },{
+    "name": "VestingAirdrops",
+    "address": "0xe83d080F6a83b4d1b38F4266545412FeC7709e00",
+    "startBlock": 5717830,
+    "module": [
+      "accesscontrol",
+      "vesting"
+    ]
+  }]
+}

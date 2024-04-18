@@ -1,0 +1,25 @@
+{
+  "output": "./generated/p00ls-staging-amoy.",
+  "chain": "amoy",
+  "datasources": [{
+    "name": "P00lsCreatorRegistry",
+    "address": "0x3a6ca0DfB78e49aE01BaA577e03a1c52e63eCe43",
+    "startBlock": 5974322,
+    "module": [
+      "accesscontrol",
+      "erc721",
+      "erc1967upgrade",
+      "voting",
+      "p00lscreatorregistry"
+    ]
+  },{
+    "name": "P00lsCreatorToken",
+    "templates": [
+      "erc20",
+      "erc1967upgrade",
+      "ownable",
+      "voting",
+      "p00lstokencreator"
+    ]
+  }]
+}
