@@ -8,16 +8,16 @@ import {AccessControlUpgradeable}      from "@openzeppelin/contracts-upgradeable
 import {UUPSUpgradeable}               from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ERC721Upgradeable}             from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {MulticallUpgradeable}          from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
-import {Beacon}                        from "../utils-v2/Beacon.sol";
+import {BeaconUpgradeable}             from "../utils-v2/BeaconUpgradeable.sol";
 import {Conversion}                    from "../utils-v2/Conversion.sol";
 import {HybridProxy}                   from "../utils-v2/HybridProxy.sol";
 import {RegistryOwnableUpgradeable}    from "../utils-v2/RegistryOwnableUpgradeable.sol";
 import {AccessControlOwnedUpgradeable} from "../utils-v2/AccessControlOwnedUpgradeable.sol";
 
 /// @custom:security-contact security@p00ls.com
-contract RegistryBase is
+contract P00lsV2RegistryBase is
     AccessControlOwnedUpgradeable,
-    Beacon,
+    BeaconUpgradeable,
     ERC721Upgradeable,
     RegistryOwnableUpgradeable,
     UUPSUpgradeable,
@@ -47,35 +47,26 @@ contract RegistryBase is
     }
 
     // Token instance deployment
-    function _createProxy(address beaconOrImpl)
+    function _createProxy(address beaconOrImpl, bytes memory initdata)
         internal
         returns (address)
     {
-        return address(new HybridProxy(beaconOrImpl));
+        return address(new HybridProxy(beaconOrImpl, initdata));
     }
 
-    function _createProxy(address beaconOrImpl, bytes32 salt)
+    function _createProxyDeterministic(address beaconOrImpl, bytes memory initdata)
         internal
         returns (address)
     {
-        return address(new HybridProxy{ salt: salt }(beaconOrImpl));
+        return address(new HybridProxy{ salt: bytes32(0) }(beaconOrImpl, initdata));
     }
 
-    function _predictProxy(address beaconOrImpl, bytes32 salt)
+    function _predictProxy(address beaconOrImpl, bytes memory initdata)
         internal
         view
         returns (address)
     {
-        return Create2.computeAddress(salt, keccak256(bytes.concat(type(HybridProxy).creationCode, abi.encode(beaconOrImpl))));
-    }
-
-    /// Token URI customization
-    function setBaseURI(string memory baseURI)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        __baseURI = baseURI;
-        emit IERC4906.BatchMetadataUpdate(0, type(uint256).max);
+        return Create2.computeAddress(bytes32(0), keccak256(bytes.concat(type(HybridProxy).creationCode, abi.encode(beaconOrImpl, initdata))));
     }
 
     function _baseURI()
@@ -87,12 +78,11 @@ contract RegistryBase is
         return __baseURI;
     }
 
-    // Token upgrade
-    function upgradeTokens(address newImplementation)
-        external
-        onlyRole(UPGRADER_ROLE)
+    function _setBaseURI(string memory baseURI)
+        internal
     {
-        _setImplementation(newImplementation);
+        __baseURI = baseURI;
+        emit IERC4906.BatchMetadataUpdate(0, type(uint256).max);
     }
 
     /*****************************************************************************************************************

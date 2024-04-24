@@ -44,11 +44,6 @@ abstract contract ERC1363Upgradeable is Initializable, ERC20Upgradeable, ERC165U
      */
     error ERC1363ApproveFailed(address spender, uint256 value);
 
-    function __ERC1363_init() internal onlyInitializing {
-    }
-
-    function __ERC1363_init_unchained() internal onlyInitializing {
-    }
     /**
      * @inheritdoc IERC165
      */

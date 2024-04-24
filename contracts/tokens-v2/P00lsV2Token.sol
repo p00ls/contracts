@@ -2,6 +2,7 @@
 
 pragma solidity ^0.8.20;
 
+import {IBeacon}                       from "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
 import {ERC1967Utils}                  from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 import {MerkleProof}                   from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {BitMaps}                       from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
@@ -17,7 +18,7 @@ import {ERC1363Upgradeable}            from "./extensions/ERC1363Upgradeable.sol
 import {ERC1046Upgradeable}            from "./extensions/ERC1046Upgradeable.sol";
 
 /// @custom:security-contact security@p00ls.com
-abstract contract Token is
+contract P00lsV2Token is
     AccessControlOwnedUpgradeable,
     RegistryOwnable,
     ERC20PermitUpgradeable,
@@ -28,9 +29,8 @@ abstract contract Token is
 {
     using BitMaps for BitMaps.BitMap;
 
-    bytes32 public   constant  WHITELISTER = keccak256("WHITELISTER");
-    bytes32 public   constant  WHITELISTED = keccak256("WHITELISTED");
-    address internal immutable self        = address(this);
+    bytes32 public constant WHITELISTER = keccak256("WHITELISTER");
+    bytes32 public constant WHITELISTED = keccak256("WHITELISTED");
 
     bool           public isOpen;
     bytes32        public merkleRoot;
@@ -83,18 +83,18 @@ abstract contract Token is
     }
 
     // Admin
-    // function setTokenURI(string calldata _tokenURI)
-    //     external
-    // {
-    //     require(owner() == msg.sender, "P00lsToken: restricted");
-    //     _setTokenURI(_tokenURI);
-    // }
+    function setTokenURI(string calldata _tokenURI) public onlyOwner {
+        _setTokenURI(_tokenURI);
+    }
 
     // Block upgradeability
-    function lockUpgradeability() public onlyOwner() {
+    function detachUpgradeability() public onlyOwner() {
         address implementation = ERC1967Utils.getImplementation();
-        require(implementation != self, "Implementation already locked");
-        ERC1967Utils.upgradeToAndCall(implementation, "");
+        try IBeacon(implementation).implementation() returns (address result) {
+            ERC1967Utils.upgradeToAndCall(result, "");
+        } catch {
+            revert("Implementation already detached");
+        }
     }
 
     /*****************************************************************************************************************

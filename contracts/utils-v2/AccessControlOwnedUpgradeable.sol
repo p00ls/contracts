@@ -24,7 +24,7 @@ abstract contract AccessControlOwnedUpgradeable is AccessControlUpgradeable {
         override
         returns (bool)
     {
-        require(role != DEFAULT_ADMIN_ROLE, "Admin role is managed by NFT");
+        require(role != DEFAULT_ADMIN_ROLE, "Admin role is managed by ownership");
         return super._grantRole(role, account);
     }
 
@@ -34,7 +34,7 @@ abstract contract AccessControlOwnedUpgradeable is AccessControlUpgradeable {
         override
         returns (bool)
     {
-        require(role != DEFAULT_ADMIN_ROLE, "Admin role is managed by NFT");
+        require(role != DEFAULT_ADMIN_ROLE, "Admin role is managed by ownership");
         return super._revokeRole(role, account);
     }
 }
