@@ -33,6 +33,16 @@ async function migrate(config = {}, env = {})
         { ...opts, kind: 'uups', unsafeAllow: 'delegatecall' },
     );
 
+    const mintRelay = isEnabled('registryV2') && await manager.migrate(
+        'mint-relay',
+        getFactory('MintRelay', { signer }),
+        [
+            registry.address,
+            signer.address
+        ],
+        { ...opts },
+    );
+
     // ------ Token templates ----------------------------------------------------------------------------------------
     const tokenImpl = isEnabled('registryV2') && registry && await manager.migrate(
         'tokenV2',
@@ -62,15 +72,20 @@ async function migrate(config = {}, env = {})
         DEFAULT_ADMIN:    ethers.constants.HashZero,
         REGISTRY_MANAGER: ethers.utils.id('REGISTRY_MANAGER_ROLE'),
         UPGRADER:         ethers.utils.id('UPGRADER_ROLE'),
-        WHITELISTER:      ethers.utils.id('WHITELISTER'),
-        WHITELISTED:      ethers.utils.id('WHITELISTED'),
+        WHITELISTER:      ethers.utils.id('WHITELISTER_ROLE'),
+        WHITELISTED:      ethers.utils.id('WHITELISTED_ROLE'),
+        MINTER:           ethers.utils.id('MINTER_ROLE'),
     }).map(entry => Promise.all(entry))).then(Object.fromEntries);
+
+    // setup roles
+    isEnabled('registryV2') && await registry.hasRole(roles.REGISTRY_MANAGER, mintRelay.address).then(yes => yes || registry.grantRole(roles.REGISTRY_MANAGER, mintRelay.address).then(tx => tx.wait()));
 
     return {
         config,
         roles,
         contracts: {
             registry,
+            mintRelay,
             tokenImpl,
         },
         workflows: {

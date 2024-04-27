@@ -340,7 +340,7 @@ describe('$Crea Token', function () {
         await expect(this.creatorToken.isOpen()).to.be.not.reverted;
 
         expect(await ethers.provider.getStorageAt(this.creatorToken.address, ERC1967IMPLEMENTATION).then(slot => ethers.utils.getAddress(slot.slice(-40))))
-        .to.be.equal(this.v2.registry.address);
+          .to.be.equal(this.v2.registry.address);
 
         // Lock
         await expect(this.creatorToken.connect(this.accounts.artist).detachUpgradeability())

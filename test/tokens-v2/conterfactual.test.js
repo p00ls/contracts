@@ -20,7 +20,7 @@ describe('Create token conterfactualy', function () {
 
     const predicted = await this.v2.registry.predictToken2(name, symbol, root);
 
-    expect(await this.v2.registry.createToken2(this.accounts.artist.address, name, symbol, root))
-    .to.emit(this.v2.registry, 'Transfer').withArgs(ethers.constants.AddressZero, this.accounts.artist.address, predicted);
+    await expect(this.v2.registry.createToken2(this.accounts.artist.address, name, symbol, root))
+      .to.emit(this.v2.registry, 'Transfer').withArgs(ethers.constants.AddressZero, this.accounts.artist.address, predicted);
   });
 });
