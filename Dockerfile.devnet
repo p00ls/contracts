@@ -1,0 +1,19 @@
+FROM node:16-alpine as build
+RUN apk add g++ make py3-pip
+
+WORKDIR /usr/src/app
+
+COPY package.json ./
+COPY package-lock.json ./
+RUN npm install
+
+COPY contracts ./contracts
+COPY hardhat.config.js ./
+RUN npm run compile
+
+COPY . ./
+EXPOSE 8545
+
+# CMD [ "npm", "run", "devnet:node" ]
+
+ENTRYPOINT ["/bin/sh", "./scripts/devnet.sh"]
