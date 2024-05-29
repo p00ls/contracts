@@ -18,6 +18,16 @@ module.exports = mapValues(
       root: 'bytes32',
       fees: 'bytes32',
     },
+    Distribution: {
+      owner: 'address',
+      allocations: 'Allocation[]',
+      nonce: 'uint256',
+    },
+    Allocation: {
+      token: 'address',
+      recipient: 'address',
+      amount: 'uint256',
+    },
   },
   formatType,
 );
