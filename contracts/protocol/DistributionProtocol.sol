@@ -21,7 +21,7 @@ struct Allocation {
     uint256 amount;
 }
 
-
+/// @custom:security-contact security@p00ls.com
 contract DistributionProtocol is
     ERC20("P00ls Distribution", "p00ls-distribution"),
     EIP712("P00ls Distribution", "1"),
@@ -29,10 +29,11 @@ contract DistributionProtocol is
 {
     using ECDSA for bytes32;
 
-    uint256 public   immutable FEE_PER_ALLOCATION     = 0.000001 ether; // TODO
-    bytes32 internal constant  _DISTRIBUTION_TYPEHASH = keccak256("Distribution(address owner,Allocation[] allocations,uint256 nonce)Allocation(address token,address recipient,uint256 amount)");
-    bytes32 internal constant  _ALLOCATION_TYPEHASH   = keccak256("Allocation(address token,address recipient,uint256 amount)");
-    uint256 internal constant  _GAS_OFFSET            = 45_000;
+    uint256 public   immutable FEE_PER_ALLOCATION         = 0.000001 ether; // TODO
+    bytes32 internal constant  _DISTRIBUTION_TYPEHASH     = keccak256("Distribution(address owner,Allocation[] allocations,uint256 nonce)Allocation(address token,address recipient,uint256 amount)");
+    bytes32 internal constant  _ALLOCATION_TYPEHASH       = keccak256("Allocation(address token,address recipient,uint256 amount)");
+    uint256 internal constant  _GAS_OFFSET                = 43_850;
+    uint256 internal constant  _GAS_OFFSET_PER_ALLOCATION = 865;
 
     mapping(address owner => mapping(address oracle => mapping(IERC20 token => bool))) private _authorized;
 
@@ -115,7 +116,7 @@ contract DistributionProtocol is
         uint256 oracleFee = FEE_PER_ALLOCATION * allocations.length;
         Address.sendValue(payable(oracle), oracleFee);
 
-        uint256 gasRefund = (initialGas - gasleft() + _GAS_OFFSET) * tx.gasprice; // Not everything, need tunning
+        uint256 gasRefund = (initialGas - gasleft() + _GAS_OFFSET + _GAS_OFFSET_PER_ALLOCATION * allocations.length) * tx.gasprice; // Not everything, need tunning
         Address.sendValue(payable(tx.origin), gasRefund);
 
         _burn(owner, oracleFee + gasRefund);

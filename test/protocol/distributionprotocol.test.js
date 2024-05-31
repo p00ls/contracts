@@ -47,13 +47,16 @@ describe('Distribution Protocol', function () {
         { owner, allocations, nonce },
       );
 
+      const balanceBefore = await ethers.provider.getBalance(this.accounts.other.address);
+
       const tx = await this.distribution.connect(this.accounts.other).process(owner, allocations, nonce, signature);
       await expect(tx)
         .to.emit(this.token, 'Transfer').withArgs(owner, allocations[0].recipient, allocations[0].amount)
         .to.emit(this.token, 'Transfer').withArgs(owner, allocations[1].recipient, allocations[1].amount)
         .to.emit(this.token, 'Transfer').withArgs(owner, allocations[2].recipient, allocations[2].amount);
 
-      // TODO: more checks
+      const balanceAfter = await ethers.provider.getBalance(this.accounts.other.address);
+      console.log(`tx.origin balance change (in unit of gas): ${(balanceAfter - balanceBefore) / tx.gasPrice}`);
     });
 
     it('invalid oracle', async function () {
