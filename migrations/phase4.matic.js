@@ -1,4 +1,4 @@
-const { upgrades                             } = require('hardhat');
+const { upgrades, network                             } = require('hardhat');
 const { MigrationManager, getFactory, attach } = require('@amxx/hre/scripts');
 const { assert                               } = require('chai');
 const DEBUG  = require('debug')('p00ls');
@@ -16,6 +16,12 @@ const roles = {
 };
 
 upgrades.silenceWarnings();
+
+function fxChildAddress(chainId) {
+    if (chainId === 137) return matic.mainnet.fxChild.address;
+    if (chainId === 80001) return matic.testnet.fxChild.address;
+    return "0xE5930336866d0388f0f745A2d9207C7781047C0f";
+}
 
 async function migrate(config = {}, env = {}) {
     const provider = env.provider || ethers.provider;
@@ -35,13 +41,13 @@ async function migrate(config = {}, env = {}) {
     /*******************************************************************************************************************
      *                                                   Registry V2                                                   *
      *******************************************************************************************************************/
-    assert.include([137, 80001], network.chainId, 'The migration script is for sidechain (matic & mumbai) only');
+    assert.include([137, 80001, 80002], network.chainId, 'The migration script is for sidechain (matic & mumbai & amoy) only');
 
     const registry = await manager.cache.get('matic-registry');
     const registryV2Impl = await upgrades.prepareUpgrade(
         registry,
         await getFactory('P00lsCreatorRegistry_Polygon_V2', {signer}),
-        { kind: 'uups', constructorArgs: [ network.chainId === 137 ? matic.mainnet.fxChild.address : matic.testnet.fxChild.address ] },
+        { kind: 'uups', constructorArgs: [ fxChildAddress(network.chainId) ] },
     );
 
     DEBUG(`- P00lsCreatorRegistry_Polygon_V2 deployed ${registryV2Impl}`);

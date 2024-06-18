@@ -34,7 +34,7 @@ async function migrate(config = {}, env = {}) {
     /*******************************************************************************************************************
      *                                                   Registry V2                                                   *
      *******************************************************************************************************************/
-    assert.include([1, 5], network.chainId, 'The migration script is for L1 (mainnet & goerli) only');
+    assert.include([1, 5, 11155111], network.chainId, 'The migration script is for L1 (mainnet & goerli & sepolia) only');
 
     const registryV2 = await upgrades.prepareUpgrade(
         await manager.cache.get('registry'),

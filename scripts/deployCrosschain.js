@@ -26,6 +26,21 @@ async function migrate(config = {}, env = {})
             chains.L2 = signer;
             config.matic = matic.testnet;
             break;
+        case 80002:
+            chains.L1 = ethers.Wallet.fromMnemonic(argv.mnemonic).connect(ethers.getDefaultProvider(argv.sepoliaNode));
+            chains.L2 = signer;
+            config.matic = { 
+                fxChild: {
+                    address: "0xE5930336866d0388f0f745A2d9207C7781047C0f"
+                },
+                checkpointManager: {
+                    address: "0xbd07D7E1E93c8d4b2a261327F3C28a8EA7167209"
+                },
+                fxRoot: {
+                    address: "0x0E13EBEdDb8cf9f5987512d5E081FdC2F5b0991e"
+                }
+            };
+            break;
         // local testnet
         case 1337:
         case 31337:

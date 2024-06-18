@@ -1,0 +1,11 @@
+{
+	"matic-escrow-pending": "0xa2cb4717b45c99a9902da4f88975c66730ce34bc43767114b1ef2df83d52a38c",
+	"matic-escrow": "0xB6A494B16950e685a8ff416319806Bac519d0596",
+	"matic-registry-pending": "0x0838c080fd6f1750da2c20c27f0754960fc71ddbd54fbf02cc1b3c265aeecf3f",
+	"matic-registry": "0x3a6ca0DfB78e49aE01BaA577e03a1c52e63eCe43",
+	"matic-tokenCreator-pending": "0x1857d4e98f1f28a7baae6ab143094fa0d0012e708dc9b22fd960fb1d43e4255a",
+	"matic-tokenCreator": "0xB351776f096FDB8692F6D67f30C1b60E94845216",
+	"matic-tokenXCreatorV2-pending": "0xf983568f08522f191cb2297e8b99f101e395cf72349fca0eed460792447dcbd8",
+	"matic-tokenXCreatorV2": "0xcbdEd442916A8713106da9eEf9b56bea2bC10b53",
+	"matic-tokenCreatorV2": "0x5BC2476bD1ec331C957886899aF3999d88d362CC"
+}
