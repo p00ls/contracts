@@ -60,6 +60,8 @@ const networkNames = [
   'moonbeam', 'moonriver', 'moonbaseAlpha',
   // xdai
   'xdai', 'sokol',
+  // base
+  'base', 'sepoliaBase'
 ];
 
 module.exports = {
@@ -99,6 +101,14 @@ module.exports = {
         urls: {
           apiURL: "https://api-amoy.polygonscan.com/api",
           browserURL: "https://amoy.polygonscan.com/"
+        }
+      },
+      {
+        network: "sepoliaBase",
+        chainId: 84532,
+        urls: {
+            apiURL: "https://api-sepolia.basescan.org/api",
+            browserURL: "https://sepolia.basescan.org/"
         }
       }
     ]

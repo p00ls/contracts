@@ -21,5 +21,6 @@ coverage.json
 !.cache-80001.json
 !.cache-80002.json
 !.cache-11155111.json
+!.cache-84532.json
 
 package-lock.json

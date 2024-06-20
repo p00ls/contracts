@@ -7,5 +7,11 @@
 	"matic-tokenCreator": "0xB351776f096FDB8692F6D67f30C1b60E94845216",
 	"matic-tokenXCreatorV2-pending": "0xf983568f08522f191cb2297e8b99f101e395cf72349fca0eed460792447dcbd8",
 	"matic-tokenXCreatorV2": "0xcbdEd442916A8713106da9eEf9b56bea2bC10b53",
-	"matic-tokenCreatorV2": "0x5BC2476bD1ec331C957886899aF3999d88d362CC"
+	"matic-tokenCreatorV2": "0x5BC2476bD1ec331C957886899aF3999d88d362CC",
+	"registryV2-pending": "0xffdc1df80acef6e2e43f0b5d59d5373732a2524c011d0c07e1660c449324487f",
+	"registryV2": "0x29E6D43bBe32CDB3bfBCc3a71144460d82809804",
+	"mint-relay-pending": "0xbf11d0f90e5da35166d4ca354aad347510fd8a1245e3c130e74447130573d4aa",
+	"mint-relay": "0x48991274a79904E17E619a389f56Fc9238625b9F",
+	"tokenV2-pending": "0xf10c1d8f380599204dca2c225f9318668e4f3667f1e5ce6bc676f5dea7bb1ed5",
+	"tokenV2": "0xBb15554eC0c35479b4E52670Ce8Fc35D1F95c46A"
 }
